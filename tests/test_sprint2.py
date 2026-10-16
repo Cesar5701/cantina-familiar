@@ -18,40 +18,7 @@ from src.analizador import (
     validar_esquema_y_rangos,
 )
 from src.io_utils import ResumenScraping, guardar_csv_atomico, guardar_json_atomico
-
-
-def crear_df_prueba(filas: list[dict]) -> pd.DataFrame:
-    base = {
-        "tienda": "Bodegas Alianza",
-        "producto": "Tequila Dobel Diamante 750 ml",
-        "marca": "Maestro Dobel",
-        "categoria": "Tequila",
-        "subcategoria": "Añejo Cristalino",
-        "clase": "Añejo Cristalino",
-        "tipo_mezcal": "no_aplica",
-        "especie_agave": "Tequilana Weber azul",
-        "productor": "José Cuervo",
-        "sello_regulador": "sí",
-        "ml": 750,
-        "abv": 35.0,
-        "precio_regular": 750.0,
-        "precio_promo": 650.0,
-        "unidades_promo": 1,
-        "precio_total_promo": 650.0,
-        "condiciones": "Precio regular",
-        "disponibilidad": "disponible",
-        "url": "https://tienda.com/producto",
-        "fecha_consulta": "2026-10-16 12:00",
-        "fuente": "Test",
-        "confianza": "Confirmado",
-    }
-    registros = []
-    for f in filas:
-        item = base.copy()
-        item.update(f)
-        registros.append(item)
-    return pd.DataFrame(registros)
-
+from tests.conftest import crear_df_prueba
 
 # ---------------------------------------------------------------------------
 # Pruebas H8: Deduplicación y Comparativa Cross-Tienda

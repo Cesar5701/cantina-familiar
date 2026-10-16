@@ -5,26 +5,18 @@ Consulta exclusivamente la API pública permitida en robots.txt:
 """
 
 import argparse
-import sys
 import time
 import urllib.parse
 import urllib.request
 from datetime import datetime
 
 BASE_URL = "https://www.bodegasalianza.com/api/catalog_system/pub/products/search/{term}"
-USER_AGENT = "CantinaFamiliarBot/1.0 (+decision-support; personal-use)"
-
-
-import os
-
-RAIZ_PROYECTO = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if RAIZ_PROYECTO not in sys.path:
-    sys.path.insert(0, RAIZ_PROYECTO)
-
 from src.clasificacion import clasificar_categoria, extraer_ml
-from src.http_utils import descargar_json_con_reintentos
+from src.http_utils import USER_AGENT_BOT, descargar_json_con_reintentos
 from src.io_utils import ResumenScraping, guardar_csv_atomico
 from src.logger import get_logger
+
+USER_AGENT = USER_AGENT_BOT
 
 logger = get_logger("scraper_alianza")
 

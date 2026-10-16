@@ -12,8 +12,6 @@ Filtros aplicados según solicitud:
 5. Vino: Tintos para clericot y mesa familiar.
 """
 
-import os
-import sys
 import time
 import urllib.parse
 import urllib.request
@@ -21,16 +19,12 @@ from datetime import datetime
 
 import pandas as pd
 
-USER_AGENT = "CantinaFamiliarBot/1.0 (+decision-support; personal-use; exhaustive-collector)"
-
-RAIZ_PROYECTO = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if RAIZ_PROYECTO not in sys.path:
-    sys.path.insert(0, RAIZ_PROYECTO)
-
 from src.clasificacion import KEYWORDS_BLENDED_WHISKY, KEYWORDS_SILVESTRES, clasificar_agave_mezcal, extraer_ml
-from src.http_utils import descargar_json_con_reintentos
+from src.http_utils import USER_AGENT_BOT, descargar_json_con_reintentos
 from src.io_utils import ResumenScraping, guardar_csv_atomico
 from src.logger import get_logger
+
+USER_AGENT = USER_AGENT_BOT
 
 logger = get_logger("scraper_catalogo_completo")
 

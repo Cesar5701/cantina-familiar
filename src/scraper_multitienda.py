@@ -13,7 +13,6 @@ y descarta mercancía, alimentos, mezcladores, latas RTD y miniaturas (< 650 ml)
 
 import json
 import os
-import sys
 import time
 import urllib.parse
 import urllib.request
@@ -21,16 +20,6 @@ from datetime import datetime
 
 import pandas as pd
 from bs4 import BeautifulSoup
-
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,application/json,*/*;q=0.8",
-    "Accept-Language": "es-MX,es;q=0.9,en;q=0.8",
-}
-
-RAIZ_PROYECTO = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if RAIZ_PROYECTO not in sys.path:
-    sys.path.insert(0, RAIZ_PROYECTO)
 
 from src.clasificacion import (
     KEYWORDS_BLENDED_WHISKY,
@@ -40,10 +29,11 @@ from src.clasificacion import (
     extraer_ml,
     limpiar_precio,
 )
-from src.http_utils import descargar_html_con_reintentos, descargar_json_con_reintentos
+from src.http_utils import HEADERS_DEFAULT, descargar_html_con_reintentos, descargar_json_con_reintentos
 from src.io_utils import ResumenScraping, guardar_csv_atomico
 from src.logger import get_logger
 
+HEADERS = HEADERS_DEFAULT
 logger = get_logger("scraper_multitienda")
 
 

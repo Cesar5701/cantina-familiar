@@ -13,10 +13,22 @@ import urllib.error
 import urllib.request
 from typing import Any, Dict, Optional
 
+USER_AGENT_CHROME = (
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
+)
+USER_AGENT_BOT = (
+    "Mozilla/5.0 (compatible; CantinaFamiliarBot/2.0; +https://github.com/cantina-familiar; personal/educativo)"
+)
+
 HEADERS_DEFAULT = {
-    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+    "User-Agent": USER_AGENT_CHROME,
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,application/json,*/*;q=0.8",
     "Accept-Language": "es-MX,es;q=0.9,en;q=0.8",
+}
+
+HEADERS_BOT = {
+    "User-Agent": USER_AGENT_BOT,
+    "Accept": "application/json",
 }
 
 CODIGOS_REINTENTO = {429, 500, 502, 503, 504}

@@ -33,7 +33,8 @@ RAIZ_PROYECTO = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if RAIZ_PROYECTO not in sys.path:
     sys.path.insert(0, RAIZ_PROYECTO)
 
-from src.clasificacion import clasificar_categoria, extraer_ml
+from src.clasificacion import clasificar_categoria, extraer_ml, limpiar_precio
+from src.http_utils import USER_AGENT_CHROME
 from src.io_utils import ResumenScraping, guardar_csv_atomico
 from src.logger import get_logger
 
@@ -45,9 +46,8 @@ from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 
-CHROME_USER_AGENT = (
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
-)
+CHROME_USER_AGENT = USER_AGENT_CHROME
+
 
 INDICADORES_CHALLENGE = [
     "verify your identity",
@@ -131,22 +131,22 @@ def detectar_desafio(driver: webdriver.Remote) -> tuple[bool, str]:
             px = driver.find_elements(By.ID, "px-captcha")
             if px and any(p.is_displayed() for p in px):
                 return True, "Elemento #px-captcha activo en pantalla"
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Error verificando elemento px-captcha: {e}")
 
         try:
             top_msg = driver.find_elements(By.ID, "topmessage")
             if top_msg and any("identidad" in m.text.lower() or "identity" in m.text.lower() for m in top_msg):
                 return True, "Mensaje de verificación de identidad activo (#topmessage)"
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Error verificando elemento topmessage: {e}")
 
         try:
             cf = driver.find_elements(By.ID, "challenge-running")
             if cf and any(c.is_displayed() for c in cf):
                 return True, "Desafío Cloudflare activo (#challenge-running)"
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Error verificando elemento challenge-running: {e}")
 
         # Búsqueda en los primeros 10KB del código fuente
         html_head = (driver.page_source or "")[:10000].lower()
@@ -154,8 +154,8 @@ def detectar_desafio(driver: webdriver.Remote) -> tuple[bool, str]:
             if "mantén presionado el botón" in html_head or "press and hold" in html_head:
                 return True, "Texto de desafío PerimeterX en código fuente"
 
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug(f"Error general en detección de desafío: {e}")
 
     return False, ""
 
@@ -206,20 +206,8 @@ def verificar_y_esperar_desafio(driver: webdriver.Remote, timeout_humano: int = 
     return True
 
 
-def extraer_precio_texto(texto: str) -> float | None:
-    """Extrae valor numérico de una cadena con formato de precio ($1,234.50 o 1234.50)."""
-    if not texto:
-        return None
-    texto = texto.replace("\xa0", " ").strip()
-    match = re.search(r"[\$]?\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)", texto)
-    if match:
-        limpio = match.group(1).replace(",", "")
-        try:
-            val = float(limpio)
-            return val if val > 0 else None
-        except ValueError:
-            return None
-    return None
+# Unificado con dominio clasificacion.py (H27)
+extraer_precio_texto = limpiar_precio
 
 
 def extraer_de_json_embebido(soup: BeautifulSoup, url: str, tienda: str, fecha_consulta: str) -> list[dict]:
@@ -525,8 +513,8 @@ def consultar_urls_secuenciales(
                 driver.execute_script("window.scrollTo(0, 500);")
                 time.sleep(1.0)
                 driver.execute_script("window.scrollTo(0, 0);")
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug(f"Error en scroll de hidratación: {e}")
 
             # ESPERA ACTIVA DE HIDRATACIÓN TRAS DESAFÍO
             logger.info("Esperando que la página hidrate los componentes dinámicos...")

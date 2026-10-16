@@ -22,7 +22,12 @@ RAIZ_PROYECTO = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if RAIZ_PROYECTO not in sys.path:
     sys.path.insert(0, RAIZ_PROYECTO)
 
-from src.analizador import calcular_metricas, detectar_duplicados, validar_esquema_y_rangos
+from src.analizador import (
+    calcular_metricas,
+    detectar_duplicados,
+    normalizar_texto_clave,
+    validar_esquema_y_rangos,
+)
 from src.io_utils import guardar_csv_atomico, guardar_json_atomico
 from src.logger import get_logger
 
@@ -88,8 +93,8 @@ def actualizar_todo():
     )
     df = df[~mask_honey_invalido].copy()
 
-    # Deduplicar por (tienda, producto normalizado, ml)
-    df["prod_key"] = df["producto"].str.lower().str.replace(r"\s+", " ", regex=True).str.strip()
+    # Deduplicar por (tienda, producto normalizado, ml) usando normalizar_texto_clave (H23)
+    df["prod_key"] = df["producto"].apply(normalizar_texto_clave)
     df = (
         df.drop_duplicates(subset=["tienda", "prod_key", "ml"], keep="first")
         .drop(columns=["prod_key"])
@@ -100,11 +105,19 @@ def actualizar_todo():
     df = detectar_duplicados(df)
     df = calcular_metricas(df)
 
-    # Validación de esquema y rangos (H9)
+    # Validación de esquema y rangos (H9 / H22)
     df, reporte_val = validar_esquema_y_rangos(df)
-    logger.info(
-        f"Auditoría de datos: {reporte_val['registros_validos']}/{reporte_val['total_registros']} registros válidos (0 anomalías críticas)"
+    anomalias = (
+        reporte_val.get("anomalias_volumen_ml", 0)
+        + reporte_val.get("anomalias_graduacion_abv", 0)
+        + reporte_val.get("registros_sin_precio", 0)
     )
+    logger.info(
+        f"Auditoría de datos: {reporte_val['registros_validos']}/{reporte_val['total_registros']} registros válidos "
+        f"({anomalias} anomalías detectadas y filtradas)"
+    )
+    # Filtrar activamente registros inválidos para que no contaminen rankings ni dashboard
+    df = df[df["datos_validos"]].copy().reset_index(drop=True)
 
     # Guardar archivos consolidados de forma atómica (H10)
     guardar_csv_atomico(df, "data/catalogo_completo_consolidado.csv")

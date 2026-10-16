@@ -127,11 +127,19 @@ def detectar_duplicados(df: pd.DataFrame) -> pd.DataFrame:
     # 1. Duplicados intra-tienda (compatibilidad total)
     df["es_duplicado"] = df.duplicated(subset=["tienda", "producto", "ml"], keep="first")
 
-    # 2. Clave comparativa cross-tienda (H8)
+    # 2. Clave comparativa cross-tienda (H8 / H21)
     claves = []
     for _, row in df.iterrows():
         prod_norm = normalizar_texto_clave(row.get("producto", ""))
-        ml_val = int(row.get("ml", 750)) if (pd.notnull(row.get("ml")) and str(row.get("ml")).isdigit()) else 750
+        val_ml = row.get("ml")
+        ml_val = 750
+        if pd.notnull(val_ml):
+            try:
+                ml_num = float(val_ml)
+                if not pd.isna(ml_num) and ml_num > 0:
+                    ml_val = int(round(ml_num))
+            except (ValueError, TypeError):
+                ml_val = 750
         claves.append(f"{prod_norm}_{ml_val}")
     df["clave_comparativa"] = claves
 
@@ -277,9 +285,6 @@ def generar_rankings_por_categoria(df: pd.DataFrame) -> dict[str, pd.DataFrame]:
         "Mezcal - Reposado": validos[(validos["categoria"] == "Mezcal") & (validos["subcategoria"] == "Reposado")],
         "Mezcal - Añejo": validos[(validos["categoria"] == "Mezcal") & (validos["subcategoria"] == "Añejo")],
         "Mezcal - Silvestre": validos[(validos["categoria"] == "Mezcal") & (validos["subcategoria"] == "Silvestre")],
-        "Mezcal - Silvestres (Tobalá/Cupreata/Cuishe)": validos[
-            (validos["categoria"] == "Mezcal") & (validos["subcategoria"] == "Silvestre")
-        ],
         "Mezcal - Espadín Joven": validos[
             (validos["categoria"] == "Mezcal") & (validos["subcategoria"] == "Espadín Joven")
         ],

@@ -11,7 +11,6 @@ Verifica:
 """
 
 import numpy as np
-import pandas as pd
 import pytest
 
 from src.analizador import (
@@ -20,40 +19,7 @@ from src.analizador import (
     detectar_duplicados,
     generar_rankings_por_categoria,
 )
-
-
-def crear_df_base(filas: list[dict]) -> pd.DataFrame:
-    """Crea un DataFrame de prueba rellenando columnas obligatorias por defecto."""
-    base_defaults = {
-        "tienda": "Bodegas Alianza",
-        "producto": "Bebida Test",
-        "marca": "Marca Test",
-        "categoria": "Tequila",
-        "subcategoria": "Añejo Tradicional",
-        "clase": "Añejo",
-        "tipo_mezcal": "no_aplica",
-        "especie_agave": "Tequilana Weber azul",
-        "productor": "Destilería Test",
-        "sello_regulador": "sí",
-        "ml": 750,
-        "abv": 38.0,
-        "precio_regular": 500.0,
-        "precio_promo": 500.0,
-        "unidades_promo": 1,
-        "precio_total_promo": 500.0,
-        "condiciones": "Precio regular",
-        "disponibilidad": "disponible",
-        "url": "https://test.com/p",
-        "fecha_consulta": "2026-10-15 12:00",
-        "fuente": "Test",
-        "confianza": "Confirmado",
-    }
-    registros = []
-    for f in filas:
-        item = base_defaults.copy()
-        item.update(f)
-        registros.append(item)
-    return pd.DataFrame(registros)
+from tests.conftest import crear_df_base
 
 
 # 1. Prueba de conversión ml a litros y cálculo de precio por litro
@@ -273,12 +239,12 @@ def test_distincion_categorias_mezcal_reposado_anejo_silvestres():
     # Verificar que existan las 4 divisiones de mezcal
     assert "Mezcal - Reposado" in rankings
     assert "Mezcal - Añejo" in rankings
-    assert "Mezcal - Silvestres (Tobalá/Cupreata/Cuishe)" in rankings
+    assert "Mezcal - Silvestre" in rankings
     assert "Mezcal - Espadín Joven" in rankings
 
     df_rep = rankings["Mezcal - Reposado"]
     df_anejo = rankings["Mezcal - Añejo"]
-    df_silvestre = rankings["Mezcal - Silvestres (Tobalá/Cupreata/Cuishe)"]
+    df_silvestre = rankings["Mezcal - Silvestre"]
     df_espadin = rankings["Mezcal - Espadín Joven"]
 
     assert len(df_rep) == 1 and df_rep.loc[0, "producto"] == "Amarás Reposado"
@@ -342,3 +308,26 @@ def test_precios_ausentes_excluidos_de_rankings():
     rankings = generar_rankings_por_categoria(metricas)
     for _cat, sub_df in rankings.items():
         assert "Botella Sin Precio" not in sub_df["producto"].values
+
+
+def test_h21_clave_comparativa_con_ml_float():
+    """Valida que detectar_duplicados maneje ml float, int y string numérico sin corromper la clave (H21)."""
+    df = crear_df_base(
+        [
+            {"tienda": "Tienda A", "producto": "Tequila Dobel Diamante", "ml": 700.0},
+            {"tienda": "Tienda B", "producto": "Tequila Dobel Diamante", "ml": 700},
+            {"tienda": "Tienda C", "producto": "Tequila Dobel Diamante", "ml": "700.0"},
+            {"tienda": "Tienda D", "producto": "Tequila Dobel Diamante", "ml": np.nan},
+        ]
+    )
+    df_dup = detectar_duplicados(df)
+
+    # Las tres primeras deben normalizar exactamente a _700 y agruparse como comparables
+    assert df_dup.loc[0, "clave_comparativa"].endswith("_700")
+    assert df_dup.loc[1, "clave_comparativa"].endswith("_700")
+    assert df_dup.loc[2, "clave_comparativa"].endswith("_700")
+    assert df_dup.loc[0, "clave_comparativa"] == df_dup.loc[1, "clave_comparativa"]
+    assert df_dup.loc[1, "clave_comparativa"] == df_dup.loc[2, "clave_comparativa"]
+
+    # Fila con NaN cae a default 750
+    assert df_dup.loc[3, "clave_comparativa"].endswith("_750")
