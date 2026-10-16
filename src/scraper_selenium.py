@@ -34,8 +34,11 @@ if RAIZ_PROYECTO not in sys.path:
 
 try:
     from src.clasificacion import extraer_ml, clasificar_categoria
+    from src.io_utils import guardar_csv_atomico
 except ModuleNotFoundError:
     from clasificacion import extraer_ml, clasificar_categoria
+    from io_utils import guardar_csv_atomico
+
 
 
 from selenium import webdriver
@@ -553,7 +556,7 @@ def main():
     prods = consultar_urls_secuenciales(args.urls, tienda=args.tienda, headless=args.headless, navegador=args.navegador)
     if prods:
         df = pd.DataFrame(prods)
-        df.to_csv(args.salida, index=False)
+        guardar_csv_atomico(df, args.salida)
         print(f"\n[ÉXITO] Se guardaron {len(df)} registros sin deduplicar en: {args.salida}")
     else:
         print("\n[RESULTADO] No se extrajeron productos. Revisa 'data/debug_page.html' para ver el estado de la página.")

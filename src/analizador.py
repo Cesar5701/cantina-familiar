@@ -19,13 +19,65 @@ COLUMNAS_OBLIGATORIAS = [
 ]
 
 
-def cargar_datos(ruta_csv: str) -> pd.DataFrame:
+def normalizar_texto_clave(texto: str) -> str:
+    """Normaliza un nombre de producto eliminando acentos, puntuación y espacios extras."""
+    if not texto or pd.isnull(texto):
+        return ""
+    import unicodedata
+    import re
+    s = unicodedata.normalize('NFKD', str(texto)).encode('ascii', 'ignore').decode('utf-8')
+    s = re.sub(r'[^a-zA-Z0-9\s]', ' ', s.lower())
+    return re.sub(r'\s+', ' ', s).strip()
+
+
+def cargar_datos(ruta_csv: str, validar_rangos: bool = False) -> pd.DataFrame:
     """Carga el archivo CSV y valida la presencia de columnas mínimas."""
     df = pd.read_csv(ruta_csv)
     columnas_faltantes = [c for c in COLUMNAS_OBLIGATORIAS if c not in df.columns]
     if columnas_faltantes:
         raise ValueError(f"El archivo CSV no contiene las columnas requeridas: {columnas_faltantes}")
+    if validar_rangos:
+        df, _ = validar_esquema_y_rangos(df)
     return df
+
+
+def validar_esquema_y_rangos(df: pd.DataFrame, lanzar_error: bool = False) -> tuple[pd.DataFrame, dict]:
+    """
+    Valida la coherencia de tipos y rangos de datos para evitar métricas sesgadas (H9):
+    - Presencia de columnas obligatorias
+    - Rango válido de volumen: 100 <= ml <= 10000
+    - Rango válido de abv: 0 < abv <= 100 (si está presente)
+    - Precios regulares o de promoción positivos (> 0)
+    """
+    errores = []
+    faltantes = [c for c in COLUMNAS_OBLIGATORIAS if c not in df.columns]
+    if faltantes:
+        errores.append(f"Columnas faltantes: {faltantes}")
+        if lanzar_error:
+            raise ValueError(f"El dataset no contiene las columnas requeridas: {faltantes}")
+
+    df_val = df.copy()
+    ml_num = pd.to_numeric(df_val["ml"], errors="coerce")
+    anomalias_ml = df_val[ml_num.isnull() | (ml_num < 100) | (ml_num > 10000)].index.tolist()
+
+    abv_num = pd.to_numeric(df_val.get("abv", np.nan), errors="coerce")
+    anomalias_abv = df_val[abv_num.notnull() & ((abv_num <= 0) | (abv_num > 100))].index.tolist()
+
+    pr_num = pd.to_numeric(df_val["precio_regular"], errors="coerce")
+    pp_num = pd.to_numeric(df_val.get("precio_promo", np.nan), errors="coerce")
+    sin_precio = df_val[(pr_num.isnull() | (pr_num <= 0)) & (pp_num.isnull() | (pp_num <= 0))].index.tolist()
+
+    reporte = {
+        "total_registros": len(df_val),
+        "registros_validos": len(df_val) - len(set(anomalias_ml + sin_precio)),
+        "anomalias_volumen_ml": len(anomalias_ml),
+        "anomalias_graduacion_abv": len(anomalias_abv),
+        "registros_sin_precio": len(sin_precio),
+        "errores": errores
+    }
+
+    df_val["datos_validos"] = ~df_val.index.isin(set(anomalias_ml + sin_precio))
+    return df_val, reporte
 
 
 def auditar_datos_faltantes(df: pd.DataFrame) -> pd.DataFrame:
@@ -38,9 +90,81 @@ def auditar_datos_faltantes(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def detectar_duplicados(df: pd.DataFrame) -> pd.DataFrame:
-    """Detecta filas duplicadas por combinación (tienda, producto, ml)."""
+    """
+    Detecta duplicados intra-tienda y genera claves canónicas cross-tienda (H8).
+    
+    - 'es_duplicado': True si la misma tienda cotiza repetidamente el mismo producto y ml.
+    - 'clave_comparativa': Clave unificada (producto_normalizado, ml) para comparar entre tiendas.
+    - 'es_comparable_cross_tienda': True si el producto existe en 2 o más tiendas distintas.
+    - 'num_tiendas_disponibles': Cantidad de tiendas donde se cotiza la misma botella.
+    """
+    df = df.copy()
+    # 1. Duplicados intra-tienda (compatibilidad total)
     df["es_duplicado"] = df.duplicated(subset=["tienda", "producto", "ml"], keep="first")
+
+    # 2. Clave comparativa cross-tienda (H8)
+    claves = []
+    for _, row in df.iterrows():
+        prod_norm = normalizar_texto_clave(row.get("producto", ""))
+        ml_val = int(row.get("ml", 750)) if (pd.notnull(row.get("ml")) and str(row.get("ml")).isdigit()) else 750
+        claves.append(f"{prod_norm}_{ml_val}")
+    df["clave_comparativa"] = claves
+
+    conteo_tiendas = df.groupby("clave_comparativa")["tienda"].nunique()
+    df["num_tiendas_disponibles"] = df["clave_comparativa"].map(conteo_tiendas)
+    df["es_comparable_cross_tienda"] = df["num_tiendas_disponibles"] > 1
+
     return df
+
+
+def obtener_comparativa_cross_tienda(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Genera tabla de arbitraje de precios para botellas presentes en múltiples tiendas (H8).
+    Calcula tienda más barata, más cara y el ahorro máximo por producto.
+    """
+    if "clave_comparativa" not in df.columns or "es_comparable_cross_tienda" not in df.columns:
+        df = detectar_duplicados(df)
+    if "precio_efectivo" not in df.columns:
+        df = calcular_metricas(df)
+
+    comparables = df[df["es_comparable_cross_tienda"] & (df["precio_efectivo"] > 0)].copy()
+    if comparables.empty:
+        return pd.DataFrame()
+
+    resumen = []
+    for clave, grupo in comparables.groupby("clave_comparativa"):
+        if grupo["tienda"].nunique() < 2:
+            continue
+
+        idx_min = grupo["precio_efectivo"].idxmin()
+        idx_max = grupo["precio_efectivo"].idxmax()
+
+        fila_min = grupo.loc[idx_min]
+        fila_max = grupo.loc[idx_max]
+
+        ahorro = fila_max["precio_efectivo"] - fila_min["precio_efectivo"]
+        pct_ahorro = (ahorro / fila_max["precio_efectivo"] * 100) if fila_max["precio_efectivo"] > 0 else 0.0
+
+        resumen.append({
+            "clave_comparativa": clave,
+            "producto": fila_min["producto"],
+            "categoria": fila_min["categoria"],
+            "subcategoria": fila_min.get("subcategoria", ""),
+            "ml": fila_min["ml"],
+            "tiendas_disponibles": sorted(grupo["tienda"].unique().tolist()),
+            "tienda_mas_barata": fila_min["tienda"],
+            "precio_minimo": round(float(fila_min["precio_efectivo"]), 2),
+            "tienda_mas_cara": fila_max["tienda"],
+            "precio_maximo": round(float(fila_max["precio_efectivo"]), 2),
+            "ahorro_maximo": round(float(ahorro), 2),
+            "porcentaje_ahorro_maximo": round(float(pct_ahorro), 1)
+        })
+
+    df_comp = pd.DataFrame(resumen)
+    if not df_comp.empty:
+        df_comp = df_comp.sort_values(by="ahorro_maximo", ascending=False).reset_index(drop=True)
+    return df_comp
+
 
 
 def calcular_costo_efectivo(row: pd.Series) -> float:

@@ -41,6 +41,8 @@ from src.clasificacion import (
     KEYWORDS_BLENDED_WHISKY,
     PALABRAS_EXCLUIDAS
 )
+from src.io_utils import guardar_csv_atomico, ResumenScraping
+
 
 
 
@@ -519,22 +521,22 @@ def main():
     # 1. Chedraui
     prods_chedraui = scrapear_chedraui()
     if prods_chedraui:
-        pd.DataFrame(prods_chedraui).to_csv("data/scraped_chedraui.csv", index=False)
+        guardar_csv_atomico(pd.DataFrame(prods_chedraui), "data/scraped_chedraui.csv")
 
     # 2. Sam's Club
     prods_sams = scrapear_nextjs_walmart_platform("Sam's Club", "www.sams.com.mx", terminos_sams)
     if prods_sams:
-        pd.DataFrame(prods_sams).to_csv("data/scraped_sams.csv", index=False)
+        guardar_csv_atomico(pd.DataFrame(prods_sams), "data/scraped_sams.csv")
 
     # 3. Walmart
     prods_walmart = scrapear_nextjs_walmart_platform("Walmart", "www.walmart.com.mx", terminos_walmart)
     if prods_walmart:
-        pd.DataFrame(prods_walmart).to_csv("data/scraped_walmart.csv", index=False)
+        guardar_csv_atomico(pd.DataFrame(prods_walmart), "data/scraped_walmart.csv")
 
     # 4. Soriana
     prods_soriana = scrapear_soriana()
     if prods_soriana:
-        pd.DataFrame(prods_soriana).to_csv("data/scraped_soriana.csv", index=False)
+        guardar_csv_atomico(pd.DataFrame(prods_soriana), "data/scraped_soriana.csv")
 
     print("\n" + "=" * 70)
     print("RESUMEN DE EXTRACCIÓN MULTITIENDA")

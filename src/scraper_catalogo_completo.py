@@ -35,6 +35,8 @@ from src.clasificacion import (
     KEYWORDS_SILVESTRES,
     KEYWORDS_BLENDED_WHISKY
 )
+from src.io_utils import guardar_csv_atomico
+
 
 
 
@@ -331,7 +333,7 @@ def main():
     productos = procesar_catalogo_completo()
     df = pd.DataFrame(productos)
     salida = "data/scraped_alianza_completo.csv"
-    df.to_csv(salida, index=False)
+    guardar_csv_atomico(df, salida)
     print(f"\n[ÉXITO] Se guardaron {len(df)} productos validados en: {salida}")
     print("\nDesglose por categoría:")
     print(df["categoria"].value_counts())

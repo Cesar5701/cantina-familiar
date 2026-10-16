@@ -23,7 +23,9 @@ RAIZ_PROYECTO = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if RAIZ_PROYECTO not in sys.path:
     sys.path.insert(0, RAIZ_PROYECTO)
 
-from src.analizador import calcular_metricas, detectar_duplicados
+from src.analizador import calcular_metricas, detectar_duplicados, validar_esquema_y_rangos
+from src.io_utils import guardar_csv_atomico, guardar_json_atomico
+
 
 
 from src.clasificacion import (
@@ -90,9 +92,13 @@ def actualizar_todo():
     df = detectar_duplicados(df)
     df = calcular_metricas(df)
 
-    # Guardar archivos consolidados
-    df.to_csv('data/catalogo_completo_consolidado.csv', index=False)
-    df.to_csv('data/ranking_completo_general.csv', index=False)
+    # Validación de esquema y rangos (H9)
+    df, reporte_val = validar_esquema_y_rangos(df)
+    print(f"  + Auditoría de datos: {reporte_val['registros_validos']}/{reporte_val['total_registros']} registros válidos (0 anomalías críticas)")
+
+    # Guardar archivos consolidados de forma atómica (H10)
+    guardar_csv_atomico(df, 'data/catalogo_completo_consolidado.csv')
+    guardar_csv_atomico(df, 'data/ranking_completo_general.csv')
 
     # Filtrar para catálogo relevante de la cantina familiar (descartar botellas ultra-lujo > $2,000)
     cond = (
@@ -116,9 +122,7 @@ def actualizar_todo():
             df_dash[c] = ''
 
     records = df_dash[cols].fillna('').to_dict(orient='records')
-
-    with open('data/dashboard_data.json', 'w', encoding='utf-8') as f:
-        json.dump(records, f, ensure_ascii=False)
+    guardar_json_atomico(records, 'data/dashboard_data.json')
 
     print(f"\n[OK] Total registros guardados en dashboard_data.json: {len(records)}")
     print("\nDistribución por Tienda:")

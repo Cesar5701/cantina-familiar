@@ -24,6 +24,8 @@ if RAIZ_PROYECTO not in sys.path:
     sys.path.insert(0, RAIZ_PROYECTO)
 
 from src.clasificacion import extraer_ml, clasificar_categoria
+from src.io_utils import guardar_csv_atomico
+
 
 
 
@@ -109,7 +111,7 @@ def main():
 
     import pandas as pd
     df = pd.DataFrame(todos)
-    df.to_csv(args.salida, index=False)
+    guardar_csv_atomico(df, args.salida)
     print(f"Guardados {len(df)} registros en {args.salida}")
 
 
