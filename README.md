@@ -12,24 +12,33 @@ Cantina Familiar/
 │   ├── plantilla_bebidas.csv       # Esquema oficial con columnas obligatorias y ejemplos
 │   ├── bebidas_verificadas.csv     # Dataset auditado con precios de Alianza, Sam's, etc.
 │   └── reporte_ranking.csv         # Salida generada con métricas por litro y rankings
+├── docs/
+│   └── politica_scraping.md        # Política de Scraping Ético y Gobernanza de Datos (H17)
+├── logs/
+│   └── cantina_familiar.log        # Registro estructurado rotativo (H19)
 ├── src/
 │   ├── __init__.py
-│   ├── clasificacion.py            # Módulo unificado de reglas NOM-006 / NOM-070, volumen y precios
+│   ├── clasificacion.py            # Módulo unificado de reglas NOM-006 / NOM-070, volumen y precios (H1, H2, H6)
+│   ├── http_utils.py               # Cliente HTTP resiliente con reintentos exponenciales y jitter (H20)
 │   ├── io_utils.py                 # Guardado atómico de CSV/JSON y métricas de scraping (H10)
-│   ├── scraper_alianza.py          # Scraper ético para API pública VTEX de Bodegas Alianza
+│   ├── logger.py                   # Sistema centralizado de logging con consola y archivo rotativo (H19)
+│   ├── scraper_alianza.py          # Scraper API pública VTEX de Bodegas Alianza
 │   ├── scraper_catalogo_completo.py# Scraper exhaustivo paginado para Bodegas Alianza
-│   ├── scraper_multitienda.py      # Scraper para Sam's Club, Walmart, Chedraui y Soriana
-│   ├── scraper_selenium.py         # Scraper dinámico con Selenium y BS4 (Human-in-the-Loop)
+│   ├── scraper_multitienda.py      # Scraper multitienda (Sam's Club, Walmart, Chedraui, Soriana)
+│   ├── scraper_selenium.py         # Scraper SPA asistido (Human-in-the-Loop)
 │   ├── analizador.py               # Motor de análisis en pandas (auditoría, métricas, rankings, cross-tienda)
-│   ├── actualizar_dashboard_completo.py # Consolidación general y pipeline
+│   ├── actualizar_dashboard_completo.py # Pipeline de consolidación, validación de esquema y cross-tienda
 │   └── generar_dashboard_v4.py     # Generador de dashboard BI (Material 3 Expressive)
 ├── tests/
 │   ├── __init__.py
 │   ├── test_analizador.py          # Pruebas de métricas, rankings y deduplicación (15 pruebas)
 │   ├── test_clasificacion.py       # Pruebas de clasificación NOM y extracción de volumen (50 pruebas)
-│   └── test_sprint2.py             # Pruebas de comparativas cross-tienda, validación y guardado atómico (11 pruebas)
-├── requirements.txt                # Dependencias (pandas, numpy, pytest, beautifulsoup4, selenium)
-├── index.html                      # Dashboard interactivo para GitHub Pages
+│   ├── test_sprint2.py             # Pruebas de comparativas cross-tienda, esquema y guardado atómico (11 pruebas)
+│   └── test_sprint3.py             # Pruebas de HTTP backoff, mocks VTEX/NextJS/SFCC y logger (9 pruebas)
+├── pyproject.toml                  # Empaquetado estándar pip, metadatos y configuración de herramientas (H13)
+├── requirements.txt                # Dependencias base con cotas de versión fijadas
+├── requirements-dev.txt            # Dependencias de desarrollo y testing (pytest, ruff)
+├── index.html                      # Dashboard interactivo desplegado para GitHub Pages
 └── README.md                       # Documentación y guía de ejecución
 ```
 
@@ -37,7 +46,7 @@ Cantina Familiar/
 
 ## Requisitos e Instalación
 
-Entorno probado: **Linux Fedora 44 (Plasma) / Python 3.14+ / Google Chrome o Firefox**.
+Entorno probado: **Linux Fedora 44 (Plasma) / Python 3.12+ / Google Chrome o Firefox**.
 
 1. **Crear y activar el entorno virtual:**
    ```bash
@@ -45,22 +54,28 @@ Entorno probado: **Linux Fedora 44 (Plasma) / Python 3.14+ / Google Chrome o Fir
    source .venv/bin/activate
    ```
 
-2. **Instalar dependencias:**
+2. **Instalar dependencias de producción:**
    ```bash
    pip install -r requirements.txt
+   ```
+
+3. **(Opcional) Instalar dependencias de desarrollo y empaquetado editable:**
+   ```bash
+   pip install -r requirements-dev.txt
+   pip install -e .
    ```
 
 ---
 
 ## Pipeline de Datos y Ejecución
 
-El flujo completo del proyecto consta de 3 fases:
+El flujo completo del proyecto consta de 3 fases desacopladas y observables:
 
 ```
 [1. Recolección] Scrapers multitienda (Alianza, Sam's, Walmart, Chedraui, Soriana)
-       ↓
-[2. Consolidación] Clasificación estricta NOM-006 / NOM-070 y normalización de volumen
-       ↓
+       ↓ (HTTP con reintentos exponenciales y jitter en http_utils.py)
+[2. Consolidación] Clasificación estricta NOM, validación de esquema y cross-tienda
+       ↓ (Escritura atómica en io_utils.py y logging estructurado)
 [3. Dashboard BI] Generación reactiva de data/dashboard_bi.html e index.html
 ```
 
@@ -73,8 +88,8 @@ python src/actualizar_dashboard_completo.py
 python src/generar_dashboard_v4.py
 ```
 
-### 2. Ejecutar las Pruebas Unitarias
-Valida la conversión de mililitros a litros, cálculo de descuentos, promociones multiunidad, detección de duplicados, datos faltantes, exclusión de precios nulos y partición estricta de categorías:
+### 2. Ejecutar la Suite de Pruebas Unitarias
+El proyecto cuenta con **85 pruebas automatizadas** que cubren clasificación NOM, normalización de multipacks (`Pack 6`, `Pack x 3`, etc.), métricas por litro, exclusión de nulos, detección de arbitraje cross-tienda, validación de esquema, escritura atómica, cliente HTTP con backoff y parseo con mocks:
 
 ```bash
 pytest -v
@@ -82,13 +97,13 @@ pytest -v
 
 ### 3. Ejecutar Scrapers Específicos
 
-- **Bodegas Alianza (API VTEX oficial):**
+- **Bodegas Alianza (API VTEX oficial con reintentos y logging):**
   ```bash
   python src/scraper_alianza.py --terminos "1800" "Herradura" "Amarás" "Red Label" "Jack Daniel" --salida data/scraped_alianza.csv
   ```
 
 - **Scraper Asistido con Selenium (Sam's Club / SPAs):**
-  Abre un navegador real (Chrome por defecto, o `--navegador firefox`) para permitir que el JavaScript hidrate precios y existencias:
+  Abre un navegador real (Chrome por defecto, o `--navegador firefox`) para permitir que el JavaScript hidrate precios y existencias en modo Human-in-the-Loop:
   ```bash
   python src/scraper_selenium.py --urls "https://www.sams.com.mx" --tienda "Sam's Club" --salida data/scraped_selenium.csv
   ```
@@ -96,11 +111,20 @@ pytest -v
 
 ---
 
+## Robustez, Observabilidad y Ética
+
+- **Cliente HTTP Resiliente (`src/http_utils.py`):** Todas las descargas gestionan errores transitorios de red y límites de tasa (`HTTP 429`, `500`, `502`, `503`, `504`) mediante reintentos con retraso exponencial y fluctuación estocástica (*full jitter*).
+- **Logging Estructurado Centralizado (`src/logger.py`):** Los registros emiten formato limpio y legible con emojis a consola (`sys.stdout`) y bitácora rotativa persistente de hasta 2 MB en `logs/cantina_familiar.log`.
+- **Escritura Atómica (`src/io_utils.py`):** La persistencia de CSV y JSON se realiza en archivos temporales con reemplazo atómico atado al sistema de archivos, impidiendo corrupción ante interrupciones.
+- **Política de Scraping Ético (`docs/politica_scraping.md`):** Regula el cumplimiento de `robots.txt`, la tasa de peticiones y el carácter educativo no comercial del proyecto.
+
+---
+
 ## Columnas del Esquema CSV
 
 | Columna | Descripción |
 | :--- | :--- |
-| `tienda` | Comercio donde se cotiza (ej. Bodegas Alianza, Sam's Club). |
+| `tienda` | Comercio donde se cotiza (ej. Bodegas Alianza, Sam's Club, Walmart, Chedraui, Soriana). |
 | `producto` | Nombre comercial completo de la etiqueta. |
 | `marca` | Marca de la bebida. |
 | `categoria` | Tequila, Mezcal, Whisky, Licor de Whisky, Vino. |
@@ -110,7 +134,7 @@ pytest -v
 | `especie_agave` | Tequilana Weber, Espadín, Tobalá, Cupreata, Ensamble, no_aplica. |
 | `productor` | Razón social o destilería / palenque productor con NOM. |
 | `sello_regulador`| `sí`, `no`, o `no verificado`. |
-| `ml` | Volumen numérico en mililitros (ej. 700, 750, 1000, 1750, 4000). |
+| `ml` | Volumen numérico en mililitros (ej. 700, 750, 1000, 1750, 4200). |
 | `abv` | Graduación alcohólica en porcentaje en volumen (ej. 35.0, 38.0, 40.0, 41.0). |
 | `precio_regular` | Precio de lista o regular en moneda nacional ($ MXN). |
 | `precio_promo` | Precio con descuento directo o precio de socio ($ MXN). |

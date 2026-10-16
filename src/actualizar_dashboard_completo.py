@@ -25,6 +25,9 @@ if RAIZ_PROYECTO not in sys.path:
 
 from src.analizador import calcular_metricas, detectar_duplicados, validar_esquema_y_rangos
 from src.io_utils import guardar_csv_atomico, guardar_json_atomico
+from src.logger import get_logger
+
+logger = get_logger("actualizador")
 
 
 
@@ -51,7 +54,7 @@ def actualizar_todo():
     for ruta in archivos_fuente:
         if os.path.exists(ruta):
             df_part = pd.read_csv(ruta)
-            print(f"  + Cargado {ruta}: {len(df_part)} filas")
+            logger.info(f"Cargado {ruta}: {len(df_part)} filas")
             dfs.append(df_part)
 
     df = pd.concat(dfs, ignore_index=True)
@@ -94,7 +97,7 @@ def actualizar_todo():
 
     # Validación de esquema y rangos (H9)
     df, reporte_val = validar_esquema_y_rangos(df)
-    print(f"  + Auditoría de datos: {reporte_val['registros_validos']}/{reporte_val['total_registros']} registros válidos (0 anomalías críticas)")
+    logger.info(f"Auditoría de datos: {reporte_val['registros_validos']}/{reporte_val['total_registros']} registros válidos (0 anomalías críticas)")
 
     # Guardar archivos consolidados de forma atómica (H10)
     guardar_csv_atomico(df, 'data/catalogo_completo_consolidado.csv')
@@ -200,12 +203,14 @@ def actualizar_todo():
 
     guardar_json_atomico(records, 'data/dashboard_data.json')
 
-    print(f"\n[OK] Total registros guardados en dashboard_data.json: {len(records)}")
-    print(f"  + Productos comparables entre 2 o más tiendas: {len(grupos_cross)} etiquetas")
-    print("\nDistribución por Tienda:")
-    print(df_dash['tienda'].value_counts())
-    print("\nDistribución por Categoría Comparable:")
-    print(df_dash['categoria_comparable'].value_counts())
+    logger.info(f"Total registros guardados en dashboard_data.json: {len(records)}")
+    logger.info(f"Productos comparables entre 2 o más tiendas: {len(grupos_cross)} etiquetas")
+    logger.info("Distribución por Tienda:")
+    for t, cnt in df_dash['tienda'].value_counts().items():
+        logger.info(f"  - {t}: {cnt}")
+    logger.info("Distribución por Categoría Comparable:")
+    for cat, cnt in df_dash['categoria_comparable'].value_counts().items():
+        logger.info(f"  - {cat}: {cnt}")
 
 
 if __name__ == '__main__':

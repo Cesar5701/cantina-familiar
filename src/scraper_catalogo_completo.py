@@ -36,12 +36,16 @@ from src.clasificacion import (
     KEYWORDS_BLENDED_WHISKY
 )
 from src.io_utils import guardar_csv_atomico, ResumenScraping
+from src.http_utils import descargar_json_con_reintentos
+from src.logger import get_logger
+
+logger = get_logger("scraper_catalogo_completo")
 
 
 
 
-def consultar_endpoint_paginado(termino: str, max_paginas: int = 5) -> list[dict]:
-    """Consulta la API de VTEX con paginación de 50 en 50 elementos."""
+def consultar_endpoint_paginado(termino: str, max_paginas: int = 5, resumen: ResumenScraping | None = None) -> list[dict]:
+    """Consulta la API de VTEX con paginación de 50 en 50 elementos y reintentos automáticos."""
     items = []
     headers = {"User-Agent": USER_AGENT}
     for pag in range(max_paginas):
@@ -49,18 +53,18 @@ def consultar_endpoint_paginado(termino: str, max_paginas: int = 5) -> list[dict
         fin = inicio + 49
         url = f"https://www.bodegasalianza.com/api/catalog_system/pub/products/search/{urllib.parse.quote(termino)}?_from={inicio}&_to={fin}"
         try:
-            req = urllib.request.Request(url, headers=headers)
-            with urllib.request.urlopen(req, timeout=15) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-                if not data:
-                    break
-                items.extend(data)
-                if len(data) < 50:
-                    break
-            time.sleep(0.25)
+            data = descargar_json_con_reintentos(url, headers=headers)
+            if not data:
+                break
+            items.extend(data)
+            if len(data) < 50:
+                break
         except Exception as e:
-            print(f"  [AVISO] Fin o error en '{termino}' pag {pag}: {e}", file=sys.stderr)
+            if resumen:
+                resumen.registrar_error_red(url, e)
+            logger.warning(f"Fin o error en '{termino}' pag {pag}: {e}")
             break
+        time.sleep(0.25)
     return items
 
 
@@ -78,9 +82,9 @@ def procesar_catalogo_completo() -> list[dict]:
     productos_crudos = []
     ids_vistos = set()
 
-    print("Iniciando extracción exhaustiva del catálogo de Bodegas Alianza...")
+    logger.info("Iniciando extracción exhaustiva del catálogo de Bodegas Alianza...")
     for t in terminos_busqueda:
-        print(f"  -> Consultando: '{t}'...")
+        logger.info(f"  -> Consultando: '{t}'...")
         lote = consultar_endpoint_paginado(t, max_paginas=5)
         nuevos = 0
         for p in lote:
@@ -89,10 +93,10 @@ def procesar_catalogo_completo() -> list[dict]:
                 ids_vistos.add(pid)
                 productos_crudos.append(p)
                 nuevos += 1
-        print(f"     Nuevos encontrados: {nuevos} (Total acumulado: {len(productos_crudos)})")
+        logger.info(f"     Nuevos encontrados: {nuevos} (Total acumulado: {len(productos_crudos)})")
 
     # Filtrar y clasificar
-    print("\nFiltrando y clasificando por tipos estrictos solicitados...")
+    logger.info("Filtrando y clasificando por tipos estrictos solicitados...")
     fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M")
     productos_filtrados = []
     resumen = ResumenScraping("Bodegas Alianza")
@@ -356,11 +360,10 @@ def main():
     df = pd.DataFrame(productos)
     salida = "data/scraped_alianza_completo.csv"
     guardar_csv_atomico(df, salida)
-    print(f"\n[ÉXITO] Se guardaron {len(df)} productos validados en: {salida}")
-    print("\nDesglose por categoría:")
-    print(df["categoria"].value_counts())
-    print("\nDesglose por subcategoría:")
-    print(df.groupby(["categoria", "subcategoria"]).size())
+    logger.info(f"Se guardaron {len(df)} productos validados en: {salida}")
+    logger.info("Desglose por categoría:")
+    for cat, cnt in df["categoria"].value_counts().items():
+        logger.info(f"  - {cat}: {cnt}")
 
 
 if __name__ == "__main__":

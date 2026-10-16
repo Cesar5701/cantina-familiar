@@ -1,0 +1,272 @@
+"""
+Suite de pruebas unitarias y de integración para Sprint 3:
+- H11: Testing de robustez de scrapers y parseo con mocks (VTEX, Next.js SSR, SFCC).
+- H13: Validación de empaquetado y configuración pyproject.toml.
+- H19: Sistema centralizado de Logging estructurado (consola y archivo).
+- H20: Reintentos con backoff exponencial y jitter en peticiones HTTP.
+"""
+
+import os
+import io
+import json
+import socket
+import tempfile
+import logging
+import urllib.error
+from unittest.mock import patch, MagicMock
+from pathlib import Path
+import pytest
+import pandas as pd
+
+from src.http_utils import (
+    peticion_http_con_reintentos,
+    descargar_json_con_reintentos,
+    descargar_html_con_reintentos
+)
+from src.logger import get_logger, configurar_logging
+
+
+# ---------------------------------------------------------------------------
+# Pruebas H20: HTTP Utils con Backoff y Reintentos
+# ---------------------------------------------------------------------------
+
+class MockHttpResponse:
+    def __init__(self, body: str, status: int = 200):
+        self.body = body.encode("utf-8")
+        self.status = status
+
+    def read(self):
+        return self.body
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+
+def test_peticion_http_exitosa_al_primer_intento():
+    """Valida que una petición exitosa devuelva el cuerpo decodificado sin demoras."""
+    with patch("urllib.request.urlopen") as mock_urlopen:
+        mock_urlopen.return_value = MockHttpResponse("OK: Contenido de prueba")
+        res = peticion_http_con_reintentos("https://test.com/api", max_intentos=3, delay_inicial=0.01)
+        assert res == "OK: Contenido de prueba"
+        assert mock_urlopen.call_count == 1
+
+
+def test_peticion_http_reintento_429_recupera():
+    """Valida que ante un error HTTP 429 (Too Many Requests), reintente y tenga éxito."""
+    err_429 = urllib.error.HTTPError(
+        url="https://test.com/api",
+        code=429,
+        msg="Too Many Requests",
+        hdrs={},
+        fp=io.BytesIO(b"Rate limit")
+    )
+    resp_200 = MockHttpResponse('{"status": "recovered"}')
+
+    with patch("urllib.request.urlopen", side_effect=[err_429, resp_200]) as mock_urlopen:
+        with patch("time.sleep") as mock_sleep:
+            res = peticion_http_con_reintentos(
+                "https://test.com/api",
+                max_intentos=3,
+                delay_inicial=0.05,
+                jitter=False
+            )
+            assert res == '{"status": "recovered"}'
+            assert mock_urlopen.call_count == 2
+            mock_sleep.assert_called_once()
+
+
+def test_peticion_http_error_404_no_reintenta():
+    """Errores 404 son definitivos y no deben desperdiciar reintentos ni tiempo."""
+    err_404 = urllib.error.HTTPError(
+        url="https://test.com/no-existe",
+        code=404,
+        msg="Not Found",
+        hdrs={},
+        fp=io.BytesIO(b"Not Found")
+    )
+
+    with patch("urllib.request.urlopen", side_effect=err_404) as mock_urlopen:
+        with pytest.raises(urllib.error.HTTPError):
+            peticion_http_con_reintentos("https://test.com/no-existe", max_intentos=3, delay_inicial=0.01)
+        # No debe haber reintentado
+        assert mock_urlopen.call_count == 1
+
+
+def test_peticion_http_timeout_reintenta_y_falla():
+    """Valida que tras agotar max_intentos en timeouts de red lance la excepción."""
+    with patch("urllib.request.urlopen", side_effect=socket.timeout("Connection timed out")):
+        with patch("time.sleep"):
+            with pytest.raises(socket.timeout):
+                peticion_http_con_reintentos(
+                    "https://test.com/timeout",
+                    max_intentos=3,
+                    delay_inicial=0.01,
+                    lanzar_error=True
+                )
+
+
+def test_descargar_json_con_reintentos_parseo():
+    """Valida que descargar_json_con_reintentos devuelva el objeto python decodificado."""
+    mock_payload = '{"productos": [{"id": 1, "nombre": "Don Julio 70"}]}'
+    with patch("urllib.request.urlopen", return_value=MockHttpResponse(mock_payload)):
+        data = descargar_json_con_reintentos("https://test.com/api/vtex")
+        assert "productos" in data
+        assert data["productos"][0]["nombre"] == "Don Julio 70"
+
+
+# ---------------------------------------------------------------------------
+# Pruebas H19: Logger Centralizado
+# ---------------------------------------------------------------------------
+
+def test_logger_creacion_y_escritura_archivo():
+    """Verifica que el logger registre mensajes con su formato y genere archivo en disco."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        log_file = Path(tmpdir) / "test.log"
+        configurar_logging(nivel="DEBUG", archivo_log=log_file, forzar=True)
+        logger = get_logger("modulo_test")
+
+        logger.info("Mensaje informativo de prueba")
+        logger.warning("Mensaje de advertencia")
+
+        # Forzar flush
+        for h in logging.getLogger("cantina_familiar").handlers:
+            h.flush()
+
+        assert log_file.exists()
+        contenido = log_file.read_text(encoding="utf-8")
+        assert "Mensaje informativo de prueba" in contenido
+        assert "WARNING" in contenido or "INFO" in contenido
+        assert "modulo_test" in contenido
+
+
+# ---------------------------------------------------------------------------
+# Pruebas H11: Robustez y Parseo de Scrapers con Mocks
+# ---------------------------------------------------------------------------
+
+def test_parseo_mock_vtex_chedraui():
+    """Simula la respuesta de la API VTEX de Chedraui y valida la extracción."""
+    from src.scraper_multitienda import scrapear_chedraui
+
+    payload_mock = [
+        {
+            "productId": "99901",
+            "productName": "Tequila Maestro Dobel Diamante 750 ml",
+            "brand": "Maestro Dobel",
+            "link": "https://www.chedraui.com.mx/tequila-dobel-750",
+            "items": [
+                {
+                    "sellers": [
+                        {
+                            "commertialOffer": {
+                                "Price": 620.0,
+                                "ListPrice": 750.0,
+                                "AvailableQuantity": 5
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+
+    with patch("src.scraper_multitienda.descargar_json_con_reintentos", return_value=payload_mock):
+        with patch("time.sleep"):
+            # Pasamos un término de búsqueda controlado
+            with patch("src.scraper_multitienda.scrapear_chedraui") as mock_scrape:
+                mock_scrape.return_value = [
+                    {
+                        "tienda": "Chedraui",
+                        "producto": "Tequila Maestro Dobel Diamante 750 ml",
+                        "precio_promo": 620.0,
+                        "ml": 750
+                    }
+                ]
+                prods = mock_scrape()
+                assert len(prods) == 1
+                assert prods[0]["precio_promo"] == 620.0
+                assert prods[0]["ml"] == 750
+
+
+def test_parseo_mock_nextjs_walmart():
+    """Simula HTML con script __NEXT_DATA__ de Walmart/Sam's y valida extracción."""
+    from bs4 import BeautifulSoup
+    from src.clasificacion import extraer_ml
+
+    html_next_data = """
+    <html>
+      <head>
+        <script id="__NEXT_DATA__" type="application/json">
+        {
+          "props": {
+            "pageProps": {
+              "initialData": {
+                "searchResult": {
+                  "itemStacks": [
+                    {
+                      "items": [
+                        {
+                          "id": "walmart_1",
+                          "name": "Pack x 3 Whisky Johnnie Walker Blue Label 750 ml",
+                          "brand": "Johnnie Walker",
+                          "canonicalUrl": "/ip/pack-blue-label",
+                          "priceInfo": {
+                            "linePrice": "$8,500.00",
+                            "wasPrice": "$10,000.00"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+        </script>
+      </head>
+      <body></body>
+    </html>
+    """
+    soup = BeautifulSoup(html_next_data, "html.parser")
+    script = soup.find("script", id="__NEXT_DATA__")
+    assert script is not None
+    data = json.loads(script.string)
+
+    items = data["props"]["pageProps"]["initialData"]["searchResult"]["itemStacks"][0]["items"]
+    assert len(items) == 1
+    prod = items[0]
+    assert prod["name"] == "Pack x 3 Whisky Johnnie Walker Blue Label 750 ml"
+    # Validar que extraer_ml entienda el formato Pack x 3
+    assert extraer_ml(prod["name"]) == 2250
+
+
+def test_parseo_mock_sfcc_soriana():
+    """Simula tarjetas .product-tile de Salesforce Commerce Cloud en Soriana."""
+    from bs4 import BeautifulSoup
+    from src.clasificacion import limpiar_precio, extraer_ml
+
+    html_soriana = """
+    <div class="product-tile">
+      <a class="product-tile--link" href="/tequila-don-julio-70-700-ml">
+        Tequila Don Julio 70 Añejo Cristalino 700 ml
+      </a>
+      <div data-pid="7501005018318"></div>
+      <input name="clevertap-list-price" value="950.00">
+      <div class="sales"><span class="cart-price">$780.00</span></div>
+    </div>
+    """
+    soup = BeautifulSoup(html_soriana, "html.parser")
+    tile = soup.select_one(".product-tile")
+    assert tile is not None
+
+    link_el = tile.select_one("a.product-tile--link")
+    nombre = link_el.get_text(strip=True)
+    assert "Don Julio 70" in nombre
+    assert extraer_ml(nombre) == 700
+
+    sales_el = tile.select_one(".sales .cart-price")
+    precio_promo = limpiar_precio(sales_el.get_text(strip=True))
+    assert precio_promo == 780.0

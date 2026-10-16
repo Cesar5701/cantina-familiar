@@ -25,22 +25,26 @@ if RAIZ_PROYECTO not in sys.path:
 
 from src.clasificacion import extraer_ml, clasificar_categoria
 from src.io_utils import guardar_csv_atomico, ResumenScraping
+from src.http_utils import descargar_json_con_reintentos
+from src.logger import get_logger
+
+logger = get_logger("scraper_alianza")
 
 
 
 
 def consultar_api_alianza(termino: str, delay_segundos: float = 1.0, resumen: ResumenScraping | None = None) -> list[dict]:
-    """Consulta la API de catálogo de Bodegas Alianza para un término."""
+    """Consulta la API de catálogo de Bodegas Alianza para un término con reintentos automáticos."""
     url = BASE_URL.format(term=urllib.parse.quote(termino))
-    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
 
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
+        data = descargar_json_con_reintentos(url, headers={"User-Agent": USER_AGENT})
+        if not data:
+            return []
     except Exception as e:
         if resumen:
             resumen.registrar_error_red(url, e)
-        print(f"[ERROR] Error al consultar '{termino}': {e}", file=sys.stderr)
+        logger.error(f"Error al consultar '{termino}': {e}")
         return []
 
     productos = []
@@ -111,18 +115,18 @@ def main():
 
     todos = []
     resumen = ResumenScraping("Bodegas Alianza")
-    print(f"Iniciando consulta para {len(args.terminos)} términos en Bodegas Alianza...")
+    logger.info(f"Iniciando consulta para {len(args.terminos)} términos en Bodegas Alianza...")
     for t in args.terminos:
-        print(f"  -> Buscando: {t}")
+        logger.info(f"  -> Buscando: {t}")
         prods = consultar_api_alianza(t, resumen=resumen)
         todos.extend(prods)
-        print(f"     Encontrados: {len(prods)}")
+        logger.info(f"     Encontrados: {len(prods)}")
 
     resumen.imprimir_resumen()
     import pandas as pd
     df = pd.DataFrame(todos)
     guardar_csv_atomico(df, args.salida)
-    print(f"Guardados {len(df)} registros en {args.salida}")
+    logger.info(f"Guardados {len(df)} registros en {args.salida}")
 
 
 if __name__ == "__main__":

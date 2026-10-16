@@ -42,6 +42,10 @@ from src.clasificacion import (
     PALABRAS_EXCLUIDAS
 )
 from src.io_utils import guardar_csv_atomico, ResumenScraping
+from src.http_utils import descargar_json_con_reintentos, descargar_html_con_reintentos
+from src.logger import get_logger
+
+logger = get_logger("scraper_multitienda")
 
 
 
@@ -288,9 +292,7 @@ def scrapear_chedraui() -> list[dict]:
             fin = ini + 49
             url = f"https://www.chedraui.com.mx/api/catalog_system/pub/products/search/{urllib.parse.quote(t)}?_from={ini}&_to={fin}"
             try:
-                req = urllib.request.Request(url, headers=HEADERS)
-                with urllib.request.urlopen(req, timeout=12) as r:
-                    data = json.loads(r.read().decode("utf-8", errors="ignore"))
+                data = descargar_json_con_reintentos(url, headers=HEADERS, timeout=12)
                 if not data:
                     break
                 for p in data:
@@ -337,7 +339,7 @@ def scrapear_chedraui() -> list[dict]:
                 time.sleep(0.3)
             except Exception as e:
                 resumen.registrar_error_red(url, e)
-                print(f"  [Aviso Chedraui '{t}']: {e}")
+                logger.warning(f"Aviso Chedraui '{t}': {e}")
                 break
     resumen.imprimir_resumen()
     return resultados
@@ -358,14 +360,15 @@ def scrapear_nextjs_walmart_platform(tienda: str, base_domain: str, terminos: li
     for t in terminos:
         url = f"https://{base_domain}/search?q={urllib.parse.quote(t)}"
         try:
-            req = urllib.request.Request(url, headers=HEADERS)
-            with urllib.request.urlopen(req, timeout=15) as r:
-                html = r.read().decode("utf-8", errors="ignore")
+            html = descargar_html_con_reintentos(url, headers=HEADERS, timeout=15)
+            if not html:
+                resumen.registrar_error_red(url, ConnectionError("Respuesta vacía"))
+                continue
             soup = BeautifulSoup(html, "html.parser")
             script = soup.find("script", id="__NEXT_DATA__")
             if not script or not script.string:
                 resumen.registrar_error_parseo(t, ValueError("Sin __NEXT_DATA__"))
-                print(f"  [Aviso {tienda}] Sin __NEXT_DATA__ en '{t}' ({len(html)} bytes)")
+                logger.warning(f"[{tienda}] Sin __NEXT_DATA__ en '{t}' ({len(html)} bytes)")
                 time.sleep(1.0)
                 continue
 
@@ -419,11 +422,11 @@ def scrapear_nextjs_walmart_platform(tienda: str, base_domain: str, terminos: li
                         nuevos_q += 1
                     else:
                         resumen.registrar_descarte("filtro categoría o volumen")
-            print(f"  -> '{t}': +{nuevos_q} productos (Acumulado {tienda}: {len(resultados)})")
+            logger.info(f"  -> '{t}': +{nuevos_q} productos (Acumulado {tienda}: {len(resultados)})")
             time.sleep(0.8)
         except Exception as e:
             resumen.registrar_error_red(url, e)
-            print(f"  [Aviso {tienda} '{t}']: {e}")
+            logger.warning(f"[{tienda} '{t}']: {e}")
             time.sleep(1.0)
 
     resumen.imprimir_resumen()
@@ -453,9 +456,10 @@ def scrapear_soriana() -> list[dict]:
     for t in terminos:
         url = f"https://www.soriana.com/buscar?q={urllib.parse.quote(t)}"
         try:
-            req = urllib.request.Request(url, headers=HEADERS)
-            with urllib.request.urlopen(req, timeout=15) as r:
-                html = r.read().decode("utf-8", errors="ignore")
+            html = descargar_html_con_reintentos(url, headers=HEADERS, timeout=15)
+            if not html:
+                resumen.registrar_error_red(url, ConnectionError("Respuesta vacía"))
+                continue
             soup = BeautifulSoup(html, "html.parser")
             tiles = soup.select(".product-tile")
             nuevos_q = 0
@@ -513,14 +517,14 @@ def scrapear_soriana() -> list[dict]:
                     nuevos_q += 1
                 else:
                     resumen.registrar_descarte("criterio exclusión o volumen")
-            print(f"  -> '{t}': +{nuevos_q} productos (Acumulado Soriana: {len(resultados)})")
+            logger.info(f"  -> '{t}': +{nuevos_q} productos (Acumulado Soriana: {len(resultados)})")
             time.sleep(0.5)
         except Exception as e:
             resumen.registrar_error_red(url, e)
-            print(f"  [Aviso Soriana '{t}']: {e}")
+            logger.warning(f"[Soriana '{t}']: {e}")
 
     resumen.imprimir_resumen()
-    print(f"  => Total Soriana: {len(resultados)} productos validados.")
+    logger.info(f"Total Soriana: {len(resultados)} productos validados.")
     return resultados
 
 
@@ -559,13 +563,13 @@ def main():
     if prods_soriana:
         guardar_csv_atomico(pd.DataFrame(prods_soriana), "data/scraped_soriana.csv")
 
-    print("\n" + "=" * 70)
-    print("RESUMEN DE EXTRACCIÓN MULTITIENDA")
-    print("=" * 70)
-    print(f"  - Chedraui:   {len(prods_chedraui)} productos")
-    print(f"  - Sam's Club: {len(prods_sams)} productos")
-    print(f"  - Walmart:    {len(prods_walmart)} productos")
-    print(f"  - Soriana:    {len(prods_soriana)} productos")
+    logger.info("=" * 70)
+    logger.info("RESUMEN DE EXTRACCIÓN MULTITIENDA")
+    logger.info("=" * 70)
+    logger.info(f"  - Chedraui:   {len(prods_chedraui)} productos")
+    logger.info(f"  - Sam's Club: {len(prods_sams)} productos")
+    logger.info(f"  - Walmart:    {len(prods_walmart)} productos")
+    logger.info(f"  - Soriana:    {len(prods_soriana)} productos")
 
 
 if __name__ == "__main__":

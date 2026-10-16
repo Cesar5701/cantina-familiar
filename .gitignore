@@ -31,3 +31,6 @@ data/catalogo_completo_consolidado.csv
 data/ranking_completo_general.csv
 data/reporte_ranking.csv
 
+# Logs (H19)
+logs/
+*.log
