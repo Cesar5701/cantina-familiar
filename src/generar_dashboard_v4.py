@@ -15,10 +15,10 @@ LOCAL_HTML_PATH = ROOT_DIR / "data" / "dashboard_bi.html"
 INDEX_HTML_PATH = ROOT_DIR / "index.html"
 DATA_JSON_PATH = ROOT_DIR / "data" / "dashboard_data.json"
 
-# Ruta opcional de artefactos de entorno asistido
-DEFAULT_ARTIFACT_DIR = "/home/cesar/.gemini/antigravity/brain/cf5b6fe1-c31f-46a0-a350-06d6d2e984ca"
-ARTIFACT_DIR = os.environ.get("ANTIGRAVITY_ARTIFACT_DIR", DEFAULT_ARTIFACT_DIR)
+# Ruta opcional de artefactos de entorno asistido (solo si está definida en variables de entorno)
+ARTIFACT_DIR = os.environ.get("ANTIGRAVITY_ARTIFACT_DIR")
 HTML_ARTIFACT_PATH = Path(ARTIFACT_DIR) / "dashboard_bi.html" if ARTIFACT_DIR else None
+
 
 # Cargar los datos auditados (653 productos en 5 tiendas)
 with open(DATA_JSON_PATH, "r", encoding="utf-8") as f:

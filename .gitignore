@@ -22,3 +22,12 @@ data/debug_page.html
 Thumbs.db
 .vscode/
 .idea/
+
+# Artefactos generados en runtime (H15)
+index.html
+data/dashboard_bi.html
+data/dashboard_data.json
+data/catalogo_completo_consolidado.csv
+data/ranking_completo_general.csv
+data/reporte_ranking.csv
+
