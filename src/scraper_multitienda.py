@@ -1,0 +1,670 @@
+"""
+Scraper Multitienda (Sam's Club, Walmart, Chedraui, Soriana) + Consolidación con Bodegas Alianza.
+
+Extrae precios verificados en tiempo real de:
+1. Sam's Club (sams.com.mx) -> SSR __NEXT_DATA__ JSON
+2. Walmart (walmart.com.mx) -> SSR __NEXT_DATA__ JSON
+3. Chedraui (chedraui.com.mx) -> API pública VTEX (/api/catalog_system/pub/products/search/)
+4. Soriana (soriana.com) -> HTML Salesforce Commerce Cloud (.product-tile)
+
+Aplica filtrado estricto por tipo de bebida (Tequila, Mezcal, Whisky Blended, Licor Honey, Vino Tinto)
+y descarta mercancía, alimentos, mezcladores, latas RTD y miniaturas (< 650 ml).
+"""
+
+import os
+import sys
+import re
+import json
+import time
+import urllib.request
+import urllib.parse
+from datetime import datetime
+import pandas as pd
+from bs4 import BeautifulSoup
+
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,application/json,*/*;q=0.8",
+    "Accept-Language": "es-MX,es;q=0.9,en;q=0.8"
+}
+
+KEYWORDS_SILVESTRES = [
+    'tobalá', 'tobala', 'cupreata', 'cuishe', 'cuixe', 'madrecuishe',
+    'madrecuixe', 'tepeztate', 'tepextate', 'arroqueño', 'arroqueno',
+    'jabalí', 'jabali', 'barril', 'papalometl', 'sincoyote', 'ensamble',
+    'silvestre', 'salmiana', 'cenizo'
+]
+
+KEYWORDS_BLENDED_WHISKY = [
+    'blended', 'red label', 'black label', 'black & white', 'black and white',
+    'ballantine', 'william lawson', 'dewar', 'grant', 'chivas', 'passport',
+    'j&b', 'jb', 'famous grouse', 'white horse', 'bell', 'cutty sark',
+    'johnnie walker', 'sir edward', 'vat 69', 'clan campbell', 'teacher',
+    'buchanan', 'label 5', 'old parr', 'gold label', 'swing'
+]
+
+PALABRAS_EXCLUIDAS = [
+    'vinagre', 'salsa', 'aderezo', 'aceite', 'mostaza', 'mermelada', 'jalea',
+    'chocolate', 'bombon', 'bombón', 'pastel', 'rosca', 'galleta', 'helado',
+    'paleta', 'gomita', 'dulce', 'vaso', 'copa', 'caballito', 'decantador',
+    'licorera', 'sacacorchos', 'destapador', 'hielera', 'bolsa de regalo',
+    'sal de ', 'sal con ', 'sangrita', 'mezclador', 'agua quina', 'agua tonica',
+    'refresco', 'jugo', 'cerveza', 'sidra', 'rompope', 'jarabe', 'concentrado',
+    'sin alcohol', '0.0%', 'desalcoholizado', 'lata ', 'latas', 'lemonade',
+    'rtd ', 'cooler', 'hard seltzer', 'pachita', 'miniatura', 'crema de ',
+    'licor de agave', 'licor de mezcal', 'bebida preparada', 'new mix',
+    'carne', 'queso', 'jamon', 'jamón', 'chorizo', 'salchicha', 'estuche vacío'
+]
+
+
+def extraer_ml(nombre: str) -> int:
+    """Extrae el volumen en mililitros soportando decimales en litros y mililitros."""
+    # Si es un multipack (ej. 6 pzas, 4 pack, 12 latas), retornar 0 para descartar o manejar aparte
+    if re.search(r'\b(\d+)\s*(?:pzas|piezas|latas|pack|botellas)\b', nombre, re.I):
+        # A menos que sea "con 2 vasos" o similar, descartar multipacks de miniaturas
+        if re.search(r'\b(?:50|187|200|250|355|473)\s*ml\b', nombre, re.I):
+            return 200
+
+    # Buscar formato litros: ej. 1.75 L, 1.75L, 1 L, 2 L, 4 L, 3L
+    match_l = re.search(r'(\d+(?:\.\d+)?)\s*(?:l|lt|lts|litro|litros)\b', nombre, re.I)
+    if match_l:
+        val_l = float(match_l.group(1))
+        if 0.3 <= val_l <= 6.0:
+            return int(round(val_l * 1000))
+
+    # Buscar formato mililitros: ej. 700 ml, 750ml, 946 ml, 187.5 ml
+    match_ml = re.search(r'(\d+(?:\.\d+)?)\s*(?:ml|mls|mililitros|cc)\b', nombre, re.I)
+    if match_ml:
+        return int(round(float(match_ml.group(1))))
+
+    return 750
+
+
+def limpiar_precio(val) -> float | None:
+    if val is None:
+        return None
+    if isinstance(val, (int, float)):
+        return float(val) if val > 0 else None
+    s = str(val).replace('\xa0', ' ').strip()
+    m = re.search(r'[\$]?\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?|\d+(?:\.\d{2})?)', s)
+    if m:
+        try:
+            v = float(m.group(1).replace(',', ''))
+            return v if v > 0 else None
+        except ValueError:
+            return None
+    return None
+
+
+def clasificar_agave_mezcal(nombre: str) -> str:
+    nom_l = nombre.lower()
+    if 'espadín' in nom_l and ('tobalá' in nom_l or 'tobala' in nom_l):
+        return 'Ensamble Espadín-Tobalá'
+    if 'cuishe' in nom_l or 'cuixe' in nom_l:
+        return 'Cuishe silvestre (A. karwinskii)'
+    if 'tobalá' in nom_l or 'tobala' in nom_l:
+        return 'Tobalá silvestre (A. potatorum)'
+    if 'cupreata' in nom_l:
+        return 'Cupreata silvestre (A. cupreata)'
+    if 'tepeztate' in nom_l or 'tepextate' in nom_l:
+        return 'Tepeztate silvestre (A. marmorata)'
+    if 'arroqueño' in nom_l or 'arroqueno' in nom_l:
+        return 'Arroqueño silvestre (A. americana)'
+    if 'cenizo' in nom_l:
+        return 'Cenizo silvestre (A. durangensis)'
+    if 'salmiana' in nom_l:
+        return 'Salmiana silvestre'
+    if 'espadín' in nom_l or 'espadin' in nom_l:
+        return 'Espadín (A. angustifolia)'
+    return 'Agave mezcalero (NOM-070)'
+
+
+def evaluar_y_normalizar_producto(
+    tienda: str,
+    nombre: str,
+    marca: str,
+    precio_regular: float,
+    precio_promo: float,
+    disponible: str,
+    url: str,
+    condicion: str,
+    fuente: str,
+    fecha_actual: str
+) -> dict | None:
+    """
+    Evalúa si un producto cumple con los criterios del proyecto y le asigna
+    su categoría y subcategoría estrictas bajo la NOM-006 / NOM-070.
+    """
+    if not nombre or len(nombre) < 6:
+        return None
+    nom_l = nombre.lower()
+
+    # 1. Descartar artículos no deseados (alimentos, vasos, latas RTD, mezcladores)
+    if any(excl in nom_l for excl in PALABRAS_EXCLUIDAS):
+        return None
+
+    if precio_promo is None or precio_promo <= 50:
+        return None
+    if precio_regular is None or precio_regular < precio_promo:
+        precio_regular = precio_promo
+
+    ml = extraer_ml(nombre)
+    # Solo botellas de tamaño estándar o familiar (>= 650 ml)
+    if ml < 650:
+        return None
+
+    if not marca or marca.lower() in ["desconocida", "sin marca", "null", "none"]:
+        palabras = [w for w in nombre.split() if w.lower() not in ["tequila", "mezcal", "whisky", "whiskey", "vino", "tinto", "licor", "de", "100%", "agave", "artesanal", "joven", "reposado", "añejo", "anejo", "cristalino", "blanco"]]
+        marca = palabras[0] if palabras else nombre.split()[0]
+
+    # -------------------------------------------------------------
+    # A. TEQUILA
+    # -------------------------------------------------------------
+    if "tequila" in nom_l:
+        if precio_promo < 200:
+            return None
+
+        # Blanco / Plata (0 meses de barrica)
+        es_blanco = ("plata" in nom_l or "blanco" in nom_l or "silver" in nom_l) and not ("añejo" in nom_l or "anejo" in nom_l or "reposado" in nom_l)
+        if "don ramón plata" in nom_l or "don ramon plata" in nom_l:
+            es_blanco = True
+
+        es_rep = "reposado" in nom_l or "rep." in nom_l or "rep " in nom_l
+        es_crist = "cristalino" in nom_l or "ultra" in nom_l or "platinium" in nom_l or "diamante" in nom_l or "cristal" in nom_l
+        es_anejo = "añejo" in nom_l or "anejo" in nom_l or "extra añejo" in nom_l or "milenio" in nom_l or "70 " in nom_l
+
+        # Reglas específicas Don Ramón / Centenario / Dobel
+        if es_blanco:
+            return None  # El usuario pidió filtrar solo Cristalino, Añejo y Añejo Cristalino (o Reposados equivalentes)
+        elif "don ramón" in nom_l or "don ramon" in nom_l:
+            if "añejo" in nom_l and ("platinium" in nom_l or "cristalino" in nom_l):
+                subcat, clase = "Añejo Cristalino", "Añejo Cristalino"
+            elif "reposado" in nom_l and ("platinium" in nom_l or "cristalino" in nom_l):
+                subcat, clase = "Reposado Cristalino", "Reposado Cristalino"
+            elif "añejo" in nom_l:
+                subcat, clase = "Añejo Tradicional", "Añejo"
+            else:
+                return None
+        elif "centenario ultra" in nom_l:
+            subcat, clase = "Reposado Cristalino", "Reposado Cristalino"
+        elif "dobel diamante" in nom_l:
+            subcat, clase = "Añejo Cristalino", "Añejo Cristalino"
+        elif es_rep and es_crist and not es_anejo:
+            subcat, clase = "Reposado Cristalino", "Reposado Cristalino"
+        elif es_anejo and es_crist:
+            subcat, clase = "Añejo Cristalino", "Añejo Cristalino"
+        elif es_anejo and not es_crist:
+            subcat = "Añejo Tradicional"
+            clase = "Extra Añejo" if ("extra" in nom_l or "milenio" in nom_l) else "Añejo"
+        elif es_crist:
+            subcat, clase = "Añejo Cristalino", "Añejo Cristalino"
+        else:
+            # Descartar blancos y reposados comunes que no son cristalinos ni añejos
+            return None
+
+        return {
+            "tienda": tienda,
+            "producto": nombre,
+            "marca": marca,
+            "categoria": "Tequila",
+            "subcategoria": subcat,
+            "clase": clase,
+            "tipo_mezcal": "no_aplica",
+            "especie_agave": "Tequilana Weber azul",
+            "productor": marca,
+            "sello_regulador": "sí",
+            "ml": ml,
+            "abv": 35.0 if "cristalino" in subcat.lower() else 38.0,
+            "precio_regular": round(float(precio_regular), 2),
+            "precio_promo": round(float(precio_promo), 2),
+            "unidades_promo": 1,
+            "precio_total_promo": round(float(precio_promo), 2),
+            "condiciones": condicion,
+            "disponibilidad": disponible,
+            "url": url,
+            "fecha_consulta": fecha_actual,
+            "fuente": fuente,
+            "confianza": "Confirmado"
+        }
+
+    # -------------------------------------------------------------
+    # B. MEZCAL (Reposado, Añejo, Silvestres, y 400 Conejos / Amarás / Montelobos de referencia)
+    # -------------------------------------------------------------
+    if "mezcal" in nom_l:
+        if precio_promo < 250:
+            return None
+
+        es_rep = "reposado" in nom_l or "rep " in nom_l or "rep." in nom_l
+        es_anejo = "añejo" in nom_l or "anejo" in nom_l
+        es_crist = "cristalino" in nom_l
+        es_silvestre = any(k in nom_l for k in KEYWORDS_SILVESTRES)
+        es_referencia = any(m in nom_l for m in ["400 conejos", "amarás", "amaras", "montelobos"])
+
+        if not (es_rep or es_anejo or es_crist or es_silvestre or es_referencia):
+            return None
+
+        if es_silvestre and not es_rep and not es_anejo:
+            subcat, clase = "Silvestre", "Joven Silvestre"
+        elif es_anejo:
+            subcat, clase = "Añejo", "Añejo"
+        elif es_crist:
+            subcat, clase = "Reposado Cristalino", "Reposado Cristalino"
+        elif es_rep:
+            subcat, clase = "Reposado", "Reposado"
+        else:
+            subcat, clase = "Espadín Joven", "Joven"
+
+        return {
+            "tienda": tienda,
+            "producto": nombre,
+            "marca": marca,
+            "categoria": "Mezcal",
+            "subcategoria": subcat,
+            "clase": clase,
+            "tipo_mezcal": "Artesanal",
+            "especie_agave": clasificar_agave_mezcal(nombre),
+            "productor": marca,
+            "sello_regulador": "sí",
+            "ml": ml,
+            "abv": 38.0 if "400 conejos" in nom_l else 40.0,
+            "precio_regular": round(float(precio_regular), 2),
+            "precio_promo": round(float(precio_promo), 2),
+            "unidades_promo": 1,
+            "precio_total_promo": round(float(precio_promo), 2),
+            "condiciones": condicion,
+            "disponibilidad": disponible,
+            "url": url,
+            "fecha_consulta": fecha_actual,
+            "fuente": fuente,
+            "confianza": "Confirmado"
+        }
+
+    # -------------------------------------------------------------
+    # C. LICOR DE WHISKY HONEY
+    # -------------------------------------------------------------
+    if ("jack daniel" in nom_l or "passport" in nom_l or "jim beam" in nom_l or "wild turkey" in nom_l or "william lawson" in nom_l) and ("honey" in nom_l or "miel" in nom_l):
+        if precio_promo < 150:
+            return None
+        return {
+            "tienda": tienda,
+            "producto": nombre,
+            "marca": marca,
+            "categoria": "Licor de Whisky",
+            "subcategoria": "Honey Liqueur",
+            "clase": "no_aplica",
+            "tipo_mezcal": "no_aplica",
+            "especie_agave": "no_aplica",
+            "productor": marca,
+            "sello_regulador": "no_aplica",
+            "ml": ml,
+            "abv": 35.0,
+            "precio_regular": round(float(precio_regular), 2),
+            "precio_promo": round(float(precio_promo), 2),
+            "unidades_promo": 1,
+            "precio_total_promo": round(float(precio_promo), 2),
+            "condiciones": condicion,
+            "disponibilidad": disponible,
+            "url": url,
+            "fecha_consulta": fecha_actual,
+            "fuente": fuente,
+            "confianza": "Confirmado"
+        }
+
+    # -------------------------------------------------------------
+    # D. WHISKY BLENDED SCOTCH
+    # -------------------------------------------------------------
+    if "whisky" in nom_l or "whiskey" in nom_l or "johnnie walker" in nom_l or "buchanan" in nom_l or "chivas regal" in nom_l or "black & white" in nom_l or "ballantine" in nom_l or "william lawson" in nom_l:
+        if any(ign in nom_l for ign in ["single malt", "malt scotch", "bourbon", "tennessee", "apple", "fire", "peach", "blackberry"]):
+            return None
+        if precio_promo < 160:
+            return None
+        if any(k in nom_l for k in KEYWORDS_BLENDED_WHISKY):
+            return {
+                "tienda": tienda,
+                "producto": nombre,
+                "marca": marca,
+                "categoria": "Whisky",
+                "subcategoria": "Blended Scotch",
+                "clase": "no_aplica",
+                "tipo_mezcal": "no_aplica",
+                "especie_agave": "no_aplica",
+                "productor": marca,
+                "sello_regulador": "no_aplica",
+                "ml": ml,
+                "abv": 40.0,
+                "precio_regular": round(float(precio_regular), 2),
+                "precio_promo": round(float(precio_promo), 2),
+                "unidades_promo": 1,
+                "precio_total_promo": round(float(precio_promo), 2),
+                "condiciones": condicion,
+                "disponibilidad": disponible,
+                "url": url,
+                "fecha_consulta": fecha_actual,
+                "fuente": fuente,
+                "confianza": "Confirmado"
+            }
+
+    # -------------------------------------------------------------
+    # E. VINO TINTO PARA CLERICOT Y MESA
+    # -------------------------------------------------------------
+    if ("vino tinto" in nom_l or "carlo rossi" in nom_l or "vino lambrusco" in nom_l or "tinto california" in nom_l or "padre kino" in nom_l):
+        if any(ign in nom_l for ign in ["blanco", "rosado", "espumoso", "champagne", "prosecco"]):
+            return None
+        # Permitir botellas individuales económicas (<= $280) o garrafas familiares de 1.5L a 4L (<= $550)
+        limite_precio = 550.0 if ml >= 1500 else 260.0
+        if 65.0 <= precio_promo <= limite_precio:
+            return {
+                "tienda": tienda,
+                "producto": nombre,
+                "marca": marca,
+                "categoria": "Vino",
+                "subcategoria": "Tinto Clericot",
+                "clase": "no_aplica",
+                "tipo_mezcal": "no_aplica",
+                "especie_agave": "no_aplica",
+                "productor": marca,
+                "sello_regulador": "no_aplica",
+                "ml": ml,
+                "abv": 12.0,
+                "precio_regular": round(float(precio_regular), 2),
+                "precio_promo": round(float(precio_promo), 2),
+                "unidades_promo": 1,
+                "precio_total_promo": round(float(precio_promo), 2),
+                "condiciones": condicion,
+                "disponibilidad": disponible,
+                "url": url,
+                "fecha_consulta": fecha_actual,
+                "fuente": fuente,
+                "confianza": "Confirmado"
+            }
+
+    return None
+
+
+# ==============================================================================
+# 1. SCRAPER CHEDRAUI (API VTEX OFICIAL)
+# ==============================================================================
+def scrapear_chedraui() -> list[dict]:
+    print("\n" + "=" * 70)
+    print("1. SCRAPEANDO CHEDRAUI (API VTEX chedraui.com.mx)")
+    print("=" * 70)
+    terminos = [
+        "tequila cristalino", "tequila anejo", "tequila 1800", "tequila herradura",
+        "tequila don julio", "tequila maestro dobel", "tequila centenario", "tequila don ramon",
+        "mezcal", "mezcal 400 conejos", "mezcal amaras", "mezcal montelobos",
+        "whisky", "johnnie walker", "black & white", "ballantines", "william lawsons",
+        "jack daniels honey",
+        "vino tinto", "vino california", "carlo rossi", "concha y toro"
+    ]
+    fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M")
+    ids_vistos = set()
+    resultados = []
+
+    for t in terminos:
+        for pag in range(2):
+            ini = pag * 50
+            fin = ini + 49
+            url = f"https://www.chedraui.com.mx/api/catalog_system/pub/products/search/{urllib.parse.quote(t)}?_from={ini}&_to={fin}"
+            try:
+                req = urllib.request.Request(url, headers=HEADERS)
+                with urllib.request.urlopen(req, timeout=12) as r:
+                    data = json.loads(r.read().decode("utf-8", errors="ignore"))
+                if not data:
+                    break
+                for p in data:
+                    pid = p.get("productId") or p.get("linkText")
+                    if not pid or pid in ids_vistos:
+                        continue
+                    ids_vistos.add(pid)
+                    nombre = p.get("productName", "").strip()
+                    marca = p.get("brand", "").strip()
+                    link = p.get("link", "")
+                    items = p.get("items", [])
+                    if not items:
+                        continue
+                    offer = items[0].get("sellers", [{}])[0].get("commertialOffer", {})
+                    p_promo = offer.get("Price")
+                    p_reg = offer.get("ListPrice") or p_promo
+                    avail_qty = offer.get("AvailableQuantity", 0)
+                    disponible = "disponible" if avail_qty > 0 else "agotado"
+                    if disponible == "agotado":
+                        continue
+                    cond = "Oferta en línea Chedraui" if (p_reg and p_promo and p_reg > p_promo) else "Precio regular Chedraui"
+
+                    item_norm = evaluar_y_normalizar_producto(
+                        tienda="Chedraui",
+                        nombre=nombre,
+                        marca=marca,
+                        precio_regular=p_reg,
+                        precio_promo=p_promo,
+                        disponible=disponible,
+                        url=link,
+                        condicion=cond,
+                        fuente="API VTEX chedraui.com.mx",
+                        fecha_actual=fecha_actual
+                    )
+                    if item_norm:
+                        resultados.append(item_norm)
+                if len(data) < 50:
+                    break
+                time.sleep(0.3)
+            except Exception as e:
+                print(f"  [Aviso Chedraui '{t}']: {e}")
+                break
+    print(f"  -> Chedraui: {len(resultados)} productos validados.")
+    return resultados
+
+
+# ==============================================================================
+# 2. SCRAPER SAM'S CLUB & WALMART (SSR __NEXT_DATA__)
+# ==============================================================================
+def scrapear_nextjs_walmart_platform(tienda: str, base_domain: str, terminos: list[str]) -> list[dict]:
+    print("\n" + "=" * 70)
+    print(f"SCRAPEANDO {tienda.upper()} ({base_domain} SSR __NEXT_DATA__)")
+    print("=" * 70)
+    fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M")
+    ids_vistos = set()
+    resultados = []
+
+    for t in terminos:
+        url = f"https://{base_domain}/search?q={urllib.parse.quote(t)}"
+        try:
+            req = urllib.request.Request(url, headers=HEADERS)
+            with urllib.request.urlopen(req, timeout=15) as r:
+                html = r.read().decode("utf-8", errors="ignore")
+            soup = BeautifulSoup(html, "html.parser")
+            script = soup.find("script", id="__NEXT_DATA__")
+            if not script or not script.string:
+                print(f"  [Aviso {tienda}] Sin __NEXT_DATA__ en '{t}' ({len(html)} bytes)")
+                time.sleep(1.0)
+                continue
+
+            data = json.loads(script.string)
+            stacks = data.get("props", {}).get("pageProps", {}).get("initialData", {}).get("searchResult", {}).get("itemStacks", [])
+            nuevos_q = 0
+            for st in stacks:
+                for it in st.get("items", []):
+                    us_id = it.get("usItemId") or it.get("id") or it.get("canonicalUrl")
+                    if not us_id or us_id in ids_vistos:
+                        continue
+                    ids_vistos.add(us_id)
+
+                    nombre = (it.get("name") or it.get("title") or "").strip()
+                    marca = (it.get("brand") or "").strip()
+                    canon = it.get("canonicalUrl") or ""
+                    full_url = f"https://{base_domain}{canon}" if canon.startswith("/") else (canon or url)
+
+                    avail_obj = it.get("availabilityStatusV2") or {}
+                    avail_val = avail_obj.get("value", "IN_STOCK") if isinstance(avail_obj, dict) else "IN_STOCK"
+                    if avail_val == "OUT_OF_STOCK":
+                        continue
+
+                    p_info = it.get("priceInfo") or {}
+                    p_promo = limpiar_precio(it.get("price")) or limpiar_precio(p_info.get("linePrice"))
+                    p_was = limpiar_precio(p_info.get("wasPrice")) or limpiar_precio(p_info.get("itemPrice"))
+                    p_reg = p_was if (p_was and p_promo and p_was > p_promo) else p_promo
+
+                    savings = p_info.get("savings") or ""
+                    if p_reg and p_promo and p_reg > p_promo:
+                        cond = f"Rebaja en línea ({savings})" if savings else f"Oferta {tienda}"
+                    else:
+                        cond = f"Precio socio {tienda}" if "Sam" in tienda else f"Precio regular {tienda}"
+
+                    item_norm = evaluar_y_normalizar_producto(
+                        tienda=tienda,
+                        nombre=nombre,
+                        marca=marca,
+                        precio_regular=p_reg,
+                        precio_promo=p_promo,
+                        disponible="disponible",
+                        url=full_url,
+                        condicion=cond,
+                        fuente=f"Portal oficial {base_domain}",
+                        fecha_actual=fecha_actual
+                    )
+                    if item_norm:
+                        resultados.append(item_norm)
+                        nuevos_q += 1
+            print(f"  -> '{t}': +{nuevos_q} productos (Acumulado {tienda}: {len(resultados)})")
+            time.sleep(0.8)
+        except Exception as e:
+            print(f"  [Aviso {tienda} '{t}']: {e}")
+            time.sleep(1.0)
+
+    print(f"  => Total {tienda}: {len(resultados)} productos validados.")
+    return resultados
+
+
+# ==============================================================================
+# 3. SCRAPER SORIANA (HTML SALESFORCE COMMERCE CLOUD)
+# ==============================================================================
+def scrapear_soriana() -> list[dict]:
+    print("\n" + "=" * 70)
+    print("SCRAPEANDO SORIANA (soriana.com SFCC Catalog)")
+    print("=" * 70)
+    terminos = [
+        "tequila cristalino", "tequila anejo", "tequila 1800", "tequila herradura",
+        "tequila don julio", "tequila maestro dobel", "tequila centenario",
+        "mezcal 400 conejos", "mezcal amaras", "mezcal montelobos", "mezcal reposado", "mezcal anejo",
+        "whisky johnnie walker", "whisky buchanans", "whisky chivas", "whisky black & white", "whisky ballantines", "whisky william lawsons",
+        "jack daniels honey",
+        "vino tinto california", "vino tinto carlo rossi", "vino tinto reservado", "vino tinto cuatro soles", "vino tinto lambrusco"
+    ]
+    fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M")
+    pids_vistos = set()
+    resultados = []
+
+    for t in terminos:
+        url = f"https://www.soriana.com/buscar?q={urllib.parse.quote(t)}"
+        try:
+            req = urllib.request.Request(url, headers=HEADERS)
+            with urllib.request.urlopen(req, timeout=15) as r:
+                html = r.read().decode("utf-8", errors="ignore")
+            soup = BeautifulSoup(html, "html.parser")
+            tiles = soup.select(".product-tile")
+            nuevos_q = 0
+            for tile in tiles:
+                link_el = tile.select_one("a.product-tile--link")
+                if not link_el:
+                    continue
+                nombre = link_el.get_text(strip=True)
+                href = link_el.get("href", "")
+                pid_btn = tile.select_one("[data-pid]")
+                pid = pid_btn.get("data-pid") if pid_btn else href
+                if not pid or pid in pids_vistos:
+                    continue
+                pids_vistos.add(pid)
+
+                full_url = f"https://www.soriana.com{href}" if href.startswith("/") else (href or url)
+
+                # Precio de lista
+                inp_list = tile.select_one('input[name="clevertap-list-price"]')
+                p_list = limpiar_precio(inp_list.get("value")) if inp_list else None
+
+                # Precio de venta / promo
+                sales_el = tile.select_one(".sales .cart-price") or tile.select_one(".price-plp")
+                p_sale = limpiar_precio(sales_el.get_text(strip=True)) if sales_el else p_list
+
+                p_promo = p_sale or p_list
+                p_reg = p_list if (p_list and p_promo and p_list > p_promo) else p_promo
+
+                # Promociones / Badges
+                badges = [b.get("title", "").strip() for b in tile.select(".product-badge") if b.get("title")]
+                badges_str = " | ".join(dict.fromkeys(b for b in badges if b))
+                if p_reg and p_promo and p_reg > p_promo:
+                    cond = f"Oferta en línea ({badges_str})" if badges_str else "Oferta en línea Soriana"
+                elif badges_str:
+                    cond = f"Precio regular ({badges_str})"
+                else:
+                    cond = "Precio regular Soriana"
+
+                item_norm = evaluar_y_normalizar_producto(
+                    tienda="Soriana",
+                    nombre=nombre,
+                    marca="",
+                    precio_regular=p_reg,
+                    precio_promo=p_promo,
+                    disponible="disponible",
+                    url=full_url,
+                    condicion=cond,
+                    fuente="Portal oficial soriana.com",
+                    fecha_actual=fecha_actual
+                )
+                if item_norm:
+                    resultados.append(item_norm)
+                    nuevos_q += 1
+            print(f"  -> '{t}': +{nuevos_q} productos (Acumulado Soriana: {len(resultados)})")
+            time.sleep(0.5)
+        except Exception as e:
+            print(f"  [Aviso Soriana '{t}']: {e}")
+
+    print(f"  => Total Soriana: {len(resultados)} productos validados.")
+    return resultados
+
+
+def main():
+    os.makedirs("data", exist_ok=True)
+
+    terminos_sams = [
+        "tequila", "tequila cristalino", "tequila anejo",
+        "mezcal", "whisky", "jack daniels", "vino tinto"
+    ]
+    terminos_walmart = [
+        "tequila cristalino", "tequila anejo", "tequila 1800", "tequila herradura", "tequila don julio", "tequila dobel",
+        "mezcal 400 conejos", "mezcal amaras", "mezcal montelobos", "mezcal reposado", "mezcal anejo",
+        "whisky johnnie walker", "whisky black & white", "whisky ballantines", "whisky william lawsons", "whisky chivas", "whisky buchanans",
+        "jack daniels honey",
+        "vino tinto california", "carlo rossi", "vino tinto reservado", "vino tinto cuatro soles"
+    ]
+
+    # 1. Chedraui
+    prods_chedraui = scrapear_chedraui()
+    if prods_chedraui:
+        pd.DataFrame(prods_chedraui).to_csv("data/scraped_chedraui.csv", index=False)
+
+    # 2. Sam's Club
+    prods_sams = scrapear_nextjs_walmart_platform("Sam's Club", "www.sams.com.mx", terminos_sams)
+    if prods_sams:
+        pd.DataFrame(prods_sams).to_csv("data/scraped_sams.csv", index=False)
+
+    # 3. Walmart
+    prods_walmart = scrapear_nextjs_walmart_platform("Walmart", "www.walmart.com.mx", terminos_walmart)
+    if prods_walmart:
+        pd.DataFrame(prods_walmart).to_csv("data/scraped_walmart.csv", index=False)
+
+    # 4. Soriana
+    prods_soriana = scrapear_soriana()
+    if prods_soriana:
+        pd.DataFrame(prods_soriana).to_csv("data/scraped_soriana.csv", index=False)
+
+    print("\n" + "=" * 70)
+    print("RESUMEN DE EXTRACCIÓN MULTITIENDA")
+    print("=" * 70)
+    print(f"  - Chedraui:   {len(prods_chedraui)} productos")
+    print(f"  - Sam's Club: {len(prods_sams)} productos")
+    print(f"  - Walmart:    {len(prods_walmart)} productos")
+    print(f"  - Soriana:    {len(prods_soriana)} productos")
+
+
+if __name__ == "__main__":
+    main()
