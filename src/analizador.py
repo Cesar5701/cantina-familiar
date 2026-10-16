@@ -20,14 +20,17 @@ COLUMNAS_OBLIGATORIAS = [
 
 
 def normalizar_texto_clave(texto: str) -> str:
-    """Normaliza un nombre de producto eliminando acentos, puntuación y espacios extras."""
+    """Normaliza un nombre de producto eliminando acentos, puntuación, stop-words y ordenando tokens para match cross-tienda."""
     if not texto or pd.isnull(texto):
         return ""
     import unicodedata
     import re
     s = unicodedata.normalize('NFKD', str(texto)).encode('ascii', 'ignore').decode('utf-8')
     s = re.sub(r'[^a-zA-Z0-9\s]', ' ', s.lower())
-    return re.sub(r'\s+', ' ', s).strip()
+    stop_words = {"de", "del", "el", "la", "los", "las", "en", "para"}
+    tokens = [t for t in s.split() if t not in stop_words]
+    tokens.sort()
+    return " ".join(tokens)
 
 
 def cargar_datos(ruta_csv: str, validar_rangos: bool = False) -> pd.DataFrame:

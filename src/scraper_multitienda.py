@@ -280,6 +280,7 @@ def scrapear_chedraui() -> list[dict]:
     fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M")
     ids_vistos = set()
     resultados = []
+    resumen = ResumenScraping("Chedraui")
 
     for t in terminos:
         for pag in range(2):
@@ -302,6 +303,7 @@ def scrapear_chedraui() -> list[dict]:
                     link = p.get("link", "")
                     items = p.get("items", [])
                     if not items:
+                        resumen.registrar_descarte("sin items")
                         continue
                     offer = items[0].get("sellers", [{}])[0].get("commertialOffer", {})
                     p_promo = offer.get("Price")
@@ -309,6 +311,7 @@ def scrapear_chedraui() -> list[dict]:
                     avail_qty = offer.get("AvailableQuantity", 0)
                     disponible = "disponible" if avail_qty > 0 else "agotado"
                     if disponible == "agotado":
+                        resumen.registrar_descarte("agotado")
                         continue
                     cond = "Oferta en línea Chedraui" if (p_reg and p_promo and p_reg > p_promo) else "Precio regular Chedraui"
 
@@ -326,13 +329,17 @@ def scrapear_chedraui() -> list[dict]:
                     )
                     if item_norm:
                         resultados.append(item_norm)
+                        resumen.registrar_exito()
+                    else:
+                        resumen.registrar_descarte("criterio exclusión o volumen")
                 if len(data) < 50:
                     break
                 time.sleep(0.3)
             except Exception as e:
+                resumen.registrar_error_red(url, e)
                 print(f"  [Aviso Chedraui '{t}']: {e}")
                 break
-    print(f"  -> Chedraui: {len(resultados)} productos validados.")
+    resumen.imprimir_resumen()
     return resultados
 
 
@@ -346,6 +353,7 @@ def scrapear_nextjs_walmart_platform(tienda: str, base_domain: str, terminos: li
     fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M")
     ids_vistos = set()
     resultados = []
+    resumen = ResumenScraping(tienda)
 
     for t in terminos:
         url = f"https://{base_domain}/search?q={urllib.parse.quote(t)}"
@@ -356,6 +364,7 @@ def scrapear_nextjs_walmart_platform(tienda: str, base_domain: str, terminos: li
             soup = BeautifulSoup(html, "html.parser")
             script = soup.find("script", id="__NEXT_DATA__")
             if not script or not script.string:
+                resumen.registrar_error_parseo(t, ValueError("Sin __NEXT_DATA__"))
                 print(f"  [Aviso {tienda}] Sin __NEXT_DATA__ en '{t}' ({len(html)} bytes)")
                 time.sleep(1.0)
                 continue
@@ -378,6 +387,7 @@ def scrapear_nextjs_walmart_platform(tienda: str, base_domain: str, terminos: li
                     avail_obj = it.get("availabilityStatusV2") or {}
                     avail_val = avail_obj.get("value", "IN_STOCK") if isinstance(avail_obj, dict) else "IN_STOCK"
                     if avail_val == "OUT_OF_STOCK":
+                        resumen.registrar_descarte("agotado")
                         continue
 
                     p_info = it.get("priceInfo") or {}
@@ -405,14 +415,18 @@ def scrapear_nextjs_walmart_platform(tienda: str, base_domain: str, terminos: li
                     )
                     if item_norm:
                         resultados.append(item_norm)
+                        resumen.registrar_exito()
                         nuevos_q += 1
+                    else:
+                        resumen.registrar_descarte("filtro categoría o volumen")
             print(f"  -> '{t}': +{nuevos_q} productos (Acumulado {tienda}: {len(resultados)})")
             time.sleep(0.8)
         except Exception as e:
+            resumen.registrar_error_red(url, e)
             print(f"  [Aviso {tienda} '{t}']: {e}")
             time.sleep(1.0)
 
-    print(f"  => Total {tienda}: {len(resultados)} productos validados.")
+    resumen.imprimir_resumen()
     return resultados
 
 
@@ -434,6 +448,7 @@ def scrapear_soriana() -> list[dict]:
     fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M")
     pids_vistos = set()
     resultados = []
+    resumen = ResumenScraping("Soriana")
 
     for t in terminos:
         url = f"https://www.soriana.com/buscar?q={urllib.parse.quote(t)}"
@@ -447,6 +462,7 @@ def scrapear_soriana() -> list[dict]:
             for tile in tiles:
                 link_el = tile.select_one("a.product-tile--link")
                 if not link_el:
+                    resumen.registrar_descarte("sin link")
                     continue
                 nombre = link_el.get_text(strip=True)
                 href = link_el.get("href", "")
@@ -493,12 +509,17 @@ def scrapear_soriana() -> list[dict]:
                 )
                 if item_norm:
                     resultados.append(item_norm)
+                    resumen.registrar_exito()
                     nuevos_q += 1
+                else:
+                    resumen.registrar_descarte("criterio exclusión o volumen")
             print(f"  -> '{t}': +{nuevos_q} productos (Acumulado Soriana: {len(resultados)})")
             time.sleep(0.5)
         except Exception as e:
+            resumen.registrar_error_red(url, e)
             print(f"  [Aviso Soriana '{t}']: {e}")
 
+    resumen.imprimir_resumen()
     print(f"  => Total Soriana: {len(resultados)} productos validados.")
     return resultados
 

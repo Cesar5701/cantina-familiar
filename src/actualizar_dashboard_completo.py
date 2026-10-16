@@ -121,10 +121,87 @@ def actualizar_todo():
         if c not in df_dash.columns:
             df_dash[c] = ''
 
-    records = df_dash[cols].fillna('').to_dict(orient='records')
+    # Precomputar métricas cross-tienda para el frontend (H8)
+    grupos_cross = {}
+    for clave, grp in df_dash.groupby('clave_comparativa'):
+        tiendas_unicas = grp['tienda'].unique()
+        if len(tiendas_unicas) >= 2:
+            idx_min = grp['precio_promo'].idxmin()
+            idx_max = grp['precio_promo'].idxmax()
+            row_min = grp.loc[idx_min]
+            row_max = grp.loc[idx_max]
+            grupos_cross[clave] = {
+                'num_tiendas': len(tiendas_unicas),
+                'tienda_min': row_min['tienda'],
+                'precio_min': round(float(row_min['precio_promo']), 2),
+                'tienda_max': row_max['tienda'],
+                'precio_max': round(float(row_max['precio_promo']), 2),
+                'ahorro_max': round(float(row_max['precio_promo'] - row_min['precio_promo']), 2),
+                'ofertas': [
+                    {
+                        'tienda': r['tienda'],
+                        'producto': r['producto'],
+                        'precio_promo': round(float(r['precio_promo']), 2),
+                        'precio_por_litro': round(float(r['precio_por_litro']), 2),
+                        'url': r['url']
+                    }
+                    for _, r in grp.iterrows()
+                ]
+            }
+
+    records = []
+    for _, row in df_dash.iterrows():
+        rec = {}
+        for c in cols:
+            val = row.get(c, '')
+            rec[c] = '' if pd.isna(val) else val
+
+        clave = row.get('clave_comparativa', '')
+        rec['clave_comparativa'] = clave
+
+        if clave in grupos_cross:
+            info = grupos_cross[clave]
+            rec['es_comparable_cross_tienda'] = True
+            rec['num_tiendas_cross'] = info['num_tiendas']
+            rec['tienda_mas_barata'] = info['tienda_min']
+            rec['precio_minimo_cross'] = info['precio_min']
+            rec['tienda_mas_cara'] = info['tienda_max']
+            rec['precio_maximo_cross'] = info['precio_max']
+            rec['ahorro_maximo_cross'] = info['ahorro_max']
+            p_actual = round(float(row['precio_promo']), 2)
+            rec['es_precio_mas_bajo'] = bool(p_actual <= info['precio_min'] + 0.01)
+            rec['diferencia_vs_minimo'] = round(p_actual - info['precio_min'], 2)
+            rec['ofertas_cross_tienda'] = [
+                {
+                    'tienda': of['tienda'],
+                    'producto': of['producto'],
+                    'precio_promo': of['precio_promo'],
+                    'precio_por_litro': of['precio_por_litro'],
+                    'url': of['url'],
+                    'diferencia': round(p_actual - of['precio_promo'], 2),
+                    'es_mejor_precio': bool(of['precio_promo'] < p_actual - 0.01)
+                }
+                for of in info['ofertas'] if of['tienda'] != row['tienda']
+            ]
+        else:
+            rec['es_comparable_cross_tienda'] = False
+            rec['num_tiendas_cross'] = 1
+            rec['tienda_mas_barata'] = row['tienda']
+            p_actual = round(float(row['precio_promo']), 2)
+            rec['precio_minimo_cross'] = p_actual
+            rec['tienda_mas_cara'] = row['tienda']
+            rec['precio_maximo_cross'] = p_actual
+            rec['ahorro_maximo_cross'] = 0.0
+            rec['es_precio_mas_bajo'] = True
+            rec['diferencia_vs_minimo'] = 0.0
+            rec['ofertas_cross_tienda'] = []
+
+        records.append(rec)
+
     guardar_json_atomico(records, 'data/dashboard_data.json')
 
     print(f"\n[OK] Total registros guardados en dashboard_data.json: {len(records)}")
+    print(f"  + Productos comparables entre 2 o más tiendas: {len(grupos_cross)} etiquetas")
     print("\nDistribución por Tienda:")
     print(df_dash['tienda'].value_counts())
     print("\nDistribución por Categoría Comparable:")

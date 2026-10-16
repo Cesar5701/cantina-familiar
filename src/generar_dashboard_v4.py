@@ -470,11 +470,15 @@ html_template = """<!DOCTYPE html>
                    class="w-full md3-input px-3 py-2">
           </div>
 
-          <!-- 5. Casilla Solo Ofertas -->
-          <div class="flex items-end">
-            <label class="flex items-center gap-2.5 text-xs text-[#1F1B16] cursor-pointer md3-surface-low hover:bg-[#EFE8DC] px-3.5 py-2.5 w-full transition-colors min-h-[44px] sm:min-h-[40px]">
+          <!-- 5. Casillas Solo Ofertas y Multi-tienda -->
+          <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-end">
+            <label class="flex items-center gap-2 text-xs text-[#1F1B16] cursor-pointer md3-surface-low hover:bg-[#EFE8DC] px-2.5 py-2 w-full transition-colors min-h-[44px] sm:min-h-[40px] rounded-xl border border-[#DFD5C7]" title="Mostrar únicamente botellas con descuento directo">
               <input type="checkbox" id="filtro-descuento" onchange="aplicarFiltros()" class="w-4 h-4 rounded accent-[#784516]">
-              <span class="font-semibold truncate">🏷️ Solo en oferta</span>
+              <span class="font-semibold truncate">🏷️ En oferta</span>
+            </label>
+            <label class="flex items-center gap-2 text-xs text-[#1F1B16] cursor-pointer md3-surface-low hover:bg-[#EFE8DC] px-2.5 py-2 w-full transition-colors min-h-[44px] sm:min-h-[40px] rounded-xl border border-[#B7D6C5] bg-[#D3E8DC]/30" title="Mostrar únicamente botellas vendidas en 2 o más tiendas para comparar precios">
+              <input type="checkbox" id="filtro-cross-tienda" onchange="aplicarFiltros()" class="w-4 h-4 rounded accent-[#486355]">
+              <span class="font-semibold truncate text-[#0B2016]">⚡ Multi-tienda</span>
             </label>
           </div>
         </div>
@@ -591,6 +595,25 @@ html_template = """<!DOCTYPE html>
             <span class="text-[#784516] font-mono font-semibold text-[11px]" id="versus-sugerencias-info">Duelos clave</span>
           </div>
           <div class="flex flex-wrap gap-2" id="versus-sugerencias-container">
+          </div>
+        </div>
+
+        <!-- COMPARATIVA DIRECTA CROSS-TIENDA (MISMA ETIQUETA ENTRE TIENDAS) -->
+        <div class="p-3.5 rounded-2xl bg-[#D3E8DC]/40 border border-[#B7D6C5] flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+          <div class="space-y-0.5">
+            <div class="flex items-center gap-1.5">
+              <span class="text-sm">⚡</span>
+              <span class="text-xs font-bold text-[#0B2016] uppercase">Comparar Misma Etiqueta entre Tiendas:</span>
+              <span class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] text-[10px]" id="badge-total-cross">45 botellas</span>
+            </div>
+            <p class="text-[11px] text-[#2C4A3A]">
+              Enfrenta directamente la tienda más barata vs la más cara de la misma botella para ver el ahorro exacto.
+            </p>
+          </div>
+          <div class="w-full md:w-auto flex-1 max-w-md">
+            <select id="select-cross-tienda-duelo" onchange="cargarDueloCrossTienda(this.value)" class="w-full md3-input px-3 py-2 text-xs font-semibold">
+              <option value="">⚡ Cargando botellas comparables...</option>
+            </select>
           </div>
         </div>
       </div>
@@ -871,6 +894,9 @@ html_template = """<!DOCTYPE html>
               <span class="text-[#784516] font-bold text-xs font-mono" id="sim-sobrante">Ingresa monto arriba</span>
             </div>
 
+            <!-- ALERTA DE OPTIMIZACIÓN CROSS-TIENDA -->
+            <div id="sim-alerta-optimizacion" class="hidden"></div>
+
             <!-- NOTA DE VIGENCIA DE PRECIOS EN CARRITO -->
             <div class="p-3 rounded-xl bg-[#FAF6F0] border border-[#DFD5C7] text-[11px] text-[#574A3D] space-y-1.5">
               <div class="font-bold text-[#1F1B16] flex items-center justify-between">
@@ -996,6 +1022,33 @@ html_template = """<!DOCTYPE html>
       <span class="text-[10px] mt-1">Guía</span>
     </button>
   </nav>
+
+  <!-- MODAL DE COMPARATIVA CROSS-TIENDA -->
+  <div id="modal-cross-tienda" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-[#FAF6F0] rounded-3xl border border-[#DFD5C7] max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-start border-b border-[#DFD5C7] pb-3">
+        <div>
+          <span class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] text-[10px] uppercase font-bold" id="modal-cross-badge-cat">Categoría</span>
+          <h3 class="text-lg font-bold font-display-md3 text-[#1F1B16] mt-1" id="modal-cross-titulo">Nombre de la Botella</h3>
+          <p class="text-xs text-[#574A3D]" id="modal-cross-subtitulo">Comparativa de precios verificados entre tiendas</p>
+        </div>
+        <button onclick="cerrarModalCrossTienda()" class="w-8 h-8 rounded-full bg-[#EFE8DC] hover:bg-[#E6DDD0] text-[#1F1B16] font-bold flex items-center justify-center cursor-pointer transition-colors" title="Cerrar modal">
+          ✕
+        </button>
+      </div>
+
+      <div id="modal-cross-contenido" class="space-y-3">
+        <!-- Tarjetas de tiendas generadas dinámicamente -->
+      </div>
+
+      <div class="flex justify-between items-center pt-3 border-t border-[#DFD5C7]">
+        <span class="text-xs text-[#574A3D]">Precios auditados en tiempo real · Octubre 2026</span>
+        <button onclick="cerrarModalCrossTienda()" class="px-5 py-2 md3-btn-tonal text-xs font-semibold cursor-pointer">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- SCRIPT DE INTELIGENCIA DE NEGOCIO Y REACTIVIDAD -->
   <script>
@@ -1163,10 +1216,197 @@ html_template = """<!DOCTYPE html>
     document.addEventListener("DOMContentLoaded", () => {
       actualizarSubtiposCatalogo();
       actualizarSubtiposVersus();
+      inicializarSelectorCrossTiendaVersus();
       poblarSelectoresAgregarPorCategoria();
       renderizarCanastasDinamicas();
       renderizarConstructorCanasta();
     });
+
+    // =========================================================================
+    // FUNCIONALIDADES CROSS-TIENDA (H8: ARBITRAJE, MODAL Y OPTIMIZADOR)
+    // =========================================================================
+    function toggleModalCrossTienda(originalIndex) {
+      const item = DATOS_COMPLETOS[originalIndex];
+      if (!item || !item.es_comparable_cross_tienda) return;
+
+      const modal = document.getElementById("modal-cross-tienda");
+      if (!modal) return;
+
+      document.getElementById("modal-cross-badge-cat").innerText = item.categoria_comparable;
+      document.getElementById("modal-cross-titulo").innerText = `${item.producto} (${item.ml} ml)`;
+      document.getElementById("modal-cross-subtitulo").innerText = 
+        `Disponible en ${item.num_tiendas_cross} tiendas · Ahorro máximo entre tiendas: $${item.ahorro_maximo_cross.toFixed(2)} MXN`;
+
+      const ofertas = DATOS_COMPLETOS
+        .map((p, idx) => ({ p, idx }))
+        .filter(x => x.p.clave_comparativa === item.clave_comparativa)
+        .sort((a, b) => a.p.precio_promo - b.p.precio_promo);
+
+      const minPrecio = ofertas[0].p.precio_promo;
+      const maxPrecio = ofertas[ofertas.length - 1].p.precio_promo;
+      const cont = document.getElementById("modal-cross-contenido");
+      let html = "";
+
+      ofertas.forEach(({ p, idx }, rank) => {
+        const esMinimo = rank === 0;
+        const difVsMin = p.precio_promo - minPrecio;
+        const badgeTienda = getBadgeTienda(p.tienda, true);
+
+        let bannerAhorro = "";
+        if (esMinimo) {
+          bannerAhorro = `<span class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] text-[10px] font-bold">🏆 Mejor Precio del Mercado (Ahorras hasta $${(maxPrecio - minPrecio).toFixed(2)})</span>`;
+        } else {
+          bannerAhorro = `<span class="text-[11px] text-[#9B1C1C] font-semibold">+$${difVsMin.toFixed(2)} vs ${ofertas[0].p.tienda}</span>`;
+        }
+
+        html += `
+          <div class="p-3.5 rounded-2xl border ${esMinimo ? 'bg-[#F4F9F6] border-[#B7D6C5] ring-2 ring-[#486355]/20' : 'bg-white border-[#DFD5C7]'} flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all">
+            <div class="space-y-1 min-w-0 flex-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                ${badgeTienda}
+                ${bannerAhorro}
+              </div>
+              <div class="font-bold text-sm text-[#1F1B16] truncate">${p.producto}</div>
+              <div class="text-xs text-[#574A3D]">
+                <span>Precio: <strong class="text-sm font-mono text-[#784516] font-extrabold">$${p.precio_promo.toFixed(2)}</strong></span>
+                <span class="mx-1.5">·</span>
+                <span class="font-mono text-[#486355] font-semibold">$${p.precio_por_litro.toFixed(2)} / L</span>
+                ${p.ahorro_verificable > 0 ? `<span class="ml-1 text-[#047857]">(${p.condiciones})</span>` : ''}
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
+              <a href="${p.url}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 md3-btn-tonal text-xs inline-flex items-center gap-1" title="Ver en ${p.tienda}">
+                <span>Ver en Tienda</span> <span>↗</span>
+              </a>
+              <button onclick="modificarCantidad(${idx}, 1); cerrarModalCrossTienda(); mostrarToast('🍾 Añadido al carrito: ${p.producto} (${p.tienda})');" class="px-3 py-1.5 md3-btn-filled text-xs cursor-pointer">
+                + Carrito
+              </button>
+            </div>
+          </div>
+        `;
+      });
+
+      cont.innerHTML = html;
+      modal.classList.remove("hidden");
+    }
+
+    function cerrarModalCrossTienda() {
+      const modal = document.getElementById("modal-cross-tienda");
+      if (modal) modal.classList.add("hidden");
+    }
+
+    function inicializarSelectorCrossTiendaVersus() {
+      const sel = document.getElementById("select-cross-tienda-duelo");
+      if (!sel) return;
+
+      const grupos = {};
+      DATOS_COMPLETOS.forEach((item, idx) => {
+        if (!item.es_comparable_cross_tienda) return;
+        const clave = item.clave_comparativa;
+        if (!grupos[clave]) {
+          grupos[clave] = {
+            clave,
+            producto: item.producto,
+            categoria: item.categoria_comparable,
+            ml: item.ml,
+            ahorro_max: item.ahorro_maximo_cross,
+            tiendas: []
+          };
+        }
+        grupos[clave].tiendas.push({ item, idx });
+      });
+
+      const lista = Object.values(grupos).sort((a, b) => b.ahorro_max - a.ahorro_max);
+      const badgeTotal = document.getElementById("badge-total-cross");
+      if (badgeTotal) badgeTotal.innerText = `${lista.length} botellas`;
+
+      sel.innerHTML = `<option value="">⚡ Elige una botella para ver arbitraje entre tiendas (${lista.length} disponibles)...</option>`;
+      lista.forEach(g => {
+        const prodCorto = g.producto.length > 40 ? g.producto.slice(0, 39) + "…" : g.producto;
+        const opt = document.createElement("option");
+        opt.value = g.clave;
+        opt.innerText = `${prodCorto} (${g.ml}ml) — Ahorra hasta $${g.ahorro_max.toFixed(2)}`;
+        sel.appendChild(opt);
+      });
+    }
+
+    function cargarDueloCrossTienda(clave) {
+      if (!clave) return;
+      const items = DATOS_COMPLETOS
+        .map((item, idx) => ({ item, idx }))
+        .filter(x => x.item.clave_comparativa === clave)
+        .sort((a, b) => a.item.precio_promo - b.item.precio_promo);
+
+      if (items.length < 2) return;
+
+      const idxMin = items[0].idx;
+      const idxMax = items[items.length - 1].idx;
+
+      document.getElementById("select-versus-macro").value = "Todas";
+      actualizarSubtiposVersus();
+      document.getElementById("select-versus-categoria-filtro").value = "Todas";
+      filtrarSelectoresVersusPorCategoria();
+
+      document.getElementById("select-versus-a").value = idxMin;
+      document.getElementById("select-versus-b").value = idxMax;
+      renderizarVersus();
+
+      mostrarToast(`⚡ Duelo cross-tienda: ${items[0].item.tienda} ($${items[0].item.precio_promo.toFixed(2)}) vs ${items[items.length - 1].item.tienda} ($${items[items.length - 1].item.precio_promo.toFixed(2)})`);
+    }
+
+    function cambiarTiendaCarrito(idx) {
+      const item = DATOS_COMPLETOS[idx];
+      if (!item || !item.es_comparable_cross_tienda || item.es_precio_mas_bajo) return;
+
+      const altIdx = DATOS_COMPLETOS.findIndex(d => 
+        d.clave_comparativa === item.clave_comparativa && 
+        d.tienda === item.tienda_mas_barata
+      );
+
+      if (altIdx !== -1) {
+        const cant = canastaPersonalizada[idx] || 1;
+        const ahorro = (item.diferencia_vs_minimo * cant).toFixed(2);
+        delete canastaPersonalizada[idx];
+        canastaPersonalizada[altIdx] = (canastaPersonalizada[altIdx] || 0) + cant;
+        guardarCanastaEnStorage();
+        renderizarConstructorCanasta();
+        mostrarToast(`🔄 Cambiado a ${item.tienda_mas_barata}. ¡Ahorraste $${ahorro} MXN!`);
+      }
+    }
+
+    function optimizarTodoAlMejorPrecio() {
+      let ahorroTotal = 0;
+      let cambios = 0;
+      const indices = Object.keys(canastaPersonalizada).map(Number);
+
+      indices.forEach(idx => {
+        const item = DATOS_COMPLETOS[idx];
+        const cant = canastaPersonalizada[idx];
+        if (!item || cant <= 0) return;
+
+        if (item.es_comparable_cross_tienda && !item.es_precio_mas_bajo && item.diferencia_vs_minimo > 0) {
+          const altIdx = DATOS_COMPLETOS.findIndex(d => 
+            d.clave_comparativa === item.clave_comparativa && 
+            d.tienda === item.tienda_mas_barata
+          );
+          if (altIdx !== -1) {
+            ahorroTotal += (item.diferencia_vs_minimo * cant);
+            delete canastaPersonalizada[idx];
+            canastaPersonalizada[altIdx] = (canastaPersonalizada[altIdx] || 0) + cant;
+            cambios++;
+          }
+        }
+      });
+
+      if (cambios > 0) {
+        guardarCanastaEnStorage();
+        renderizarConstructorCanasta();
+        mostrarToast(`🎉 ¡Canasta optimizada! Ahorraste $${ahorroTotal.toFixed(2)} MXN en ${cambios} botella(s).`);
+      } else {
+        mostrarToast(`✅ Tu canasta ya tiene los mejores precios disponibles.`);
+      }
+    }
 
     function actualizarSubtiposCatalogo() {
       const macro = document.getElementById("filtro-macro-categoria").value;
@@ -1530,6 +1770,21 @@ html_template = """<!DOCTYPE html>
             if (item.categoria_comparable.includes("Añejo Cristalino")) claseBadgeColor = "bg-[#F8E2C8] text-[#784516] border-[#E5C8A3]";
             else if (item.categoria_comparable.includes("Silvestre")) claseBadgeColor = "bg-[#D3E8DC] text-[#0B2016] border-[#B7D6C5]";
 
+            let alertaAhorro = "";
+            if (item.es_comparable_cross_tienda && !item.es_precio_mas_bajo && item.diferencia_vs_minimo > 0) {
+              const ahorroTotalLinea = (item.diferencia_vs_minimo * cant).toFixed(2);
+              alertaAhorro = `
+                <div class="mt-2 p-2 rounded-xl bg-[#FDE8E8] border border-[#F8B4B4] text-[11px] flex items-center justify-between gap-2 flex-wrap">
+                  <div class="text-[#9B1C1C]">
+                    💡 <strong>Disponible más barato en ${item.tienda_mas_barata}:</strong> a $${item.precio_minimo_cross.toFixed(2)} (Ahorras <strong>$${item.diferencia_vs_minimo.toFixed(2)}/u</strong> · Total: <strong>$${ahorroTotalLinea}</strong>).
+                  </div>
+                  <button type="button" onclick="cambiarTiendaCarrito(${idx})" class="px-2.5 py-1 rounded-lg bg-[#9B1C1C] hover:bg-[#771D1D] text-white font-bold text-[10px] whitespace-nowrap cursor-pointer transition-colors shadow-sm" title="Cambiar a la oferta de ${item.tienda_mas_barata}">
+                    Cambiar a ${item.tienda_mas_barata}
+                  </button>
+                </div>
+              `;
+            }
+
             html += `
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 md3-surface-low hover:border-[#8A7B6B] transition-colors min-w-0">
                 <div class="space-y-1 flex-1 min-w-0">
@@ -1549,6 +1804,7 @@ html_template = """<!DOCTYPE html>
                   <div class="text-xs text-[#574A3D] font-mono">
                     Unitario: <strong class="text-[#784516] font-bold">$${item.precio_promo.toFixed(2)}</strong> · <span class="text-[#486355] font-semibold">$${item.precio_por_litro.toFixed(2)} / L</span>
                   </div>
+                  ${alertaAhorro}
                 </div>
 
                 <!-- CONTROLES DE CANTIDAD TÁCTILES (HIG 44pt) -->
@@ -1644,6 +1900,40 @@ html_template = """<!DOCTYPE html>
         labelSobrante.className = "text-[#574A3D] font-medium";
         valSobrante.innerText = "Ingresa monto arriba";
         valSobrante.className = "text-[#784516] font-mono text-xs font-semibold";
+      }
+
+      // Alerta de Ahorro Potencial Cross-Tienda en Carrito
+      let ahorroPotencialTotal = 0;
+      Object.keys(canastaPersonalizada).forEach(strIdx => {
+        const idx = parseInt(strIdx);
+        const cant = canastaPersonalizada[idx];
+        const item = DATOS_COMPLETOS[idx];
+        if (item && cant > 0 && item.es_comparable_cross_tienda && !item.es_precio_mas_bajo && item.diferencia_vs_minimo > 0) {
+          ahorroPotencialTotal += (item.diferencia_vs_minimo * cant);
+        }
+      });
+
+      const alertaOptimizar = document.getElementById("sim-alerta-optimizacion");
+      if (alertaOptimizar) {
+        if (ahorroPotencialTotal > 0) {
+          alertaOptimizar.innerHTML = `
+            <div class="p-3 rounded-xl bg-[#FDE8E8] border border-[#F8B4B4] space-y-1.5 text-xs">
+              <div class="flex items-center justify-between text-[#9B1C1C] font-bold">
+                <span class="flex items-center gap-1"><span>💡</span> <span>Ahorro Cross-Tienda:</span></span>
+                <span class="font-mono text-sm font-extrabold">$${ahorroPotencialTotal.toFixed(2)} MXN</span>
+              </div>
+              <p class="text-[11px] text-[#771D1D] leading-tight">
+                Hay botellas en tu carrito con mejor precio en otra tienda.
+              </p>
+              <button onclick="optimizarTodoAlMejorPrecio()" class="w-full py-1.5 px-3 rounded-lg bg-[#9B1C1C] hover:bg-[#771D1D] text-white font-bold text-xs transition-colors cursor-pointer text-center shadow-sm">
+                ⚡ Optimizar Carrito al Mejor Precio
+              </button>
+            </div>
+          `;
+          alertaOptimizar.classList.remove("hidden");
+        } else {
+          alertaOptimizar.classList.add("hidden");
+        }
       }
     }
 
@@ -1753,6 +2043,7 @@ html_template = """<!DOCTYPE html>
       const subCat = document.getElementById("filtro-categoria").value;
       const tienda = document.getElementById("filtro-tienda").value;
       const soloDesc = document.getElementById("filtro-descuento").checked;
+      const soloCross = document.getElementById("filtro-cross-tienda") ? document.getElementById("filtro-cross-tienda").checked : false;
 
       datosFiltrados = DATOS_COMPLETOS.filter(item => {
         const matchBusq = !busq || item.producto.toLowerCase().includes(busq) || item.marca.toLowerCase().includes(busq);
@@ -1760,7 +2051,8 @@ html_template = """<!DOCTYPE html>
         const matchSub = (subCat === 'Todas' || subCat === 'Todos_Macro') || (item.categoria_comparable === subCat);
         const matchTienda = (tienda === 'Todas') || (item.tienda === tienda);
         const matchDesc = !soloDesc || (item.ahorro_verificable > 0);
-        return matchBusq && matchMacro && matchSub && matchTienda && matchDesc;
+        const matchCross = !soloCross || (item.es_comparable_cross_tienda === true);
+        return matchBusq && matchMacro && matchSub && matchTienda && matchDesc && matchCross;
       });
 
       datosFiltrados.sort((a, b) => {
@@ -1807,6 +2099,29 @@ html_template = """<!DOCTYPE html>
         const tiendaBadge = getBadgeTienda(item.tienda, false);
         const originalIndex = DATOS_COMPLETOS.indexOf(item);
 
+        let crossBadge = "";
+        if (item.es_comparable_cross_tienda) {
+          if (item.es_precio_mas_bajo) {
+            crossBadge = `
+              <div class="mt-1">
+                <button type="button" onclick="toggleModalCrossTienda(${originalIndex})" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] hover:bg-[#B7D6C5] transition-colors cursor-pointer" title="Ver comparativa de precios en ${item.num_tiendas_cross} tiendas">
+                  <span>⭐ Mejor precio de ${item.num_tiendas_cross} tiendas</span>
+                  <span class="text-[9px] underline font-normal">Comparar ↗</span>
+                </button>
+              </div>
+            `;
+          } else {
+            crossBadge = `
+              <div class="mt-1">
+                <button type="button" onclick="toggleModalCrossTienda(${originalIndex})" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FDE8E8] text-[#9B1C1C] border border-[#F8B4B4] hover:bg-[#FCD9BD] transition-colors cursor-pointer" title="Ver comparativa de precios en ${item.num_tiendas_cross} tiendas">
+                  <span>🏷️ Más barato en ${item.tienda_mas_barata} ($${item.precio_minimo_cross.toFixed(2)})</span>
+                  <span class="text-[9px] underline font-bold">Ahorra $${item.diferencia_vs_minimo.toFixed(2)} ↗</span>
+                </button>
+              </div>
+            `;
+          }
+        }
+
         tr.innerHTML = `
           <td class="p-3.5 font-medium text-[#1F1B16]">
             <a href="${item.url}" target="_blank" rel="noopener noreferrer" 
@@ -1819,6 +2134,7 @@ html_template = """<!DOCTYPE html>
               <span>${item.marca}</span>
               <span class="sm:hidden">· ${item.ml}ml</span>
             </div>
+            ${crossBadge}
           </td>
           <td class="p-3.5 text-xs hidden sm:table-cell">
             <span class="badge bg-[#EFE8DC] border border-[#D6C8B8] text-[#574A3D]">${item.categoria_comparable}</span>

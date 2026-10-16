@@ -42,6 +42,8 @@ from src.clasificacion import (
     ("6 botellas de 700 ml Tequila Herradura Ultra", 4200),
     ("Pack 6 Tequila Cuervo 1800 Milenio 700ml", 4200),
     ("Pack de 2 Tequila Don Ramón Punta Diamante 750 ml", 1500),
+    ("Pack x 3 Whisky Johnnie Walker Blue Label 750 ml", 2250),
+    ("Whisky Buchanan's x 2 750 ml", 1500),
     ("Paquete 2 Tequila Don Julio 70 700 ml", 1400),
     ("Whisky Black & White 6 pack 750 ml", 4500),
     # Miniaturas descartables

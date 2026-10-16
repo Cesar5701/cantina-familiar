@@ -24,12 +24,12 @@ if RAIZ_PROYECTO not in sys.path:
     sys.path.insert(0, RAIZ_PROYECTO)
 
 from src.clasificacion import extraer_ml, clasificar_categoria
-from src.io_utils import guardar_csv_atomico
+from src.io_utils import guardar_csv_atomico, ResumenScraping
 
 
 
 
-def consultar_api_alianza(termino: str, delay_segundos: float = 1.0) -> list[dict]:
+def consultar_api_alianza(termino: str, delay_segundos: float = 1.0, resumen: ResumenScraping | None = None) -> list[dict]:
     """Consulta la API de catálogo de Bodegas Alianza para un término."""
     url = BASE_URL.format(term=urllib.parse.quote(termino))
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
@@ -38,6 +38,8 @@ def consultar_api_alianza(termino: str, delay_segundos: float = 1.0) -> list[dic
         with urllib.request.urlopen(req, timeout=15) as resp:
             data = json.loads(resp.read().decode("utf-8"))
     except Exception as e:
+        if resumen:
+            resumen.registrar_error_red(url, e)
         print(f"[ERROR] Error al consultar '{termino}': {e}", file=sys.stderr)
         return []
 
@@ -53,6 +55,8 @@ def consultar_api_alianza(termino: str, delay_segundos: float = 1.0) -> list[dic
 
         items = p.get("items", [])
         if not items:
+            if resumen:
+                resumen.registrar_descarte("sin items")
             continue
 
         seller = items[0].get("sellers", [{}])[0].get("commertialOffer", {})
@@ -61,6 +65,8 @@ def consultar_api_alianza(termino: str, delay_segundos: float = 1.0) -> list[dic
         disponible = "disponible" if (seller.get("AvailableQuantity", 0) > 0) else "agotado"
 
         if precio_promo is None or precio_promo <= 0:
+            if resumen:
+                resumen.registrar_descarte("precio invalido")
             continue
 
         condicion = "Descuento directo Aniversario Web" if (precio_regular > precio_promo) else "Precio regular catálogo"
@@ -89,6 +95,8 @@ def consultar_api_alianza(termino: str, delay_segundos: float = 1.0) -> list[dic
             "fuente": "API oficial Bodegas Alianza",
             "confianza": "Confirmado"
         })
+        if resumen:
+            resumen.registrar_exito()
 
     time.sleep(delay_segundos)
     return productos
@@ -102,13 +110,15 @@ def main():
     args = parser.parse_args()
 
     todos = []
+    resumen = ResumenScraping("Bodegas Alianza")
     print(f"Iniciando consulta para {len(args.terminos)} términos en Bodegas Alianza...")
     for t in args.terminos:
         print(f"  -> Buscando: {t}")
-        prods = consultar_api_alianza(t)
+        prods = consultar_api_alianza(t, resumen=resumen)
         todos.extend(prods)
         print(f"     Encontrados: {len(prods)}")
 
+    resumen.imprimir_resumen()
     import pandas as pd
     df = pd.DataFrame(todos)
     guardar_csv_atomico(df, args.salida)

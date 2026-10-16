@@ -198,3 +198,57 @@ def test_resumen_scraping_metricas():
     assert data["descartados_criterio"] == 1
     assert data["fallos_red"] == 1
     assert len(data["errores"]) == 1
+
+
+def test_h6_pack_x_n_multipack():
+    """Valida que los formatos Pack x N y x N multipliquen correctamente el volumen (H6)."""
+    from src.clasificacion import extraer_ml
+
+    # Caso reportado en auditoría: Walmart Pack x 3 Blue Label 750 ml -> 2250 ml
+    assert extraer_ml("Walmart | Pack x 3 Whisky Johnnie Walker Blue Label 750 ml") == 2250
+    # Caso alternativo: Buchanan's x 2 750 ml -> 1500 ml
+    assert extraer_ml("Whisky Buchanan's x 2 750 ml") == 1500
+    # Caso mayúsculas: PACK X 6 Cerveza / Tequila 700 ml -> 4200 ml
+    assert extraer_ml("PACK X 6 Tequila 700 ml") == 4200
+
+
+def test_h8_normalizar_texto_clave_orden_tokens():
+    """Valida que títulos con orden invertido de palabras generen la misma clave comparativa (H8)."""
+    from src.analizador import normalizar_texto_clave
+
+    clave1 = normalizar_texto_clave("Tequila 1800 Cristalino Añejo 700 ml")
+    clave2 = normalizar_texto_clave("Tequila 1800 Añejo Cristalino 700 ml")
+    assert clave1 == clave2
+
+    clave_don1 = normalizar_texto_clave("Tequila Añejo Cristalino Don Julio 70 700 ml")
+    clave_don2 = normalizar_texto_clave("Tequila Don Julio 70 Añejo Cristalino 700 ml")
+    assert clave_don1 == clave_don2
+
+
+def test_h8_enriquecimiento_cross_tienda_dashboard_json():
+    """Valida que dashboard_data.json contenga los campos cross-tienda requeridos por el frontend."""
+    import json
+    ruta_json = "data/dashboard_data.json"
+    assert os.path.exists(ruta_json)
+
+    with open(ruta_json, "r", encoding="utf-8") as f:
+        datos = json.load(f)
+
+    comparables = [d for d in datos if d.get("es_comparable_cross_tienda")]
+    assert len(comparables) > 0
+
+    item = comparables[0]
+    campos_requeridos = [
+        "clave_comparativa", "es_comparable_cross_tienda", "num_tiendas_cross",
+        "tienda_mas_barata", "precio_minimo_cross", "tienda_mas_cara",
+        "precio_maximo_cross", "ahorro_maximo_cross", "es_precio_mas_bajo",
+        "diferencia_vs_minimo", "ofertas_cross_tienda"
+    ]
+    for c in campos_requeridos:
+        assert c in item, f"Falta campo requerido: {c}"
+
+    assert isinstance(item["ofertas_cross_tienda"], list)
+    assert len(item["ofertas_cross_tienda"]) >= 1
+    assert "tienda" in item["ofertas_cross_tienda"][0]
+    assert "precio_promo" in item["ofertas_cross_tienda"][0]
+

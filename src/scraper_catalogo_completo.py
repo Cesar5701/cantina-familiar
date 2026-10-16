@@ -35,7 +35,7 @@ from src.clasificacion import (
     KEYWORDS_SILVESTRES,
     KEYWORDS_BLENDED_WHISKY
 )
-from src.io_utils import guardar_csv_atomico
+from src.io_utils import guardar_csv_atomico, ResumenScraping
 
 
 
@@ -95,6 +95,7 @@ def procesar_catalogo_completo() -> list[dict]:
     print("\nFiltrando y clasificando por tipos estrictos solicitados...")
     fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M")
     productos_filtrados = []
+    resumen = ResumenScraping("Bodegas Alianza")
 
     for p in productos_crudos:
         nombre = p.get("productName", "").strip()
@@ -104,10 +105,12 @@ def procesar_catalogo_completo() -> list[dict]:
 
         # Descartar artículos no bebibles o mercancía
         if any(ign in nom_l for ign in ["chocolate", "lata 180", "vaso", "termo", "estuche vacío", "hielera", "playera", "gorra"]):
+            resumen.registrar_descarte("mercancia")
             continue
 
         items = p.get("items", [])
         if not items:
+            resumen.registrar_descarte("sin items")
             continue
 
         seller = items[0].get("sellers", [{}])[0].get("commertialOffer", {})
@@ -116,6 +119,7 @@ def procesar_catalogo_completo() -> list[dict]:
         disponible = "disponible" if (seller.get("AvailableQuantity", 0) > 0) else "agotado"
 
         if precio_promo is None or precio_promo <= 0:
+            resumen.registrar_descarte("precio invalido")
             continue
 
         ml = extraer_ml(nombre)
@@ -130,6 +134,7 @@ def procesar_catalogo_completo() -> list[dict]:
 
             # Descartar blancos puros y reposados tradicionales que no sean cristalinos
             if not es_cristalino and not es_anejo:
+                resumen.registrar_descarte("tequila no cristalino/anejo")
                 continue
 
             # Determinación de subcategoría y clase
@@ -170,6 +175,7 @@ def procesar_catalogo_completo() -> list[dict]:
                 "fuente": "API oficial Bodegas Alianza",
                 "confianza": "Confirmado"
             })
+            resumen.registrar_exito()
             continue
 
         # -------------------------------------------------------------
@@ -177,6 +183,7 @@ def procesar_catalogo_completo() -> list[dict]:
         # -------------------------------------------------------------
         if "mezcal" in nom_l:
             if any(ign in nom_l for ign in ["crema de", "licor de mezcal", "gomitas"]):
+                resumen.registrar_descarte("mezcal no apto")
                 continue
 
             es_rep = "reposado" in nom_l or "rep " in nom_l or "rep." in nom_l
@@ -186,6 +193,7 @@ def procesar_catalogo_completo() -> list[dict]:
 
             # Descartar Espadín joven común que no sea silvestre ni reposado/añejo
             if not es_rep and not es_anejo and not es_cristalino and not es_silvestre:
+                resumen.registrar_descarte("espadin joven no silvestre")
                 continue
 
             if es_silvestre and not es_rep and not es_anejo:
@@ -227,6 +235,7 @@ def procesar_catalogo_completo() -> list[dict]:
                 "fuente": "API oficial Bodegas Alianza",
                 "confianza": "Confirmado"
             })
+            resumen.registrar_exito()
             continue
 
         # -------------------------------------------------------------
@@ -257,6 +266,7 @@ def procesar_catalogo_completo() -> list[dict]:
                 "fuente": "API oficial Bodegas Alianza",
                 "confianza": "Confirmado"
             })
+            resumen.registrar_exito()
             continue
 
         # -------------------------------------------------------------
@@ -264,6 +274,7 @@ def procesar_catalogo_completo() -> list[dict]:
         # -------------------------------------------------------------
         if "whisky" in nom_l or "whiskey" in nom_l:
             if "single malt" in nom_l or "malt scotch" in nom_l or "bourbon" in nom_l:
+                resumen.registrar_descarte("whisky no blended")
                 continue
 
             es_blended = any(k in nom_l for k in KEYWORDS_BLENDED_WHISKY)
@@ -292,6 +303,10 @@ def procesar_catalogo_completo() -> list[dict]:
                     "fuente": "API oficial Bodegas Alianza",
                     "confianza": "Confirmado"
                 })
+                resumen.registrar_exito()
+                continue
+            else:
+                resumen.registrar_descarte("whisky no categorizado")
                 continue
 
         # -------------------------------------------------------------
@@ -324,8 +339,15 @@ def procesar_catalogo_completo() -> list[dict]:
                     "fuente": "API oficial Bodegas Alianza",
                     "confianza": "Confirmado"
                 })
+                resumen.registrar_exito()
+                continue
+            else:
+                resumen.registrar_descarte("vino precio > 250")
                 continue
 
+        resumen.registrar_descarte("otra categoria")
+
+    resumen.imprimir_resumen()
     return productos_filtrados
 
 
