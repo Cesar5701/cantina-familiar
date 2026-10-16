@@ -34,10 +34,10 @@ if RAIZ_PROYECTO not in sys.path:
 
 try:
     from src.clasificacion import extraer_ml, clasificar_categoria
-    from src.io_utils import guardar_csv_atomico
+    from src.io_utils import guardar_csv_atomico, ResumenScraping
 except ModuleNotFoundError:
     from clasificacion import extraer_ml, clasificar_categoria
-    from io_utils import guardar_csv_atomico
+    from io_utils import guardar_csv_atomico, ResumenScraping
 
 
 
@@ -472,6 +472,7 @@ def consultar_urls_secuenciales(urls: list[str], tienda: str = "Sam's Club", hea
     """
     driver = None
     resultados = []
+    resumen = ResumenScraping(tienda)
     try:
         print(f"[Selenium] Iniciando {navegador.upper()} con User-Agent de escritorio...")
         driver = inicializar_driver(headless=headless, navegador=navegador)
@@ -486,6 +487,7 @@ def consultar_urls_secuenciales(urls: list[str], tienda: str = "Sam's Club", hea
             # Verificar si hay CAPTCHA o desafío WAF (30 segundos)
             if not verificar_y_esperar_desafio(driver, timeout_humano=30):
                 print(f"[AVISO] Saltando {url} debido a desafío no resuelto.")
+                resumen.registrar_descarte("desafío de seguridad no resuelto")
                 continue
 
             # Desplazamiento suave para gatillar lazy loading
@@ -527,6 +529,10 @@ def consultar_urls_secuenciales(urls: list[str], tienda: str = "Sam's Club", hea
                 with open(debug_file, "w", encoding="utf-8") as f:
                     f.write(html)
                 print(f"  [DIAGNÓSTICO] Se guardó una copia del HTML en '{debug_file}' ({len(html)} bytes) para inspección.")
+                resumen.registrar_error_parseo(url, ValueError("Sin productos extraídos del DOM"))
+            else:
+                for _ in prods:
+                    resumen.registrar_exito()
 
             resultados.extend(prods)
 
@@ -536,11 +542,13 @@ def consultar_urls_secuenciales(urls: list[str], tienda: str = "Sam's Club", hea
 
     except Exception as e:
         print(f"[ERROR] Error durante la ejecución del navegador: {e}", file=sys.stderr)
+        resumen.registrar_error_red("navegador", e)
     finally:
         if driver:
             driver.quit()
             print("[Selenium] Navegador cerrado limpiamente.")
 
+    resumen.imprimir_resumen()
     return resultados
 
 

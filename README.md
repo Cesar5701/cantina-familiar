@@ -26,8 +26,8 @@ Cantina Familiar/
 ├── tests/
 │   ├── __init__.py
 │   ├── test_analizador.py          # Pruebas de métricas, rankings y deduplicación (15 pruebas)
-│   ├── test_clasificacion.py       # Pruebas de clasificación NOM y extracción de volumen (48 pruebas)
-│   └── test_sprint2.py             # Pruebas de comparativas cross-tienda, validación y guardado atómico (8 pruebas)
+│   ├── test_clasificacion.py       # Pruebas de clasificación NOM y extracción de volumen (50 pruebas)
+│   └── test_sprint2.py             # Pruebas de comparativas cross-tienda, validación y guardado atómico (11 pruebas)
 ├── requirements.txt                # Dependencias (pandas, numpy, pytest, beautifulsoup4, selenium)
 ├── index.html                      # Dashboard interactivo para GitHub Pages
 └── README.md                       # Documentación y guía de ejecución
