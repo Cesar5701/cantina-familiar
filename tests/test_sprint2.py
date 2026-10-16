@@ -247,9 +247,18 @@ def test_h8_normalizar_texto_clave_orden_tokens():
 def test_h8_enriquecimiento_cross_tienda_dashboard_json():
     """Valida que dashboard_data.json contenga los campos cross-tienda requeridos por el frontend."""
     import json
+    from pathlib import Path
 
-    ruta_json = "data/dashboard_data.json"
-    assert os.path.exists(ruta_json)
+    from src.actualizar_dashboard_completo import actualizar_todo
+
+    raiz = Path(__file__).resolve().parent.parent
+    ruta_json = raiz / "data" / "dashboard_data.json"
+
+    # Si no existe previamente (ej. en un clone limpio o CI), se genera
+    if not ruta_json.exists():
+        actualizar_todo()
+
+    assert ruta_json.exists()
 
     with open(ruta_json, "r", encoding="utf-8") as f:
         datos = json.load(f)

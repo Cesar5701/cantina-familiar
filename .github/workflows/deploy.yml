@@ -41,13 +41,13 @@ jobs:
           ruff check .
           ruff format --check .
 
-      - name: Ejecutar pruebas unitarias y cobertura
-        run: pytest -v --cov=src --cov-report=term-missing
-
       - name: Regenerar Catálogos y Dashboard
         run: |
           python src/actualizar_dashboard_completo.py
           python src/generar_dashboard_v4.py
+
+      - name: Ejecutar pruebas unitarias y cobertura
+        run: pytest -v --cov=src --cov-report=term-missing
 
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
