@@ -8,50 +8,52 @@ Cubre:
 """
 
 import pytest
-import numpy as np
-from src.clasificacion import (
-    extraer_ml,
-    corregir_ml_producto,
-    limpiar_precio,
-    clasificar_agave_mezcal,
-    clasificar_estricto,
-    clasificar_categoria,
-    detectar_categoria_base
-)
 
+from src.clasificacion import (
+    clasificar_agave_mezcal,
+    clasificar_categoria,
+    clasificar_estricto,
+    corregir_ml_producto,
+    extraer_ml,
+    limpiar_precio,
+)
 
 # ---------------------------------------------------------------------------
 # Pruebas de extracción de volumen (H2 y H6)
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize("nombre,esperado", [
-    ("Tequila Don Julio 70 Añejo Cristalino 700 ml", 700),
-    ("Tequila Maestro Dobel Diamante 750ml", 750),
-    ("Tequila Cuervo Tradicional Reposado 946 ml", 946),
-    ("Whisky Johnnie Walker Black Label 1 L", 1000),
-    ("Whisky Johnnie Walker Red Label 1 Litro", 1000),
-    ("Whisky Buchanan's Deluxe 12 Años 1.75 L", 1750),
-    ("Whisky Buchanan's Deluxe 1.75L", 1750),
-    ("Vino Carlo Rossi Tinto 4 L", 4000),
-    ("Vino Carlo Rossi California Red 5 L", 5000),
-    ("Vino Reservado Concha y Toro Lambrusco 1.5 L", 1500),
-    ("Vino Tinto Miniatura 187.5 ml", 188),
-    ("Licor de Whisky Jack Daniel's Honey 700 cc", 700),
-    # Multipacks explícitos
-    ("2 pzas de 750 ml Tequila Dobel Diamante", 1500),
-    ("6 botellas de 700 ml Tequila Herradura Ultra", 4200),
-    ("Pack 6 Tequila Cuervo 1800 Milenio 700ml", 4200),
-    ("Pack de 2 Tequila Don Ramón Punta Diamante 750 ml", 1500),
-    ("Pack x 3 Whisky Johnnie Walker Blue Label 750 ml", 2250),
-    ("Whisky Buchanan's x 2 750 ml", 1500),
-    ("Paquete 2 Tequila Don Julio 70 700 ml", 1400),
-    ("Whisky Black & White 6 pack 750 ml", 4500),
-    # Miniaturas descartables
-    ("4 pachitas de 200 ml Tequila Jimador", 200),
-    ("Pack miniatura 50 ml Tequila José Cuervo", 50),
-    # Fallback si no tiene volumen especificado
-    ("Tequila Don Ramón Edición Especial", 750)
-])
+
+@pytest.mark.parametrize(
+    "nombre,esperado",
+    [
+        ("Tequila Don Julio 70 Añejo Cristalino 700 ml", 700),
+        ("Tequila Maestro Dobel Diamante 750ml", 750),
+        ("Tequila Cuervo Tradicional Reposado 946 ml", 946),
+        ("Whisky Johnnie Walker Black Label 1 L", 1000),
+        ("Whisky Johnnie Walker Red Label 1 Litro", 1000),
+        ("Whisky Buchanan's Deluxe 12 Años 1.75 L", 1750),
+        ("Whisky Buchanan's Deluxe 1.75L", 1750),
+        ("Vino Carlo Rossi Tinto 4 L", 4000),
+        ("Vino Carlo Rossi California Red 5 L", 5000),
+        ("Vino Reservado Concha y Toro Lambrusco 1.5 L", 1500),
+        ("Vino Tinto Miniatura 187.5 ml", 188),
+        ("Licor de Whisky Jack Daniel's Honey 700 cc", 700),
+        # Multipacks explícitos
+        ("2 pzas de 750 ml Tequila Dobel Diamante", 1500),
+        ("6 botellas de 700 ml Tequila Herradura Ultra", 4200),
+        ("Pack 6 Tequila Cuervo 1800 Milenio 700ml", 4200),
+        ("Pack de 2 Tequila Don Ramón Punta Diamante 750 ml", 1500),
+        ("Pack x 3 Whisky Johnnie Walker Blue Label 750 ml", 2250),
+        ("Whisky Buchanan's x 2 750 ml", 1500),
+        ("Paquete 2 Tequila Don Julio 70 700 ml", 1400),
+        ("Whisky Black & White 6 pack 750 ml", 4500),
+        # Miniaturas descartables
+        ("4 pachitas de 200 ml Tequila Jimador", 200),
+        ("Pack miniatura 50 ml Tequila José Cuervo", 50),
+        # Fallback si no tiene volumen especificado
+        ("Tequila Don Ramón Edición Especial", 750),
+    ],
+)
 def test_extraer_ml_casos_limite(nombre, esperado):
     assert extraer_ml(nombre) == esperado
     assert corregir_ml_producto(nombre) == esperado
@@ -61,20 +63,24 @@ def test_extraer_ml_casos_limite(nombre, esperado):
 # Pruebas de limpieza y normalización de precios
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize("entrada,esperado", [
-    (540.0, 540.0),
-    (750, 750.0),
-    ("$1,250.50", 1250.50),
-    ("$999.00", 999.00),
-    ("  $ 450.75  ", 450.75),
-    ("1,890.00", 1890.00),
-    ("$0.00", None),
-    (0, None),
-    (-150.0, None),
-    (None, None),
-    ("", None),
-    ("Consultar en tienda", None)
-])
+
+@pytest.mark.parametrize(
+    "entrada,esperado",
+    [
+        (540.0, 540.0),
+        (750, 750.0),
+        ("$1,250.50", 1250.50),
+        ("$999.00", 999.00),
+        ("  $ 450.75  ", 450.75),
+        ("1,890.00", 1890.00),
+        ("$0.00", None),
+        (0, None),
+        (-150.0, None),
+        (None, None),
+        ("", None),
+        ("Consultar en tienda", None),
+    ],
+)
 def test_limpiar_precio(entrada, esperado):
     assert limpiar_precio(entrada) == esperado
 
@@ -83,19 +89,23 @@ def test_limpiar_precio(entrada, esperado):
 # Pruebas de especies de agave en Mezcal (NOM-070)
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize("nombre,esperado", [
-    ("Mezcal 400 Conejos Tobalá 750 ml", "Tobalá silvestre (A. potatorum)"),
-    ("Mezcal Amarás Cupreata 750 ml", "Cupreata silvestre (A. cupreata)"),
-    ("Mezcal Creyente Cuishe 750 ml", "Cuishe silvestre (A. karwinskii)"),
-    ("Mezcal Alipús San Andrés Cuixe 750 ml", "Cuishe silvestre (A. karwinskii)"),
-    ("Mezcal Danzantes Tepeztate 750 ml", "Tepeztate silvestre (A. marmorata)"),
-    ("Mezcal Montelobos Arroqueño 750 ml", "Arroqueño silvestre (A. americana)"),
-    ("Mezcal Señorío Cenizo 750 ml", "Cenizo silvestre (A. durangensis)"),
-    ("Mezcal Mitre Salmiana 750 ml", "Salmiana silvestre"),
-    ("Mezcal Ensamble Espadín Tobalá 750 ml", "Ensamble Espadín-Tobalá"),
-    ("Mezcal 400 Conejos Joven Espadín 750 ml", "Espadín (A. angustifolia)"),
-    ("Mezcal Artesanal Oaxaca 750 ml", "Agave mezcalero (NOM-070)")
-])
+
+@pytest.mark.parametrize(
+    "nombre,esperado",
+    [
+        ("Mezcal 400 Conejos Tobalá 750 ml", "Tobalá silvestre (A. potatorum)"),
+        ("Mezcal Amarás Cupreata 750 ml", "Cupreata silvestre (A. cupreata)"),
+        ("Mezcal Creyente Cuishe 750 ml", "Cuishe silvestre (A. karwinskii)"),
+        ("Mezcal Alipús San Andrés Cuixe 750 ml", "Cuishe silvestre (A. karwinskii)"),
+        ("Mezcal Danzantes Tepeztate 750 ml", "Tepeztate silvestre (A. marmorata)"),
+        ("Mezcal Montelobos Arroqueño 750 ml", "Arroqueño silvestre (A. americana)"),
+        ("Mezcal Señorío Cenizo 750 ml", "Cenizo silvestre (A. durangensis)"),
+        ("Mezcal Mitre Salmiana 750 ml", "Salmiana silvestre"),
+        ("Mezcal Ensamble Espadín Tobalá 750 ml", "Ensamble Espadín-Tobalá"),
+        ("Mezcal 400 Conejos Joven Espadín 750 ml", "Espadín (A. angustifolia)"),
+        ("Mezcal Artesanal Oaxaca 750 ml", "Agave mezcalero (NOM-070)"),
+    ],
+)
 def test_clasificar_agave_mezcal(nombre, esperado):
     assert clasificar_agave_mezcal(nombre) == esperado
 
@@ -103,6 +113,7 @@ def test_clasificar_agave_mezcal(nombre, esperado):
 # ---------------------------------------------------------------------------
 # Pruebas de clasificación estricta (H1: Tequila NOM-006, Mezcal NOM-070, etc.)
 # ---------------------------------------------------------------------------
+
 
 def test_clasificacion_estricta_tequila():
     # Don Julio 70 siempre es Añejo Cristalino

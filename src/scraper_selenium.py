@@ -16,14 +16,15 @@ Características:
 - Etiquetado de confianza: 'Confirmado' al extraerse directamente de la página oficial.
 """
 
-import os
-import sys
-import re
-import json
-import time
-import random
 import argparse
+import json
+import os
+import random
+import re
+import sys
+import time
 from datetime import datetime
+
 import pandas as pd
 from bs4 import BeautifulSoup
 
@@ -32,21 +33,21 @@ RAIZ_PROYECTO = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if RAIZ_PROYECTO not in sys.path:
     sys.path.insert(0, RAIZ_PROYECTO)
 
-try:
-    from src.clasificacion import extraer_ml, clasificar_categoria
-    from src.io_utils import guardar_csv_atomico, ResumenScraping
-except ModuleNotFoundError:
-    from clasificacion import extraer_ml, clasificar_categoria
-    from io_utils import guardar_csv_atomico, ResumenScraping
+from src.clasificacion import clasificar_categoria, extraer_ml
+from src.io_utils import ResumenScraping, guardar_csv_atomico
+from src.logger import get_logger
 
+logger = get_logger("scraper_selenium")
 
 
 from selenium import webdriver
-from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options as ChromeOptions
+from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 
-CHROME_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
+CHROME_USER_AGENT = (
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
+)
 
 INDICADORES_CHALLENGE = [
     "verify your identity",
@@ -65,7 +66,7 @@ INDICADORES_CHALLENGE = [
     "bloqueo temporal",
     "robot",
     "attention required",
-    "human verification"
+    "human verification",
 ]
 
 
@@ -85,15 +86,18 @@ def inicializar_driver(headless: bool = False, navegador: str = "chrome") -> web
         try:
             driver = webdriver.Chrome(options=options)
             # Evadir la detección de navigator.webdriver en Chrome
-            driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
-                "source": """
+            driver.execute_cdp_cmd(
+                "Page.addScriptToEvaluateOnNewDocument",
+                {
+                    "source": """
                     Object.defineProperty(navigator, 'webdriver', {
                         get: () => undefined
                     });
                 """
-            })
+                },
+            )
         except Exception as e:
-            print(f"[AVISO] No se pudo iniciar Chrome ({e}). Intentando con Firefox...", file=sys.stderr)
+            logger.warning(f"No se pudo iniciar Chrome ({e}). Intentando con Firefox...")
             return inicializar_driver(headless=headless, navegador="firefox")
     else:
         options = FirefoxOptions()
@@ -165,17 +169,17 @@ def verificar_y_esperar_desafio(driver: webdriver.Remote, timeout_humano: int = 
     hay_desafio, motivo = detectar_desafio(driver)
 
     if hay_desafio:
-        print("\n" + "!" * 80)
-        print("[ALERTA: DESAFÍO DE SEGURIDAD / CAPTCHA EN PANTALLA]")
-        print(f"Causa detectada: {motivo}")
+        logger.warning("!" * 80)
+        logger.warning("[ALERTA: DESAFÍO DE SEGURIDAD / CAPTCHA EN PANTALLA]")
+        logger.warning(f"Causa detectada: {motivo}")
         if any(k in motivo.lower() for k in ["px-captcha", "identidad", "identity", "perimeterx"]):
-            print(">> ACCIÓN REQUERIDA: En la ventana de Google Chrome abierta,")
-            print(">> MANTÉN PRESIONADO el botón blanco/gris hasta que la barra se llene")
-            print(">> y la página se recargue.")
+            logger.warning(">> ACCIÓN REQUERIDA: En la ventana de Google Chrome abierta,")
+            logger.warning(">> MANTÉN PRESIONADO el botón blanco/gris hasta que la barra se llene")
+            logger.warning(">> y la página se recargue.")
         else:
-            print(">> ACCIÓN REQUERIDA: Resuelve la verificación manualmente en la ventana abierta.")
-        print(f"El script pausará hasta {timeout_humano} segundos esperando que la página se desbloquee...")
-        print("!" * 80 + "\n")
+            logger.warning(">> ACCIÓN REQUERIDA: Resuelve la verificación manualmente en la ventana abierta.")
+        logger.warning(f"El script pausará hasta {timeout_humano} segundos esperando que la página se desbloquee...")
+        logger.warning("!" * 80)
 
         inicio = time.time()
         ultimo_segundo_reportado = 0
@@ -188,15 +192,15 @@ def verificar_y_esperar_desafio(driver: webdriver.Remote, timeout_humano: int = 
             # Notificar progreso cada 5 segundos
             if transcurrido >= ultimo_segundo_reportado + 5:
                 ultimo_segundo_reportado = transcurrido
-                print(f"  ... esperando que resuelvas el desafío en Chrome ({restante}s restantes)...")
+                logger.info(f"  ... esperando que resuelvas el desafío en Chrome ({restante}s restantes)...")
 
             if not sigue_desafio:
-                print(f"[OK] Desafío resuelto por el usuario en {transcurrido}s. Continuando extracción...\n")
+                logger.info(f"Desafío resuelto por el usuario en {transcurrido}s. Continuando extracción...")
                 # Breve pausa para dar tiempo a la redirección o reload de la página
                 time.sleep(3.0)
                 return True
 
-        print(f"\n[ADVERTENCIA] Tiempo de espera para resolución manual agotado ({timeout_humano}s).")
+        logger.warning(f"Tiempo de espera para resolución manual agotado ({timeout_humano}s).")
         return False
 
     return True
@@ -206,10 +210,10 @@ def extraer_precio_texto(texto: str) -> float | None:
     """Extrae valor numérico de una cadena con formato de precio ($1,234.50 o 1234.50)."""
     if not texto:
         return None
-    texto = texto.replace('\xa0', ' ').strip()
-    match = re.search(r'[\$]?\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)', texto)
+    texto = texto.replace("\xa0", " ").strip()
+    match = re.search(r"[\$]?\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)", texto)
     if match:
-        limpio = match.group(1).replace(',', '')
+        limpio = match.group(1).replace(",", "")
         try:
             val = float(limpio)
             return val if val > 0 else None
@@ -221,7 +225,7 @@ def extraer_precio_texto(texto: str) -> float | None:
 def extraer_de_json_embebido(soup: BeautifulSoup, url: str, tienda: str, fecha_consulta: str) -> list[dict]:
     """Intenta extraer productos directamente de scripts JSON-LD o __NEXT_DATA__."""
     productos = []
-    scripts = soup.find_all("script", attrs={"type": re.compile(r'json', re.I)})
+    scripts = soup.find_all("script", attrs={"type": re.compile(r"json", re.I)})
 
     for s in scripts:
         if not s.string or len(s.string) < 60:
@@ -244,33 +248,38 @@ def extraer_de_json_embebido(soup: BeautifulSoup, url: str, tienda: str, fecha_c
                     if p_val and p_val > 50:
                         cat, subcat = clasificar_categoria(nombre)
                         ml = extraer_ml(nombre)
-                        productos.append({
-                            "tienda": tienda,
-                            "producto": nombre,
-                            "marca": nombre.split()[0],
-                            "categoria": cat,
-                            "subcategoria": subcat,
-                            "clase": subcat if cat in ["Tequila", "Mezcal"] else "no_aplica",
-                            "tipo_mezcal": "Artesanal" if cat == "Mezcal" else "no_aplica",
-                            "especie_agave": "Tequilana Weber azul" if cat == "Tequila" else ("Espadín" if cat == "Mezcal" else "no_aplica"),
-                            "productor": "no_verificado",
-                            "sello_regulador": "no_verificado",
-                            "ml": ml,
-                            "abv": 38.0 if cat in ["Tequila", "Mezcal"] else 40.0,
-                            "precio_regular": p_val,
-                            "precio_promo": p_val,
-                            "unidades_promo": 1,
-                            "precio_total_promo": p_val,
-                            "condiciones": "Consulta web directa (JSON-LD)",
-                            "disponibilidad": "disponible",
-                            "url": item.get("url") or url,
-                            "fecha_consulta": fecha_consulta,
-                            "fuente": f"Página oficial ({tienda})",
-                            "confianza": "Confirmado"
-                        })
+                        productos.append(
+                            {
+                                "tienda": tienda,
+                                "producto": nombre,
+                                "marca": nombre.split()[0],
+                                "categoria": cat,
+                                "subcategoria": subcat,
+                                "clase": subcat if cat in ["Tequila", "Mezcal"] else "no_aplica",
+                                "tipo_mezcal": "Artesanal" if cat == "Mezcal" else "no_aplica",
+                                "especie_agave": "Tequilana Weber azul"
+                                if cat == "Tequila"
+                                else ("Espadín" if cat == "Mezcal" else "no_aplica"),
+                                "productor": "no_verificado",
+                                "sello_regulador": "no_verificado",
+                                "ml": ml,
+                                "abv": 38.0 if cat in ["Tequila", "Mezcal"] else 40.0,
+                                "precio_regular": p_val,
+                                "precio_promo": p_val,
+                                "unidades_promo": 1,
+                                "precio_total_promo": p_val,
+                                "condiciones": "Consulta web directa (JSON-LD)",
+                                "disponibilidad": "disponible",
+                                "url": item.get("url") or url,
+                                "fecha_consulta": fecha_consulta,
+                                "fuente": f"Página oficial ({tienda})",
+                                "confianza": "Confirmado",
+                            }
+                        )
 
         # Caso 2: __NEXT_DATA__ (Next.js / Electrode / Walmart platform)
         if s.get("id") == "__NEXT_DATA__" and isinstance(data, dict):
+
             def buscar_items_recursivo(obj):
                 encontrados = []
                 if isinstance(obj, dict):
@@ -308,30 +317,34 @@ def extraer_de_json_embebido(soup: BeautifulSoup, url: str, tienda: str, fecha_c
                 cat, subcat = clasificar_categoria(nombre)
                 ml = extraer_ml(nombre)
                 full_url = f"https://www.sams.com.mx{prod_url}" if prod_url.startswith("/") else prod_url
-                productos.append({
-                    "tienda": tienda,
-                    "producto": nombre,
-                    "marca": nombre.split()[0],
-                    "categoria": cat,
-                    "subcategoria": subcat,
-                    "clase": subcat if cat in ["Tequila", "Mezcal"] else "no_aplica",
-                    "tipo_mezcal": "Artesanal" if cat == "Mezcal" else "no_aplica",
-                    "especie_agave": "Tequilana Weber azul" if cat == "Tequila" else ("Espadín" if cat == "Mezcal" else "no_aplica"),
-                    "productor": "no_verificado",
-                    "sello_regulador": "no_verificado",
-                    "ml": ml,
-                    "abv": 38.0 if cat in ["Tequila", "Mezcal"] else 40.0,
-                    "precio_regular": p_val,
-                    "precio_promo": p_val,
-                    "unidades_promo": 1,
-                    "precio_total_promo": p_val,
-                    "condiciones": "Consulta web directa (__NEXT_DATA__)",
-                    "disponibilidad": "disponible",
-                    "url": full_url,
-                    "fecha_consulta": fecha_consulta,
-                    "fuente": f"Página oficial ({tienda})",
-                    "confianza": "Confirmado"
-                })
+                productos.append(
+                    {
+                        "tienda": tienda,
+                        "producto": nombre,
+                        "marca": nombre.split()[0],
+                        "categoria": cat,
+                        "subcategoria": subcat,
+                        "clase": subcat if cat in ["Tequila", "Mezcal"] else "no_aplica",
+                        "tipo_mezcal": "Artesanal" if cat == "Mezcal" else "no_aplica",
+                        "especie_agave": "Tequilana Weber azul"
+                        if cat == "Tequila"
+                        else ("Espadín" if cat == "Mezcal" else "no_aplica"),
+                        "productor": "no_verificado",
+                        "sello_regulador": "no_verificado",
+                        "ml": ml,
+                        "abv": 38.0 if cat in ["Tequila", "Mezcal"] else 40.0,
+                        "precio_regular": p_val,
+                        "precio_promo": p_val,
+                        "unidades_promo": 1,
+                        "precio_total_promo": p_val,
+                        "condiciones": "Consulta web directa (__NEXT_DATA__)",
+                        "disponibilidad": "disponible",
+                        "url": full_url,
+                        "fecha_consulta": fecha_consulta,
+                        "fuente": f"Página oficial ({tienda})",
+                        "confianza": "Confirmado",
+                    }
+                )
 
     return productos
 
@@ -350,46 +363,54 @@ def parsear_html_con_bs4(html_source: str, url: str, tienda: str) -> list[dict]:
 
     # Estrategia 2: Página de producto individual (PDP)
     h1 = soup.find("h1")
-    precios_pdp = soup.find_all(attrs={"class": re.compile(r'price|precio|val', re.I)})
+    precios_pdp = soup.find_all(attrs={"class": re.compile(r"price|precio|val", re.I)})
     if h1 and precios_pdp:
         nombre = h1.get_text(strip=True)
         precio = extraer_precio_texto(precios_pdp[0].get_text(strip=True))
         if precio and len(nombre) > 5:
             categoria, subcategoria = clasificar_categoria(nombre)
             ml = extraer_ml(nombre)
-            return [{
-                "tienda": tienda,
-                "producto": nombre,
-                "marca": nombre.split()[0],
-                "categoria": categoria,
-                "subcategoria": subcategoria,
-                "clase": subcategoria if categoria in ["Tequila", "Mezcal"] else "no_aplica",
-                "tipo_mezcal": "Artesanal" if categoria == "Mezcal" else "no_aplica",
-                "especie_agave": "Tequilana Weber azul" if categoria == "Tequila" else ("Espadín" if categoria == "Mezcal" else "no_aplica"),
-                "productor": "no_verificado",
-                "sello_regulador": "no_verificado",
-                "ml": ml,
-                "abv": 38.0 if categoria in ["Tequila", "Mezcal"] else 40.0,
-                "precio_regular": precio,
-                "precio_promo": precio,
-                "unidades_promo": 1,
-                "precio_total_promo": precio,
-                "condiciones": "Consulta web directa en página de producto",
-                "disponibilidad": "disponible",
-                "url": url,
-                "fecha_consulta": fecha_consulta,
-                "fuente": f"Página oficial ({tienda})",
-                "confianza": "Confirmado"
-            }]
+            return [
+                {
+                    "tienda": tienda,
+                    "producto": nombre,
+                    "marca": nombre.split()[0],
+                    "categoria": categoria,
+                    "subcategoria": subcategoria,
+                    "clase": subcategoria if categoria in ["Tequila", "Mezcal"] else "no_aplica",
+                    "tipo_mezcal": "Artesanal" if categoria == "Mezcal" else "no_aplica",
+                    "especie_agave": "Tequilana Weber azul"
+                    if categoria == "Tequila"
+                    else ("Espadín" if categoria == "Mezcal" else "no_aplica"),
+                    "productor": "no_verificado",
+                    "sello_regulador": "no_verificado",
+                    "ml": ml,
+                    "abv": 38.0 if categoria in ["Tequila", "Mezcal"] else 40.0,
+                    "precio_regular": precio,
+                    "precio_promo": precio,
+                    "unidades_promo": 1,
+                    "precio_total_promo": precio,
+                    "condiciones": "Consulta web directa en página de producto",
+                    "disponibilidad": "disponible",
+                    "url": url,
+                    "fecha_consulta": fecha_consulta,
+                    "fuente": f"Página oficial ({tienda})",
+                    "confianza": "Confirmado",
+                }
+            ]
 
     # Estrategia 3: Listado de búsqueda o catálogo (búsqueda amplia de contenedores)
-    tarjetas = soup.find_all(attrs={"data-testid": re.compile(r'product|item|card', re.I)}) or \
-               soup.find_all("div", class_=re.compile(r'sc-pc-|product-card|item-card|sc-product|product-item|ProductCard', re.I)) or \
-               soup.find_all("article")
+    tarjetas = (
+        soup.find_all(attrs={"data-testid": re.compile(r"product|item|card", re.I)})
+        or soup.find_all(
+            "div", class_=re.compile(r"sc-pc-|product-card|item-card|sc-product|product-item|ProductCard", re.I)
+        )
+        or soup.find_all("article")
+    )
 
     # Si no hay tarjetas explícitas con esos selectores, buscar enlaces a productos
     if not tarjetas:
-        enlaces_prod = soup.find_all("a", href=re.compile(r'/p/|/ip/|/producto/', re.I))
+        enlaces_prod = soup.find_all("a", href=re.compile(r"/p/|/ip/|/producto/", re.I))
         vistos = set()
         for a in enlaces_prod:
             contenedor = a.find_parent("div", class_=True) or a.parent
@@ -400,21 +421,24 @@ def parsear_html_con_bs4(html_source: str, url: str, tienda: str) -> list[dict]:
     nombres_procesados = set()
     for tarjeta in tarjetas:
         # Extraer nombre
-        elem_nombre = tarjeta.find(re.compile(r'h[1-4]|a|span|p'), attrs={"class": re.compile(r'title|name|desc', re.I)}) or \
-                      tarjeta.find("a", href=re.compile(r'/p/|/ip/', re.I)) or \
-                      tarjeta.find("a")
+        elem_nombre = (
+            tarjeta.find(re.compile(r"h[1-4]|a|span|p"), attrs={"class": re.compile(r"title|name|desc", re.I)})
+            or tarjeta.find("a", href=re.compile(r"/p/|/ip/", re.I))
+            or tarjeta.find("a")
+        )
         nombre = elem_nombre.get_text(strip=True) if elem_nombre else ""
 
         if not nombre or len(nombre) < 6 or nombre in nombres_procesados:
             continue
 
         # Extraer precios (buscar regular y promo si ambos aparecen)
-        elems_precio = tarjeta.find_all(attrs={"class": re.compile(r'price|precio|val', re.I)}) or \
-                       tarjeta.find_all(string=re.compile(r'\$\s*\d+'))
+        elems_precio = tarjeta.find_all(attrs={"class": re.compile(r"price|precio|val", re.I)}) or tarjeta.find_all(
+            string=re.compile(r"\$\s*\d+")
+        )
 
         valores_precio = []
         for ep in elems_precio:
-            t = ep.get_text(strip=True) if hasattr(ep, 'get_text') else str(ep)
+            t = ep.get_text(strip=True) if hasattr(ep, "get_text") else str(ep)
             val = extraer_precio_texto(t)
             if val and val > 40:
                 valores_precio.append(val)
@@ -431,41 +455,47 @@ def parsear_html_con_bs4(html_source: str, url: str, tienda: str) -> list[dict]:
         ml = extraer_ml(nombre)
 
         # Extraer link del producto si existe
-        link_elem = tarjeta.find("a", href=re.compile(r'/p/|/ip/', re.I))
+        link_elem = tarjeta.find("a", href=re.compile(r"/p/|/ip/", re.I))
         item_url = url
         if link_elem and link_elem.get("href"):
             href = link_elem["href"]
             item_url = f"https://www.sams.com.mx{href}" if href.startswith("/") else href
 
-        productos.append({
-            "tienda": tienda,
-            "producto": nombre,
-            "marca": nombre.split()[0],
-            "categoria": categoria,
-            "subcategoria": subcategoria,
-            "clase": subcategoria if categoria in ["Tequila", "Mezcal"] else "no_aplica",
-            "tipo_mezcal": "Artesanal" if categoria == "Mezcal" else "no_aplica",
-            "especie_agave": "Tequilana Weber azul" if categoria == "Tequila" else ("Espadín" if categoria == "Mezcal" else "no_aplica"),
-            "productor": "no_verificado",
-            "sello_regulador": "no_verificado",
-            "ml": ml,
-            "abv": 38.0 if categoria in ["Tequila", "Mezcal"] else 40.0,
-            "precio_regular": precio_regular,
-            "precio_promo": precio_promo,
-            "unidades_promo": 1,
-            "precio_total_promo": precio_promo,
-            "condiciones": condicion,
-            "disponibilidad": "disponible",
-            "url": item_url,
-            "fecha_consulta": fecha_consulta,
-            "fuente": f"Página oficial ({tienda})",
-            "confianza": "Confirmado"
-        })
+        productos.append(
+            {
+                "tienda": tienda,
+                "producto": nombre,
+                "marca": nombre.split()[0],
+                "categoria": categoria,
+                "subcategoria": subcategoria,
+                "clase": subcategoria if categoria in ["Tequila", "Mezcal"] else "no_aplica",
+                "tipo_mezcal": "Artesanal" if categoria == "Mezcal" else "no_aplica",
+                "especie_agave": "Tequilana Weber azul"
+                if categoria == "Tequila"
+                else ("Espadín" if categoria == "Mezcal" else "no_aplica"),
+                "productor": "no_verificado",
+                "sello_regulador": "no_verificado",
+                "ml": ml,
+                "abv": 38.0 if categoria in ["Tequila", "Mezcal"] else 40.0,
+                "precio_regular": precio_regular,
+                "precio_promo": precio_promo,
+                "unidades_promo": 1,
+                "precio_total_promo": precio_promo,
+                "condiciones": condicion,
+                "disponibilidad": "disponible",
+                "url": item_url,
+                "fecha_consulta": fecha_consulta,
+                "fuente": f"Página oficial ({tienda})",
+                "confianza": "Confirmado",
+            }
+        )
 
     return productos
 
 
-def consultar_urls_secuenciales(urls: list[str], tienda: str = "Sam's Club", headless: bool = False, navegador: str = "chrome") -> list[dict]:
+def consultar_urls_secuenciales(
+    urls: list[str], tienda: str = "Sam's Club", headless: bool = False, navegador: str = "chrome"
+) -> list[dict]:
     """
     Navega por una lista de URLs de forma secuencial y controlada, aplicando
     pausas humanas y esperando activamente la resolución de desafíos e hidratación del DOM.
@@ -474,11 +504,11 @@ def consultar_urls_secuenciales(urls: list[str], tienda: str = "Sam's Club", hea
     resultados = []
     resumen = ResumenScraping(tienda)
     try:
-        print(f"[Selenium] Iniciando {navegador.upper()} con User-Agent de escritorio...")
+        logger.info(f"Iniciando {navegador.upper()} con User-Agent de escritorio...")
         driver = inicializar_driver(headless=headless, navegador=navegador)
 
         for i, url in enumerate(urls, 1):
-            print(f"\n({i}/{len(urls)}) Navegando a: {url}")
+            logger.info(f"({i}/{len(urls)}) Navegando a: {url}")
             driver.get(url)
 
             # Pausa de inicio
@@ -486,7 +516,7 @@ def consultar_urls_secuenciales(urls: list[str], tienda: str = "Sam's Club", hea
 
             # Verificar si hay CAPTCHA o desafío WAF (30 segundos)
             if not verificar_y_esperar_desafio(driver, timeout_humano=30):
-                print(f"[AVISO] Saltando {url} debido a desafío no resuelto.")
+                logger.warning(f"Saltando {url} debido a desafío no resuelto.")
                 resumen.registrar_descarte("desafío de seguridad no resuelto")
                 continue
 
@@ -499,19 +529,19 @@ def consultar_urls_secuenciales(urls: list[str], tienda: str = "Sam's Club", hea
                 pass
 
             # ESPERA ACTIVA DE HIDRATACIÓN TRAS DESAFÍO
-            print("[Selenium] Esperando que la página hidrate los componentes dinámicos...")
+            logger.info("Esperando que la página hidrate los componentes dinámicos...")
             html = ""
-            for intento in range(10):
+            for _intento in range(10):
                 time.sleep(2)
                 # Re-comprobar si tras la navegación se reactivó el desafío
                 sigue_desafio, _ = detectar_desafio(driver)
                 if sigue_desafio:
-                    print("  ... re-apareció desafío, pausando...")
+                    logger.warning("  ... re-apareció desafío, pausando...")
                     verificar_y_esperar_desafio(driver, timeout_humano=20)
 
                 html = driver.page_source
                 tamano = len(html)
-                print(f"  ... cargando DOM: {tamano} bytes")
+                logger.debug(f"  ... cargando DOM: {tamano} bytes")
                 # Si el DOM supera los 35 KB, la página ya cargó scripts y componentes de catálogo
                 if tamano > 35000:
                     break
@@ -520,15 +550,15 @@ def consultar_urls_secuenciales(urls: list[str], tienda: str = "Sam's Club", hea
             time.sleep(1.5)
             html = driver.page_source
 
-            print(f"[BeautifulSoup] Analizando {len(html)} bytes de DOM...")
+            logger.info(f"Analizando {len(html)} bytes de DOM con BeautifulSoup...")
             prods = parsear_html_con_bs4(html, url, tienda)
-            print(f"  -> {len(prods)} productos extraídos.")
+            logger.info(f"  -> {len(prods)} productos extraídos.")
 
             if len(prods) == 0:
                 debug_file = "data/debug_page.html"
                 with open(debug_file, "w", encoding="utf-8") as f:
                     f.write(html)
-                print(f"  [DIAGNÓSTICO] Se guardó una copia del HTML en '{debug_file}' ({len(html)} bytes) para inspección.")
+                logger.info(f"Se guardó una copia del HTML en '{debug_file}' ({len(html)} bytes) para inspección.")
                 resumen.registrar_error_parseo(url, ValueError("Sin productos extraídos del DOM"))
             else:
                 for _ in prods:
@@ -541,19 +571,21 @@ def consultar_urls_secuenciales(urls: list[str], tienda: str = "Sam's Club", hea
                 pausa_humana(3.0, 5.0)
 
     except Exception as e:
-        print(f"[ERROR] Error durante la ejecución del navegador: {e}", file=sys.stderr)
+        logger.error(f"Error durante la ejecución del navegador: {e}")
         resumen.registrar_error_red("navegador", e)
     finally:
         if driver:
             driver.quit()
-            print("[Selenium] Navegador cerrado limpiamente.")
+            logger.info("Navegador cerrado limpiamente.")
 
     resumen.imprimir_resumen()
     return resultados
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Scraper con Selenium + BeautifulSoup (Chrome, pausas humanas y espera de hidratación).")
+    parser = argparse.ArgumentParser(
+        description="Scraper con Selenium + BeautifulSoup (Chrome, pausas humanas y espera de hidratación)."
+    )
     parser.add_argument("--urls", nargs="+", required=True, help="Lista de URLs a consultar.")
     parser.add_argument("--tienda", default="Sam's Club", help="Tienda que se está consultando.")
     parser.add_argument("--navegador", default="chrome", choices=["chrome", "firefox"], help="Navegador a utilizar.")
@@ -565,9 +597,9 @@ def main():
     if prods:
         df = pd.DataFrame(prods)
         guardar_csv_atomico(df, args.salida)
-        print(f"\n[ÉXITO] Se guardaron {len(df)} registros sin deduplicar en: {args.salida}")
+        logger.info(f"Se guardaron {len(df)} registros sin deduplicar en: {args.salida}")
     else:
-        print("\n[RESULTADO] No se extrajeron productos. Revisa 'data/debug_page.html' para ver el estado de la página.")
+        logger.warning("No se extrajeron productos. Revisa 'data/debug_page.html' para ver el estado de la página.")
 
 
 if __name__ == "__main__":

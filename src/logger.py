@@ -5,9 +5,9 @@ Proporciona registros con niveles (DEBUG, INFO, WARNING, ERROR), salida legible 
 y persistencia automática en logs/cantina_familiar.log para auditoría y diagnóstico de pipelines.
 """
 
+import logging
 import os
 import sys
-import logging
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Optional
@@ -19,12 +19,13 @@ ARCHIVO_LOG_DEFAULT = DIR_LOGS / "cantina_familiar.log"
 
 class FormateadorConsola(logging.Formatter):
     """Formateador limpio para consola con iconos de nivel."""
+
     ICONOS = {
         logging.DEBUG: "🔍 [DEBUG]",
         logging.INFO: "ℹ️ [INFO]",
         logging.WARNING: "⚠️ [AVISO]",
         logging.ERROR: "❌ [ERROR]",
-        logging.CRITICAL: "🚨 [CRÍTICO]"
+        logging.CRITICAL: "🚨 [CRÍTICO]",
     }
 
     def format(self, record: logging.LogRecord) -> str:
@@ -40,7 +41,7 @@ def configurar_logging(
     archivo_log: Optional[Path] = None,
     rotacion_bytes: int = 2 * 1024 * 1024,  # 2 MB
     backups: int = 3,
-    forzar: bool = False
+    forzar: bool = False,
 ) -> None:
     """Configura el logger raíz del proyecto con salida a consola y archivo."""
     nivel_str = nivel or os.environ.get("LOG_LEVEL", "INFO").upper()
@@ -71,15 +72,11 @@ def configurar_logging(
         DIR_LOGS.mkdir(parents=True, exist_ok=True)
         ruta_archivo = archivo_log or ARCHIVO_LOG_DEFAULT
         handler_archivo = RotatingFileHandler(
-            ruta_archivo,
-            maxBytes=rotacion_bytes,
-            backupCount=backups,
-            encoding="utf-8"
+            ruta_archivo, maxBytes=rotacion_bytes, backupCount=backups, encoding="utf-8"
         )
         handler_archivo.setLevel(logging.DEBUG)  # Archivo siempre captura todo para depuración
         formato_archivo = logging.Formatter(
-            "%(asctime)s | %(levelname)-8s | %(name)s:%(lineno)d | %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S"
+            "%(asctime)s | %(levelname)-8s | %(name)s:%(lineno)d | %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
         )
         handler_archivo.setFormatter(formato_archivo)
         logger_raiz.addHandler(handler_archivo)
@@ -90,7 +87,7 @@ def configurar_logging(
 def get_logger(modulo: str = "") -> logging.Logger:
     """
     Obtiene una instancia de logger para el módulo especificado.
-    
+
     Ejemplo:
         from src.logger import get_logger
         logger = get_logger("scraper_multitienda")

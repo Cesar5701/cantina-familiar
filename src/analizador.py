@@ -4,18 +4,39 @@ Utiliza pandas para auditar datos, calcular métricas por litro, detectar duplic
 y generar rankings estrictamente separados por categorías comparables.
 """
 
-import sys
 import argparse
-import pandas as pd
+
 import numpy as np
+import pandas as pd
+
+from src.logger import get_logger
+
+logger = get_logger("analizador")
 
 
 COLUMNAS_OBLIGATORIAS = [
-    "tienda", "producto", "marca", "categoria", "subcategoria",
-    "clase", "tipo_mezcal", "especie_agave", "productor", "sello_regulador",
-    "ml", "abv", "precio_regular", "precio_promo", "unidades_promo",
-    "precio_total_promo", "condiciones", "disponibilidad", "url",
-    "fecha_consulta", "fuente", "confianza"
+    "tienda",
+    "producto",
+    "marca",
+    "categoria",
+    "subcategoria",
+    "clase",
+    "tipo_mezcal",
+    "especie_agave",
+    "productor",
+    "sello_regulador",
+    "ml",
+    "abv",
+    "precio_regular",
+    "precio_promo",
+    "unidades_promo",
+    "precio_total_promo",
+    "condiciones",
+    "disponibilidad",
+    "url",
+    "fecha_consulta",
+    "fuente",
+    "confianza",
 ]
 
 
@@ -23,10 +44,11 @@ def normalizar_texto_clave(texto: str) -> str:
     """Normaliza un nombre de producto eliminando acentos, puntuación, stop-words y ordenando tokens para match cross-tienda."""
     if not texto or pd.isnull(texto):
         return ""
-    import unicodedata
     import re
-    s = unicodedata.normalize('NFKD', str(texto)).encode('ascii', 'ignore').decode('utf-8')
-    s = re.sub(r'[^a-zA-Z0-9\s]', ' ', s.lower())
+    import unicodedata
+
+    s = unicodedata.normalize("NFKD", str(texto)).encode("ascii", "ignore").decode("utf-8")
+    s = re.sub(r"[^a-zA-Z0-9\s]", " ", s.lower())
     stop_words = {"de", "del", "el", "la", "los", "las", "en", "para"}
     tokens = [t for t in s.split() if t not in stop_words]
     tokens.sort()
@@ -76,7 +98,7 @@ def validar_esquema_y_rangos(df: pd.DataFrame, lanzar_error: bool = False) -> tu
         "anomalias_volumen_ml": len(anomalias_ml),
         "anomalias_graduacion_abv": len(anomalias_abv),
         "registros_sin_precio": len(sin_precio),
-        "errores": errores
+        "errores": errores,
     }
 
     df_val["datos_validos"] = ~df_val.index.isin(set(anomalias_ml + sin_precio))
@@ -95,7 +117,7 @@ def auditar_datos_faltantes(df: pd.DataFrame) -> pd.DataFrame:
 def detectar_duplicados(df: pd.DataFrame) -> pd.DataFrame:
     """
     Detecta duplicados intra-tienda y genera claves canónicas cross-tienda (H8).
-    
+
     - 'es_duplicado': True si la misma tienda cotiza repetidamente el mismo producto y ml.
     - 'clave_comparativa': Clave unificada (producto_normalizado, ml) para comparar entre tiendas.
     - 'es_comparable_cross_tienda': True si el producto existe en 2 o más tiendas distintas.
@@ -148,26 +170,27 @@ def obtener_comparativa_cross_tienda(df: pd.DataFrame) -> pd.DataFrame:
         ahorro = fila_max["precio_efectivo"] - fila_min["precio_efectivo"]
         pct_ahorro = (ahorro / fila_max["precio_efectivo"] * 100) if fila_max["precio_efectivo"] > 0 else 0.0
 
-        resumen.append({
-            "clave_comparativa": clave,
-            "producto": fila_min["producto"],
-            "categoria": fila_min["categoria"],
-            "subcategoria": fila_min.get("subcategoria", ""),
-            "ml": fila_min["ml"],
-            "tiendas_disponibles": sorted(grupo["tienda"].unique().tolist()),
-            "tienda_mas_barata": fila_min["tienda"],
-            "precio_minimo": round(float(fila_min["precio_efectivo"]), 2),
-            "tienda_mas_cara": fila_max["tienda"],
-            "precio_maximo": round(float(fila_max["precio_efectivo"]), 2),
-            "ahorro_maximo": round(float(ahorro), 2),
-            "porcentaje_ahorro_maximo": round(float(pct_ahorro), 1)
-        })
+        resumen.append(
+            {
+                "clave_comparativa": clave,
+                "producto": fila_min["producto"],
+                "categoria": fila_min["categoria"],
+                "subcategoria": fila_min.get("subcategoria", ""),
+                "ml": fila_min["ml"],
+                "tiendas_disponibles": sorted(grupo["tienda"].unique().tolist()),
+                "tienda_mas_barata": fila_min["tienda"],
+                "precio_minimo": round(float(fila_min["precio_efectivo"]), 2),
+                "tienda_mas_cara": fila_max["tienda"],
+                "precio_maximo": round(float(fila_max["precio_efectivo"]), 2),
+                "ahorro_maximo": round(float(ahorro), 2),
+                "porcentaje_ahorro_maximo": round(float(pct_ahorro), 1),
+            }
+        )
 
     df_comp = pd.DataFrame(resumen)
     if not df_comp.empty:
         df_comp = df_comp.sort_values(by="ahorro_maximo", ascending=False).reset_index(drop=True)
     return df_comp
-
 
 
 def calcular_costo_efectivo(row: pd.Series) -> float:
@@ -213,7 +236,7 @@ def calcular_metricas(df: pd.DataFrame) -> pd.DataFrame:
     df["precio_por_litro"] = np.where(
         (df["litros"] > 0) & pd.notnull(df["precio_efectivo"]) & (df["precio_efectivo"] > 0),
         (df["precio_efectivo"] / df["litros"]).round(2),
-        np.nan
+        np.nan,
     )
 
     # Ahorro verificable
@@ -224,7 +247,7 @@ def calcular_metricas(df: pd.DataFrame) -> pd.DataFrame:
     df["porcentaje_ahorro"] = np.where(
         (pd.notnull(df["precio_regular"])) & (df["precio_regular"] > 0),
         ((df["ahorro_verificable"] / df["precio_regular"]) * 100.0).round(1),
-        0.0
+        0.0,
     )
 
     return df
@@ -237,25 +260,38 @@ def generar_rankings_por_categoria(df: pd.DataFrame) -> dict[str, pd.DataFrame]:
     """
     # Filtrar solo registros no duplicados y con precio por litro válido y positivo
     no_duplicados = (~df["es_duplicado"]) if "es_duplicado" in df.columns else True
-    validos = df[
-        no_duplicados & 
-        (pd.notnull(df["precio_por_litro"])) & 
-        (df["precio_por_litro"] > 0)
-    ].copy()
+    validos = df[no_duplicados & (pd.notnull(df["precio_por_litro"])) & (df["precio_por_litro"] > 0)].copy()
 
     # Definición de grupos comparables estrictos
     grupos = {
-        "Tequila - Añejo Tradicional": validos[(validos["categoria"] == "Tequila") & (validos["subcategoria"] == "Añejo Tradicional")],
-        "Tequila - Añejo Cristalino": validos[(validos["categoria"] == "Tequila") & (validos["subcategoria"] == "Añejo Cristalino")],
-        "Tequila - Reposado": validos[(validos["categoria"] == "Tequila") & (validos["subcategoria"].str.contains("Reposado", case=False, na=False))],
+        "Tequila - Añejo Tradicional": validos[
+            (validos["categoria"] == "Tequila") & (validos["subcategoria"] == "Añejo Tradicional")
+        ],
+        "Tequila - Añejo Cristalino": validos[
+            (validos["categoria"] == "Tequila") & (validos["subcategoria"] == "Añejo Cristalino")
+        ],
+        "Tequila - Reposado": validos[
+            (validos["categoria"] == "Tequila")
+            & (validos["subcategoria"].str.contains("Reposado", case=False, na=False))
+        ],
         "Mezcal - Reposado": validos[(validos["categoria"] == "Mezcal") & (validos["subcategoria"] == "Reposado")],
         "Mezcal - Añejo": validos[(validos["categoria"] == "Mezcal") & (validos["subcategoria"] == "Añejo")],
         "Mezcal - Silvestre": validos[(validos["categoria"] == "Mezcal") & (validos["subcategoria"] == "Silvestre")],
-        "Mezcal - Silvestres (Tobalá/Cupreata/Cuishe)": validos[(validos["categoria"] == "Mezcal") & (validos["subcategoria"] == "Silvestre")],
-        "Mezcal - Espadín Joven": validos[(validos["categoria"] == "Mezcal") & (validos["subcategoria"] == "Espadín Joven")],
-        "Whisky - Blended Scotch": validos[(validos["categoria"] == "Whisky") & (validos["subcategoria"] == "Blended Scotch")],
-        "Licor de Whisky - Honey": validos[(validos["categoria"] == "Licor de Whisky") & (validos["subcategoria"] == "Honey Liqueur")],
-        "Vino - Tinto Clericot": validos[(validos["categoria"] == "Vino") & (validos["subcategoria"] == "Tinto Clericot")]
+        "Mezcal - Silvestres (Tobalá/Cupreata/Cuishe)": validos[
+            (validos["categoria"] == "Mezcal") & (validos["subcategoria"] == "Silvestre")
+        ],
+        "Mezcal - Espadín Joven": validos[
+            (validos["categoria"] == "Mezcal") & (validos["subcategoria"] == "Espadín Joven")
+        ],
+        "Whisky - Blended Scotch": validos[
+            (validos["categoria"] == "Whisky") & (validos["subcategoria"] == "Blended Scotch")
+        ],
+        "Licor de Whisky - Honey": validos[
+            (validos["categoria"] == "Licor de Whisky") & (validos["subcategoria"] == "Honey Liqueur")
+        ],
+        "Vino - Tinto Clericot": validos[
+            (validos["categoria"] == "Vino") & (validos["subcategoria"] == "Tinto Clericot")
+        ],
     }
 
     rankings = {}
@@ -268,17 +304,16 @@ def generar_rankings_por_categoria(df: pd.DataFrame) -> dict[str, pd.DataFrame]:
 
 def imprimir_resumen_rankings(rankings: dict[str, pd.DataFrame]):
     """Imprime en terminal el ranking formateado por categoría."""
-    print("=" * 90)
-    print("RANKINGS POR CATEGORÍA COMPARABLE (ORDENADO POR PRECIO POR LITRO)")
-    print("=" * 90)
+    logger.info("=" * 80)
+    logger.info("RANKINGS POR CATEGORÍA COMPARABLE (ORDENADO POR PRECIO POR LITRO)")
+    logger.info("=" * 80)
 
     for nombre_grupo, df_cat in rankings.items():
-        print(f"\n>>> {nombre_grupo.upper()} ({len(df_cat)} productos)")
-        print("-" * 90)
+        logger.info(f">>> {nombre_grupo.upper()} ({len(df_cat)} productos)")
         cols = ["producto", "tienda", "ml", "precio_efectivo", "precio_por_litro", "porcentaje_ahorro", "confianza"]
         sub = df_cat[cols].copy()
         sub.columns = ["Producto", "Tienda", "ml", "Precio ($)", "$/Litro", "% Ahorro", "Confianza"]
-        print(sub.to_string(index=True))
+        logger.info("\n" + sub.to_string(index=True))
 
 
 def procesar_archivo(ruta_entrada: str, ruta_salida: str = None) -> pd.DataFrame:
@@ -290,7 +325,7 @@ def procesar_archivo(ruta_entrada: str, ruta_salida: str = None) -> pd.DataFrame
 
     if ruta_salida:
         df.to_csv(ruta_salida, index=False)
-        print(f"[OK] Archivo procesado guardado en: {ruta_salida}")
+        logger.info(f"Archivo procesado guardado en: {ruta_salida}")
 
     return df
 
@@ -306,10 +341,9 @@ def main():
     # Reportar datos faltantes y duplicados
     faltantes_count = df["tiene_datos_faltantes"].sum()
     duplicados_count = df["es_duplicado"].sum()
-    print(f"\nAuditoría inicial:")
-    print(f"  • Registros totales: {len(df)}")
-    print(f"  • Filas con datos críticos faltantes: {faltantes_count}")
-    print(f"  • Filas duplicadas detectadas: {duplicados_count}")
+    logger.info(
+        f"Auditoría inicial: {len(df)} registros totales, {faltantes_count} con datos faltantes, {duplicados_count} duplicados."
+    )
 
     rankings = generar_rankings_por_categoria(df)
     imprimir_resumen_rankings(rankings)

@@ -43,20 +43,35 @@ dependencies = [
 dev = [
     "pytest>=8.0.0",
     "pytest-cov>=4.1.0",
-    "ruff>=0.3.0",
+    "ruff>=0.8.0",
+    "pre-commit>=3.7.0",
 ]
 
 [tool.pytest.ini_options]
 minversion = "8.0"
 testpaths = ["tests"]
-addopts = "-v --tb=short"
+addopts = "-v --tb=short --cov=src --cov-report=term-missing"
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "src/scraper_selenium.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
 
 [tool.ruff]
 line-length = 120
 target-version = "py310"
+exclude = [
+    "legacy",
+    ".venv",
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B"]
-ignore = ["E501"]
+ignore = ["E501", "E402"]

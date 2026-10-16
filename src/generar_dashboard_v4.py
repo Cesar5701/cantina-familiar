@@ -7,10 +7,16 @@ Diseño Híbrido:
 """
 
 import os
-import json
+import sys
 from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+from src.logger import get_logger
+
+logger = get_logger("dashboard_v4")
 LOCAL_HTML_PATH = ROOT_DIR / "data" / "dashboard_bi.html"
 INDEX_HTML_PATH = ROOT_DIR / "index.html"
 DATA_JSON_PATH = ROOT_DIR / "data" / "dashboard_data.json"
@@ -32,7 +38,7 @@ VIGENCIAS_TIENDAS = {
     "sams": "2 de noviembre 2026 (Cuponera Octubre / Día de Muertos)",
     "chedraui": "31 de octubre 2026 (Quincena MiChedraui)",
     "soriana": "22 de octubre 2026 (Folleto Semanal de Licores)",
-    "walmart": "31 de octubre 2026 (Rebajas de Temporada en Línea)"
+    "walmart": "31 de octubre 2026 (Rebajas de Temporada en Línea)",
 }
 
 CONFIG_VIGENCIA = {
@@ -43,7 +49,7 @@ CONFIG_VIGENCIA = {
         "🟧 Chedraui: hasta 31 Oct (Quincena)\n"
         "🔴 Soriana: hasta 22 Oct (Folleto semanal)\n"
         "🩵 Walmart: hasta 31 Oct (Rebajas)"
-    )
+    ),
 }
 
 html_template = """<!DOCTYPE html>
@@ -284,10 +290,10 @@ html_template = """<!DOCTYPE html>
       pointer-events: auto;
     }
 
-    input[type=number]::-webkit-inner-spin-button, 
-    input[type=number]::-webkit-outer-spin-button { 
-      -webkit-appearance: none; 
-      margin: 0; 
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
     }
     input[type=number] {
       -moz-appearance: textfield;
@@ -1234,7 +1240,7 @@ html_template = """<!DOCTYPE html>
 
       document.getElementById("modal-cross-badge-cat").innerText = item.categoria_comparable;
       document.getElementById("modal-cross-titulo").innerText = `${item.producto} (${item.ml} ml)`;
-      document.getElementById("modal-cross-subtitulo").innerText = 
+      document.getElementById("modal-cross-subtitulo").innerText =
         `Disponible en ${item.num_tiendas_cross} tiendas · Ahorro máximo entre tiendas: $${item.ahorro_maximo_cross.toFixed(2)} MXN`;
 
       const ofertas = DATOS_COMPLETOS
@@ -1359,8 +1365,8 @@ html_template = """<!DOCTYPE html>
       const item = DATOS_COMPLETOS[idx];
       if (!item || !item.es_comparable_cross_tienda || item.es_precio_mas_bajo) return;
 
-      const altIdx = DATOS_COMPLETOS.findIndex(d => 
-        d.clave_comparativa === item.clave_comparativa && 
+      const altIdx = DATOS_COMPLETOS.findIndex(d =>
+        d.clave_comparativa === item.clave_comparativa &&
         d.tienda === item.tienda_mas_barata
       );
 
@@ -1386,8 +1392,8 @@ html_template = """<!DOCTYPE html>
         if (!item || cant <= 0) return;
 
         if (item.es_comparable_cross_tienda && !item.es_precio_mas_bajo && item.diferencia_vs_minimo > 0) {
-          const altIdx = DATOS_COMPLETOS.findIndex(d => 
-            d.clave_comparativa === item.clave_comparativa && 
+          const altIdx = DATOS_COMPLETOS.findIndex(d =>
+            d.clave_comparativa === item.clave_comparativa &&
             d.tienda === item.tienda_mas_barata
           );
           if (altIdx !== -1) {
@@ -1478,7 +1484,7 @@ html_template = """<!DOCTYPE html>
       const select = document.getElementById(`select-agregar-${macro.toLowerCase()}`);
       const idx = parseInt(select.value);
       if (isNaN(idx) || idx < 0) return;
-      
+
       modificarCantidad(idx, 1);
       mostrarToast(`🍾 Agregado: ${DATOS_COMPLETOS[idx].producto}`);
       select.value = "";
@@ -1707,12 +1713,12 @@ html_template = """<!DOCTYPE html>
     function renderizarConstructorCanasta() {
       const macros = ['Tequila', 'Mezcal', 'Whisky', 'Honey', 'Vino'];
       const itemsPorMacro = { Tequila: [], Mezcal: [], Whisky: [], Honey: [], Vino: [] };
-      const subtotales = { 
-        Tequila: { cant: 0, total: 0 }, 
-        Mezcal: { cant: 0, total: 0 }, 
-        Whisky: { cant: 0, total: 0 }, 
-        Honey: { cant: 0, total: 0 }, 
-        Vino: { cant: 0, total: 0 } 
+      const subtotales = {
+        Tequila: { cant: 0, total: 0 },
+        Mezcal: { cant: 0, total: 0 },
+        Whisky: { cant: 0, total: 0 },
+        Honey: { cant: 0, total: 0 },
+        Vino: { cant: 0, total: 0 }
       };
 
       let granTotal = 0;
@@ -1794,8 +1800,8 @@ html_template = """<!DOCTYPE html>
                     <span class="text-xs font-mono text-[#574A3D]">${item.ml} ml</span>
                   </div>
                   <div class="font-semibold text-sm text-[#1F1B16] leading-tight break-words">
-                    <a href="${item.url}" target="_blank" rel="noopener noreferrer" 
-                       class="hover:underline hover:text-[#784516] inline-flex items-center gap-1 group" 
+                    <a href="${item.url}" target="_blank" rel="noopener noreferrer"
+                       class="hover:underline hover:text-[#784516] inline-flex items-center gap-1 group"
                        title="Ver en tienda oficial ${item.tienda}">
                       <span>${item.producto}</span>
                       <span class="text-[10px] text-[#8A7B6B] group-hover:text-[#784516] inline-block">↗</span>
@@ -1813,7 +1819,7 @@ html_template = """<!DOCTYPE html>
                     <button onclick="modificarCantidad(${idx}, -1)" class="w-8 h-8 flex items-center justify-center rounded-full bg-[#EFE8DC] hover:bg-[#E6DDD0] text-sm font-bold text-[#1F1B16] transition-colors cursor-pointer">
                       −
                     </button>
-                    <input type="number" min="0" max="99" value="${cant}" 
+                    <input type="number" min="0" max="99" value="${cant}"
                            onchange="fijarCantidad(${idx}, this.value)"
                            class="w-10 text-center bg-transparent font-mono font-bold text-sm text-[#1F1B16] focus:outline-none">
                     <button onclick="modificarCantidad(${idx}, 1)" class="w-8 h-8 flex items-center justify-center rounded-full bg-[#EFE8DC] hover:bg-[#E6DDD0] text-sm font-bold text-[#1F1B16] transition-colors cursor-pointer">
@@ -2092,7 +2098,7 @@ html_template = """<!DOCTYPE html>
         const tr = document.createElement("tr");
         tr.className = "hover:bg-[#F7F2EA] transition-colors";
 
-        const ahorroBadge = item.ahorro_verificable > 0 
+        const ahorroBadge = item.ahorro_verificable > 0
           ? `<span class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5]">-$${item.ahorro_verificable.toFixed(2)} (${item.porcentaje_ahorro}%)</span>`
           : `<span class="text-[#8A7B6B] text-xs">Precio regular</span>`;
 
@@ -2124,8 +2130,8 @@ html_template = """<!DOCTYPE html>
 
         tr.innerHTML = `
           <td class="p-3.5 font-medium text-[#1F1B16]">
-            <a href="${item.url}" target="_blank" rel="noopener noreferrer" 
-               class="hover:underline text-[#1F1B16] hover:text-[#784516] flex items-center gap-1 group font-semibold" 
+            <a href="${item.url}" target="_blank" rel="noopener noreferrer"
+               class="hover:underline text-[#1F1B16] hover:text-[#784516] flex items-center gap-1 group font-semibold"
                title="Ver ${item.producto} en tienda oficial ${item.tienda}">
               <span class="line-clamp-1">${item.producto}</span>
               <span class="text-[10px] text-[#8A7B6B] group-hover:text-[#784516] flex-shrink-0">↗</span>
@@ -2149,8 +2155,8 @@ html_template = """<!DOCTYPE html>
               <button onclick="agregarDesdeTabla(${originalIndex})" class="px-3 py-1.5 text-xs md3-btn-tonal cursor-pointer whitespace-nowrap">
                 + Carrito
               </button>
-              <a href="${item.url}" target="_blank" rel="noopener noreferrer" 
-                 class="w-7 h-7 rounded-full border border-[#D6C8B8] hover:bg-[#EFE8DC] text-[#784516] inline-flex items-center justify-center transition-colors text-xs" 
+              <a href="${item.url}" target="_blank" rel="noopener noreferrer"
+                 class="w-7 h-7 rounded-full border border-[#D6C8B8] hover:bg-[#EFE8DC] text-[#784516] inline-flex items-center justify-center transition-colors text-xs"
                  title="Abrir ${item.producto} en ${item.tienda}">
                 ↗
               </a>
@@ -2413,7 +2419,7 @@ html_template = """<!DOCTYPE html>
       const tragosB = Math.floor(prodB.ml / dosisB);
 
       function generarTarjetaProd(p, colorBorder, letra, costoTrago, tragosTotales, labelDosis) {
-        const ahorro = p.ahorro_verificable > 0 
+        const ahorro = p.ahorro_verificable > 0
           ? `<span class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5]">Ahorro: -$${p.ahorro_verificable.toFixed(2)} (${p.porcentaje_ahorro}%)</span>`
           : `<span class="text-xs text-[#8A7B6B]">Precio Regular</span>`;
 
@@ -2474,8 +2480,8 @@ html_template = """<!DOCTYPE html>
       `;
 
       const nPersEfectivo = COOPERADORES_TOTAL > 0 ? COOPERADORES_TOTAL : 12;
-      const cantSimulada = (esVinoA || esVinoB) 
-        ? Math.max(3, Math.round(nPersEfectivo / 3)) 
+      const cantSimulada = (esVinoA || esVinoB)
+        ? Math.max(3, Math.round(nPersEfectivo / 3))
         : Math.max(2, Math.round(nPersEfectivo / 4));
 
       const costoSimA = prodA.precio_promo * cantSimulada;
@@ -2534,13 +2540,13 @@ html_template = """<!DOCTYPE html>
               🏆 Mejor Rendimiento $/Litro: <span class="text-[#784516]">${ganadorLitro.producto} (${ganadorLitro.tienda})</span>
             </h3>
             <p class="text-xs text-[#574A3D] max-w-3xl leading-relaxed">
-              Ofrece un costo estandarizado de <strong class="text-[#1F1B16]">$${ganadorLitro.precio_por_litro.toFixed(2)} por litro</strong> frente a 
-              <strong>$${perdedorLitro.precio_por_litro.toFixed(2)}/L</strong> de ${perdedorLitro.producto} (${perdedorLitro.tienda}), 
+              Ofrece un costo estandarizado de <strong class="text-[#1F1B16]">$${ganadorLitro.precio_por_litro.toFixed(2)} por litro</strong> frente a
+              <strong>$${perdedorLitro.precio_por_litro.toFixed(2)}/L</strong> de ${perdedorLitro.producto} (${perdedorLitro.tienda}),
               lo que equivale a un ahorro real de <strong class="text-[#486355]">$${difLitro.toFixed(2)} por cada litro (${pctLitro}%)</strong>.
             </p>
           </div>
           <div class="flex items-center gap-2 flex-wrap">
-            <a href="${ganadorLitro.url}" target="_blank" rel="noopener noreferrer" 
+            <a href="${ganadorLitro.url}" target="_blank" rel="noopener noreferrer"
                class="px-4 py-2.5 md3-btn-tonal text-xs whitespace-nowrap inline-flex items-center gap-1.5"
                title="Abrir ${ganadorLitro.producto} en ${ganadorLitro.tienda}">
               <span>Ver en ${ganadorLitro.tienda}</span> <span>↗</span>
@@ -2558,8 +2564,7 @@ html_template = """<!DOCTYPE html>
 """
 
 html_final = (
-    html_template
-    .replace("__DATA_JSON__", datos_json_str)
+    html_template.replace("__DATA_JSON__", datos_json_str)
     .replace("__CORTE_AUDITORIA__", CONFIG_VIGENCIA["corte_auditoria"])
     .replace("__RESUMEN_WHATSAPP_VIGENCIAS__", CONFIG_VIGENCIA["resumen_whatsapp"])
 )
@@ -2578,6 +2583,6 @@ if HTML_ARTIFACT_PATH:
     except Exception:
         pass
 
-print(f"[OK] Dashboard v6.0 sincronizado exitosamente:")
-print(f"  - Local:    {LOCAL_HTML_PATH} ({len(html_final):,} bytes)")
-print(f"  - Root:     {INDEX_HTML_PATH} ({len(html_final):,} bytes)")
+logger.info("Dashboard v6.0 sincronizado exitosamente:")
+logger.info(f"  - Local:    {LOCAL_HTML_PATH} ({len(html_final):,} bytes)")
+logger.info(f"  - Root:     {INDEX_HTML_PATH} ({len(html_final):,} bytes)")

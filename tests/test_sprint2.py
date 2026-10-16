@@ -7,21 +7,17 @@ Suite de pruebas unitarias para Sprint 2:
 
 import os
 import tempfile
-import pytest
-import pandas as pd
+
 import numpy as np
+import pandas as pd
+import pytest
 
 from src.analizador import (
     detectar_duplicados,
     obtener_comparativa_cross_tienda,
     validar_esquema_y_rangos,
-    COLUMNAS_OBLIGATORIAS
 )
-from src.io_utils import (
-    guardar_csv_atomico,
-    guardar_json_atomico,
-    ResumenScraping
-)
+from src.io_utils import ResumenScraping, guardar_csv_atomico, guardar_json_atomico
 
 
 def crear_df_prueba(filas: list[dict]) -> pd.DataFrame:
@@ -47,7 +43,7 @@ def crear_df_prueba(filas: list[dict]) -> pd.DataFrame:
         "url": "https://tienda.com/producto",
         "fecha_consulta": "2026-10-16 12:00",
         "fuente": "Test",
-        "confianza": "Confirmado"
+        "confianza": "Confirmado",
     }
     registros = []
     for f in filas:
@@ -61,14 +57,22 @@ def crear_df_prueba(filas: list[dict]) -> pd.DataFrame:
 # Pruebas H8: Deduplicación y Comparativa Cross-Tienda
 # ---------------------------------------------------------------------------
 
+
 def test_deteccion_cross_tienda_multiples_tiendas():
     """Valida que un mismo producto cotizado en diferentes tiendas se marque como comparable."""
-    df = crear_df_prueba([
-        {"tienda": "Bodegas Alianza", "producto": "Tequila Dobel Diamante 750 ml", "ml": 750, "precio_promo": 650.0},
-        {"tienda": "Sam's Club", "producto": "Tequila Dobel Diamante 750 ml", "ml": 750, "precio_promo": 599.0},
-        {"tienda": "Walmart", "producto": "Tequila Dobel Diamante 750 ml", "ml": 750, "precio_promo": 680.0},
-        {"tienda": "Chedraui", "producto": "Whisky Johnnie Walker Black 750 ml", "ml": 750, "precio_promo": 720.0}
-    ])
+    df = crear_df_prueba(
+        [
+            {
+                "tienda": "Bodegas Alianza",
+                "producto": "Tequila Dobel Diamante 750 ml",
+                "ml": 750,
+                "precio_promo": 650.0,
+            },
+            {"tienda": "Sam's Club", "producto": "Tequila Dobel Diamante 750 ml", "ml": 750, "precio_promo": 599.0},
+            {"tienda": "Walmart", "producto": "Tequila Dobel Diamante 750 ml", "ml": 750, "precio_promo": 680.0},
+            {"tienda": "Chedraui", "producto": "Whisky Johnnie Walker Black 750 ml", "ml": 750, "precio_promo": 720.0},
+        ]
+    )
     df = detectar_duplicados(df)
 
     assert "clave_comparativa" in df.columns
@@ -76,23 +80,25 @@ def test_deteccion_cross_tienda_multiples_tiendas():
     assert "num_tiendas_disponibles" in df.columns
 
     # Dobel Diamante está en 3 tiendas -> es comparable
-    assert df.loc[0, "es_comparable_cross_tienda"] == True
-    assert df.loc[1, "es_comparable_cross_tienda"] == True
-    assert df.loc[2, "es_comparable_cross_tienda"] == True
+    assert df.loc[0, "es_comparable_cross_tienda"]
+    assert df.loc[1, "es_comparable_cross_tienda"]
+    assert df.loc[2, "es_comparable_cross_tienda"]
     assert df.loc[0, "num_tiendas_disponibles"] == 3
 
     # Johnnie Walker solo está en Chedraui -> no es comparable
-    assert df.loc[3, "es_comparable_cross_tienda"] == False
+    assert not df.loc[3, "es_comparable_cross_tienda"]
     assert df.loc[3, "num_tiendas_disponibles"] == 1
 
 
 def test_obtener_comparativa_cross_tienda_calculo_arbitraje():
     """Valida que la tabla de comparativas calcule tienda más barata, más cara y ahorro máximo."""
-    df = crear_df_prueba([
-        {"tienda": "Bodegas Alianza", "producto": "Don Julio 70 700 ml", "ml": 700, "precio_promo": 780.0},
-        {"tienda": "Walmart", "producto": "Don Julio 70 700 ml", "ml": 700, "precio_promo": 950.0},
-        {"tienda": "Soriana", "producto": "Don Julio 70 700 ml", "ml": 700, "precio_promo": 850.0}
-    ])
+    df = crear_df_prueba(
+        [
+            {"tienda": "Bodegas Alianza", "producto": "Don Julio 70 700 ml", "ml": 700, "precio_promo": 780.0},
+            {"tienda": "Walmart", "producto": "Don Julio 70 700 ml", "ml": 700, "precio_promo": 950.0},
+            {"tienda": "Soriana", "producto": "Don Julio 70 700 ml", "ml": 700, "precio_promo": 850.0},
+        ]
+    )
     df_comp = obtener_comparativa_cross_tienda(df)
 
     assert not df_comp.empty
@@ -111,12 +117,15 @@ def test_obtener_comparativa_cross_tienda_calculo_arbitraje():
 # Pruebas H9: Validación de Esquema y Rangos
 # ---------------------------------------------------------------------------
 
+
 def test_validar_esquema_y_rangos_dataset_valido():
     """Un dataset correcto no debe arrojar anomalías."""
-    df = crear_df_prueba([
-        {"producto": "Botella 1", "ml": 750, "abv": 38.0, "precio_promo": 500.0},
-        {"producto": "Botella 2", "ml": 1000, "abv": 40.0, "precio_promo": 750.0}
-    ])
+    df = crear_df_prueba(
+        [
+            {"producto": "Botella 1", "ml": 750, "abv": 38.0, "precio_promo": 500.0},
+            {"producto": "Botella 2", "ml": 1000, "abv": 40.0, "precio_promo": 750.0},
+        ]
+    )
     df_val, reporte = validar_esquema_y_rangos(df)
 
     assert reporte["total_registros"] == 2
@@ -129,18 +138,26 @@ def test_validar_esquema_y_rangos_dataset_valido():
 
 def test_validar_esquema_y_rangos_deteccion_anomalias():
     """Detecta volúmenes absurdos, graduaciones imposibles y precios ausentes."""
-    df = crear_df_prueba([
-        {"producto": "Volumen Nulo", "ml": np.nan, "precio_promo": 500.0},
-        {"producto": "Volumen Fuera de Rango", "ml": 25000, "precio_promo": 500.0},
-        {"producto": "ABV Imposible", "ml": 750, "abv": 150.0, "precio_promo": 500.0},
-        {"producto": "Sin Precio", "ml": 750, "precio_regular": np.nan, "precio_promo": np.nan, "precio_total_promo": np.nan}
-    ])
+    df = crear_df_prueba(
+        [
+            {"producto": "Volumen Nulo", "ml": np.nan, "precio_promo": 500.0},
+            {"producto": "Volumen Fuera de Rango", "ml": 25000, "precio_promo": 500.0},
+            {"producto": "ABV Imposible", "ml": 750, "abv": 150.0, "precio_promo": 500.0},
+            {
+                "producto": "Sin Precio",
+                "ml": 750,
+                "precio_regular": np.nan,
+                "precio_promo": np.nan,
+                "precio_total_promo": np.nan,
+            },
+        ]
+    )
     df_val, reporte = validar_esquema_y_rangos(df)
 
     assert reporte["total_registros"] == 4
-    assert reporte["anomalias_volumen_ml"] == 2      # NaN y 25000
+    assert reporte["anomalias_volumen_ml"] == 2  # NaN y 25000
     assert reporte["anomalias_graduacion_abv"] == 1  # 150.0%
-    assert reporte["registros_sin_precio"] == 1      # Sin precio
+    assert reporte["registros_sin_precio"] == 1  # Sin precio
 
 
 def test_validar_esquema_columnas_faltantes():
@@ -153,6 +170,7 @@ def test_validar_esquema_columnas_faltantes():
 # ---------------------------------------------------------------------------
 # Pruebas H10: I/O Atómico y Resumen de Scraping
 # ---------------------------------------------------------------------------
+
 
 def test_guardar_csv_atomico():
     """Verifica que el guardado atómico cree el archivo y reemplace sin corrupción."""
@@ -178,6 +196,7 @@ def test_guardar_json_atomico():
         assert os.path.exists(ruta)
 
         import json
+
         with open(ruta, "r", encoding="utf-8") as f:
             cargado = json.load(f)
         assert cargado == data
@@ -228,6 +247,7 @@ def test_h8_normalizar_texto_clave_orden_tokens():
 def test_h8_enriquecimiento_cross_tienda_dashboard_json():
     """Valida que dashboard_data.json contenga los campos cross-tienda requeridos por el frontend."""
     import json
+
     ruta_json = "data/dashboard_data.json"
     assert os.path.exists(ruta_json)
 
@@ -239,10 +259,17 @@ def test_h8_enriquecimiento_cross_tienda_dashboard_json():
 
     item = comparables[0]
     campos_requeridos = [
-        "clave_comparativa", "es_comparable_cross_tienda", "num_tiendas_cross",
-        "tienda_mas_barata", "precio_minimo_cross", "tienda_mas_cara",
-        "precio_maximo_cross", "ahorro_maximo_cross", "es_precio_mas_bajo",
-        "diferencia_vs_minimo", "ofertas_cross_tienda"
+        "clave_comparativa",
+        "es_comparable_cross_tienda",
+        "num_tiendas_cross",
+        "tienda_mas_barata",
+        "precio_minimo_cross",
+        "tienda_mas_cara",
+        "precio_maximo_cross",
+        "ahorro_maximo_cross",
+        "es_precio_mas_bajo",
+        "diferencia_vs_minimo",
+        "ofertas_cross_tienda",
     ]
     for c in campos_requeridos:
         assert c in item, f"Falta campo requerido: {c}"
@@ -251,4 +278,3 @@ def test_h8_enriquecimiento_cross_tienda_dashboard_json():
     assert len(item["ofertas_cross_tienda"]) >= 1
     assert "tienda" in item["ofertas_cross_tienda"][0]
     assert "precio_promo" in item["ofertas_cross_tienda"][0]
-

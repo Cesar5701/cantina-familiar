@@ -4,13 +4,11 @@ Consulta exclusivamente la API pública permitida en robots.txt:
 /api/catalog_system/pub/products/search/
 """
 
-import sys
-import re
-import json
-import time
 import argparse
-import urllib.request
+import sys
+import time
 import urllib.parse
+import urllib.request
 from datetime import datetime
 
 BASE_URL = "https://www.bodegasalianza.com/api/catalog_system/pub/products/search/{term}"
@@ -23,17 +21,17 @@ RAIZ_PROYECTO = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if RAIZ_PROYECTO not in sys.path:
     sys.path.insert(0, RAIZ_PROYECTO)
 
-from src.clasificacion import extraer_ml, clasificar_categoria
-from src.io_utils import guardar_csv_atomico, ResumenScraping
+from src.clasificacion import clasificar_categoria, extraer_ml
 from src.http_utils import descargar_json_con_reintentos
+from src.io_utils import ResumenScraping, guardar_csv_atomico
 from src.logger import get_logger
 
 logger = get_logger("scraper_alianza")
 
 
-
-
-def consultar_api_alianza(termino: str, delay_segundos: float = 1.0, resumen: ResumenScraping | None = None) -> list[dict]:
+def consultar_api_alianza(
+    termino: str, delay_segundos: float = 1.0, resumen: ResumenScraping | None = None
+) -> list[dict]:
     """Consulta la API de catálogo de Bodegas Alianza para un término con reintentos automáticos."""
     url = BASE_URL.format(term=urllib.parse.quote(termino))
 
@@ -73,32 +71,38 @@ def consultar_api_alianza(termino: str, delay_segundos: float = 1.0, resumen: Re
                 resumen.registrar_descarte("precio invalido")
             continue
 
-        condicion = "Descuento directo Aniversario Web" if (precio_regular > precio_promo) else "Precio regular catálogo"
+        condicion = (
+            "Descuento directo Aniversario Web" if (precio_regular > precio_promo) else "Precio regular catálogo"
+        )
 
-        productos.append({
-            "tienda": "Bodegas Alianza",
-            "producto": nombre,
-            "marca": marca,
-            "categoria": categoria,
-            "subcategoria": subcategoria,
-            "clase": subcategoria if categoria in ["Tequila", "Mezcal"] else "no_aplica",
-            "tipo_mezcal": "Artesanal" if categoria == "Mezcal" else "no_aplica",
-            "especie_agave": "Tequilana Weber azul" if categoria == "Tequila" else ("Espadín" if categoria == "Mezcal" else "no_aplica"),
-            "productor": marca,
-            "sello_regulador": "sí" if categoria in ["Tequila", "Mezcal"] else "no_aplica",
-            "ml": ml,
-            "abv": 38.0 if categoria in ["Tequila", "Mezcal"] else (40.0 if categoria == "Whisky" else 12.0),
-            "precio_regular": float(precio_regular),
-            "precio_promo": float(precio_promo),
-            "unidades_promo": 1,
-            "precio_total_promo": float(precio_promo),
-            "condiciones": condicion,
-            "disponibilidad": disponible,
-            "url": link,
-            "fecha_consulta": fecha_actual,
-            "fuente": "API oficial Bodegas Alianza",
-            "confianza": "Confirmado"
-        })
+        productos.append(
+            {
+                "tienda": "Bodegas Alianza",
+                "producto": nombre,
+                "marca": marca,
+                "categoria": categoria,
+                "subcategoria": subcategoria,
+                "clase": subcategoria if categoria in ["Tequila", "Mezcal"] else "no_aplica",
+                "tipo_mezcal": "Artesanal" if categoria == "Mezcal" else "no_aplica",
+                "especie_agave": "Tequilana Weber azul"
+                if categoria == "Tequila"
+                else ("Espadín" if categoria == "Mezcal" else "no_aplica"),
+                "productor": marca,
+                "sello_regulador": "sí" if categoria in ["Tequila", "Mezcal"] else "no_aplica",
+                "ml": ml,
+                "abv": 38.0 if categoria in ["Tequila", "Mezcal"] else (40.0 if categoria == "Whisky" else 12.0),
+                "precio_regular": float(precio_regular),
+                "precio_promo": float(precio_promo),
+                "unidades_promo": 1,
+                "precio_total_promo": float(precio_promo),
+                "condiciones": condicion,
+                "disponibilidad": disponible,
+                "url": link,
+                "fecha_consulta": fecha_actual,
+                "fuente": "API oficial Bodegas Alianza",
+                "confianza": "Confirmado",
+            }
+        )
         if resumen:
             resumen.registrar_exito()
 
@@ -108,8 +112,12 @@ def consultar_api_alianza(termino: str, delay_segundos: float = 1.0, resumen: Re
 
 def main():
     parser = argparse.ArgumentParser(description="Scraper oficial ético para Bodegas Alianza (VTEX API).")
-    parser.add_argument("--terminos", nargs="+", default=["1800", "Herradura", "Amarás", "Red Label", "Jack Daniel"],
-                        help="Términos de búsqueda en catálogo.")
+    parser.add_argument(
+        "--terminos",
+        nargs="+",
+        default=["1800", "Herradura", "Amarás", "Red Label", "Jack Daniel"],
+        help="Términos de búsqueda en catálogo.",
+    )
     parser.add_argument("--salida", default="data/scraped_alianza.csv", help="Ruta del CSV de salida.")
     args = parser.parse_args()
 
@@ -124,6 +132,7 @@ def main():
 
     resumen.imprimir_resumen()
     import pandas as pd
+
     df = pd.DataFrame(todos)
     guardar_csv_atomico(df, args.salida)
     logger.info(f"Guardados {len(df)} registros en {args.salida}")

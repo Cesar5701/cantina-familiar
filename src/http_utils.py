@@ -5,19 +5,18 @@ Proporciona funciones seguras y resilientes para consultas HTTP a APIs y portale
 manejando automáticamente interrupciones de red, rate limits (HTTP 429) y errores temporales de servidor (HTTP 5xx).
 """
 
-import sys
-import time
 import json
 import random
-import urllib.request
-import urllib.error
 import socket
+import time
+import urllib.error
+import urllib.request
 from typing import Any, Dict, Optional
 
 HEADERS_DEFAULT = {
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,application/json,*/*;q=0.8",
-    "Accept-Language": "es-MX,es;q=0.9,en;q=0.8"
+    "Accept-Language": "es-MX,es;q=0.9,en;q=0.8",
 }
 
 CODIGOS_REINTENTO = {429, 500, 502, 503, 504}
@@ -33,7 +32,7 @@ def peticion_http_con_reintentos(
     factor_backoff: float = 2.0,
     timeout: float = 15.0,
     jitter: bool = True,
-    lanzar_error: bool = True
+    lanzar_error: bool = True,
 ) -> str | None:
     """
     Ejecuta una petición HTTP con política de reintentos exponenciales y jitter.
@@ -85,7 +84,7 @@ def peticion_http_con_reintentos(
 
         # Si aún quedan reintentos, calcular el backoff exponencial
         if intento < max_intentos - 1:
-            delay = delay_inicial * (factor_backoff ** intento)
+            delay = delay_inicial * (factor_backoff**intento)
             if jitter:
                 delay += random.uniform(0.1, delay * 0.3)
             time.sleep(delay)
@@ -101,7 +100,7 @@ def descargar_json_con_reintentos(
     headers: Optional[Dict[str, str]] = None,
     max_intentos: int = 3,
     delay_inicial: float = 1.0,
-    timeout: float = 15.0
+    timeout: float = 15.0,
 ) -> Any:
     """Descarga y parsea una respuesta JSON con reintentos automáticos."""
     texto = peticion_http_con_reintentos(
@@ -110,7 +109,7 @@ def descargar_json_con_reintentos(
         max_intentos=max_intentos,
         delay_inicial=delay_inicial,
         timeout=timeout,
-        lanzar_error=True
+        lanzar_error=True,
     )
     if texto is None:
         return None
@@ -122,7 +121,7 @@ def descargar_html_con_reintentos(
     headers: Optional[Dict[str, str]] = None,
     max_intentos: int = 3,
     delay_inicial: float = 1.0,
-    timeout: float = 15.0
+    timeout: float = 15.0,
 ) -> str | None:
     """Descarga el contenido HTML de una página con reintentos automáticos."""
     return peticion_http_con_reintentos(
@@ -131,5 +130,5 @@ def descargar_html_con_reintentos(
         max_intentos=max_intentos,
         delay_inicial=delay_inicial,
         timeout=timeout,
-        lanzar_error=False
+        lanzar_error=False,
     )

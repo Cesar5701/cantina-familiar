@@ -1,0 +1,9 @@
+# Configuración de ganchos pre-commit para Cantina Familiar
+# Ejecuta validaciones automáticas de linting y formateo con Ruff antes de cada commit.
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.0
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format

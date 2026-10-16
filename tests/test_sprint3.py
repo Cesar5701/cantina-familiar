@@ -6,29 +6,24 @@ Suite de pruebas unitarias y de integración para Sprint 3:
 - H20: Reintentos con backoff exponencial y jitter en peticiones HTTP.
 """
 
-import os
 import io
 import json
+import logging
 import socket
 import tempfile
-import logging
 import urllib.error
-from unittest.mock import patch, MagicMock
 from pathlib import Path
+from unittest.mock import patch
+
 import pytest
-import pandas as pd
 
-from src.http_utils import (
-    peticion_http_con_reintentos,
-    descargar_json_con_reintentos,
-    descargar_html_con_reintentos
-)
-from src.logger import get_logger, configurar_logging
-
+from src.http_utils import descargar_json_con_reintentos, peticion_http_con_reintentos
+from src.logger import configurar_logging, get_logger
 
 # ---------------------------------------------------------------------------
 # Pruebas H20: HTTP Utils con Backoff y Reintentos
 # ---------------------------------------------------------------------------
+
 
 class MockHttpResponse:
     def __init__(self, body: str, status: int = 200):
@@ -57,22 +52,13 @@ def test_peticion_http_exitosa_al_primer_intento():
 def test_peticion_http_reintento_429_recupera():
     """Valida que ante un error HTTP 429 (Too Many Requests), reintente y tenga éxito."""
     err_429 = urllib.error.HTTPError(
-        url="https://test.com/api",
-        code=429,
-        msg="Too Many Requests",
-        hdrs={},
-        fp=io.BytesIO(b"Rate limit")
+        url="https://test.com/api", code=429, msg="Too Many Requests", hdrs={}, fp=io.BytesIO(b"Rate limit")
     )
     resp_200 = MockHttpResponse('{"status": "recovered"}')
 
     with patch("urllib.request.urlopen", side_effect=[err_429, resp_200]) as mock_urlopen:
         with patch("time.sleep") as mock_sleep:
-            res = peticion_http_con_reintentos(
-                "https://test.com/api",
-                max_intentos=3,
-                delay_inicial=0.05,
-                jitter=False
-            )
+            res = peticion_http_con_reintentos("https://test.com/api", max_intentos=3, delay_inicial=0.05, jitter=False)
             assert res == '{"status": "recovered"}'
             assert mock_urlopen.call_count == 2
             mock_sleep.assert_called_once()
@@ -81,11 +67,7 @@ def test_peticion_http_reintento_429_recupera():
 def test_peticion_http_error_404_no_reintenta():
     """Errores 404 son definitivos y no deben desperdiciar reintentos ni tiempo."""
     err_404 = urllib.error.HTTPError(
-        url="https://test.com/no-existe",
-        code=404,
-        msg="Not Found",
-        hdrs={},
-        fp=io.BytesIO(b"Not Found")
+        url="https://test.com/no-existe", code=404, msg="Not Found", hdrs={}, fp=io.BytesIO(b"Not Found")
     )
 
     with patch("urllib.request.urlopen", side_effect=err_404) as mock_urlopen:
@@ -101,10 +83,7 @@ def test_peticion_http_timeout_reintenta_y_falla():
         with patch("time.sleep"):
             with pytest.raises(socket.timeout):
                 peticion_http_con_reintentos(
-                    "https://test.com/timeout",
-                    max_intentos=3,
-                    delay_inicial=0.01,
-                    lanzar_error=True
+                    "https://test.com/timeout", max_intentos=3, delay_inicial=0.01, lanzar_error=True
                 )
 
 
@@ -120,6 +99,7 @@ def test_descargar_json_con_reintentos_parseo():
 # ---------------------------------------------------------------------------
 # Pruebas H19: Logger Centralizado
 # ---------------------------------------------------------------------------
+
 
 def test_logger_creacion_y_escritura_archivo():
     """Verifica que el logger registre mensajes con su formato y genere archivo en disco."""
@@ -146,9 +126,9 @@ def test_logger_creacion_y_escritura_archivo():
 # Pruebas H11: Robustez y Parseo de Scrapers con Mocks
 # ---------------------------------------------------------------------------
 
+
 def test_parseo_mock_vtex_chedraui():
     """Simula la respuesta de la API VTEX de Chedraui y valida la extracción."""
-    from src.scraper_multitienda import scrapear_chedraui
 
     payload_mock = [
         {
@@ -156,19 +136,7 @@ def test_parseo_mock_vtex_chedraui():
             "productName": "Tequila Maestro Dobel Diamante 750 ml",
             "brand": "Maestro Dobel",
             "link": "https://www.chedraui.com.mx/tequila-dobel-750",
-            "items": [
-                {
-                    "sellers": [
-                        {
-                            "commertialOffer": {
-                                "Price": 620.0,
-                                "ListPrice": 750.0,
-                                "AvailableQuantity": 5
-                            }
-                        }
-                    ]
-                }
-            ]
+            "items": [{"sellers": [{"commertialOffer": {"Price": 620.0, "ListPrice": 750.0, "AvailableQuantity": 5}}]}],
         }
     ]
 
@@ -181,7 +149,7 @@ def test_parseo_mock_vtex_chedraui():
                         "tienda": "Chedraui",
                         "producto": "Tequila Maestro Dobel Diamante 750 ml",
                         "precio_promo": 620.0,
-                        "ml": 750
+                        "ml": 750,
                     }
                 ]
                 prods = mock_scrape()
@@ -193,6 +161,7 @@ def test_parseo_mock_vtex_chedraui():
 def test_parseo_mock_nextjs_walmart():
     """Simula HTML con script __NEXT_DATA__ de Walmart/Sam's y valida extracción."""
     from bs4 import BeautifulSoup
+
     from src.clasificacion import extraer_ml
 
     html_next_data = """
@@ -246,7 +215,8 @@ def test_parseo_mock_nextjs_walmart():
 def test_parseo_mock_sfcc_soriana():
     """Simula tarjetas .product-tile de Salesforce Commerce Cloud en Soriana."""
     from bs4 import BeautifulSoup
-    from src.clasificacion import limpiar_precio, extraer_ml
+
+    from src.clasificacion import extraer_ml, limpiar_precio
 
     html_soriana = """
     <div class="product-tile">

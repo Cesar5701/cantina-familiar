@@ -34,9 +34,15 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
+          pip install -e ".[dev]"
 
-      - name: Ejecutar pruebas unitarias
-        run: pytest -v
+      - name: Validar linting y formato con Ruff
+        run: |
+          ruff check .
+          ruff format --check .
+
+      - name: Ejecutar pruebas unitarias y cobertura
+        run: pytest -v --cov=src --cov-report=term-missing
 
       - name: Regenerar Catálogos y Dashboard
         run: |

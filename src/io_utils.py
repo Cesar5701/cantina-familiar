@@ -6,23 +6,28 @@ Garantiza que la escritura de datasets CSV y JSON en disco sea atómica
 evitando la corrupción de datos ante caídas de red, cancelaciones o errores de scraping.
 """
 
-import os
 import json
+import os
 import tempfile
 from typing import Any, Dict, List, Optional
+
 import pandas as pd
+
+from src.logger import get_logger
+
+logger = get_logger("io_utils")
 
 
 def guardar_csv_atomico(df: pd.DataFrame, ruta_archivo: str, **kwargs) -> str:
     """
     Guarda un DataFrame de pandas en formato CSV de forma atómica.
-    
+
     Escribe primero en un archivo temporal en el mismo directorio y realiza
     un os.replace atómico, evitando estados intermedios o archivos corruptos.
     """
     directorio = os.path.dirname(os.path.abspath(ruta_archivo))
     os.makedirs(directorio, exist_ok=True)
-    
+
     # kwargs por defecto si no se especifican
     if "index" not in kwargs:
         kwargs["index"] = False
@@ -31,7 +36,7 @@ def guardar_csv_atomico(df: pd.DataFrame, ruta_archivo: str, **kwargs) -> str:
 
     fd, ruta_tmp = tempfile.mkstemp(dir=directorio, prefix=".tmp_", suffix=".csv")
     os.close(fd)
-    
+
     try:
         df.to_csv(ruta_tmp, **kwargs)
         os.replace(ruta_tmp, ruta_archivo)
@@ -39,7 +44,7 @@ def guardar_csv_atomico(df: pd.DataFrame, ruta_archivo: str, **kwargs) -> str:
         if os.path.exists(ruta_tmp):
             os.remove(ruta_tmp)
         raise
-        
+
     return ruta_archivo
 
 
@@ -101,15 +106,15 @@ class ResumenScraping:
             "descartados_criterio": self.descartados_criterio,
             "fallos_red": self.fallos_red,
             "errores_parseo": self.errores_parseo,
-            "errores": self.detalles_errores[:10]  # Limitar a primeros 10
+            "errores": self.detalles_errores[:10],  # Limitar a primeros 10
         }
 
     def imprimir_resumen(self):
-        print(f"\n--- Resumen de Extracción: {self.tienda} ---")
-        print(f"  Total procesados: {self.total_consultados}")
-        print(f"  Exitosos válidos: {self.exitosos}")
-        print(f"  Descartados (criterio/rango): {self.descartados_criterio}")
-        print(f"  Fallos de red: {self.fallos_red}")
-        print(f"  Errores de parseo: {self.errores_parseo}")
+        logger.info(f"--- Resumen de Extracción: {self.tienda} ---")
+        logger.info(f"  Total procesados: {self.total_consultados}")
+        logger.info(f"  Exitosos válidos: {self.exitosos}")
+        logger.info(f"  Descartados (criterio/rango): {self.descartados_criterio}")
+        logger.info(f"  Fallos de red: {self.fallos_red}")
+        logger.info(f"  Errores de parseo: {self.errores_parseo}")
         if self.detalles_errores:
-            print(f"  Primeros errores: {self.detalles_errores[:3]}")
+            logger.warning(f"  Primeros errores: {self.detalles_errores[:3]}")

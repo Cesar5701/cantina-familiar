@@ -11,21 +11,21 @@ Aplica filtrado estricto por tipo de bebida (Tequila, Mezcal, Whisky Blended, Li
 y descarta mercancía, alimentos, mezcladores, latas RTD y miniaturas (< 650 ml).
 """
 
+import json
 import os
 import sys
-import re
-import json
 import time
-import urllib.request
 import urllib.parse
+import urllib.request
 from datetime import datetime
+
 import pandas as pd
 from bs4 import BeautifulSoup
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,application/json,*/*;q=0.8",
-    "Accept-Language": "es-MX,es;q=0.9,en;q=0.8"
+    "Accept-Language": "es-MX,es;q=0.9,en;q=0.8",
 }
 
 RAIZ_PROYECTO = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -33,21 +33,18 @@ if RAIZ_PROYECTO not in sys.path:
     sys.path.insert(0, RAIZ_PROYECTO)
 
 from src.clasificacion import (
-    extraer_ml,
-    limpiar_precio,
+    KEYWORDS_BLENDED_WHISKY,
+    PALABRAS_EXCLUIDAS,
     clasificar_agave_mezcal,
     clasificar_estricto,
-    KEYWORDS_SILVESTRES,
-    KEYWORDS_BLENDED_WHISKY,
-    PALABRAS_EXCLUIDAS
+    extraer_ml,
+    limpiar_precio,
 )
-from src.io_utils import guardar_csv_atomico, ResumenScraping
-from src.http_utils import descargar_json_con_reintentos, descargar_html_con_reintentos
+from src.http_utils import descargar_html_con_reintentos, descargar_json_con_reintentos
+from src.io_utils import ResumenScraping, guardar_csv_atomico
 from src.logger import get_logger
 
 logger = get_logger("scraper_multitienda")
-
-
 
 
 def evaluar_y_normalizar_producto(
@@ -60,7 +57,7 @@ def evaluar_y_normalizar_producto(
     url: str,
     condicion: str,
     fuente: str,
-    fecha_actual: str
+    fecha_actual: str,
 ) -> dict | None:
     """
     Evalúa si un producto cumple con los criterios del proyecto y le asigna
@@ -85,7 +82,30 @@ def evaluar_y_normalizar_producto(
         return None
 
     if not marca or marca.lower() in ["desconocida", "sin marca", "null", "none"]:
-        palabras = [w for w in nombre.split() if w.lower() not in ["tequila", "mezcal", "whisky", "whiskey", "vino", "tinto", "licor", "de", "100%", "agave", "artesanal", "joven", "reposado", "añejo", "anejo", "cristalino", "blanco"]]
+        palabras = [
+            w
+            for w in nombre.split()
+            if w.lower()
+            not in [
+                "tequila",
+                "mezcal",
+                "whisky",
+                "whiskey",
+                "vino",
+                "tinto",
+                "licor",
+                "de",
+                "100%",
+                "agave",
+                "artesanal",
+                "joven",
+                "reposado",
+                "añejo",
+                "anejo",
+                "cristalino",
+                "blanco",
+            ]
+        ]
         marca = palabras[0] if palabras else nombre.split()[0]
 
     # -------------------------------------------------------------
@@ -122,7 +142,7 @@ def evaluar_y_normalizar_producto(
             "url": url,
             "fecha_consulta": fecha_actual,
             "fuente": fuente,
-            "confianza": "Confirmado"
+            "confianza": "Confirmado",
         }
 
     # -------------------------------------------------------------
@@ -161,13 +181,19 @@ def evaluar_y_normalizar_producto(
             "url": url,
             "fecha_consulta": fecha_actual,
             "fuente": fuente,
-            "confianza": "Confirmado"
+            "confianza": "Confirmado",
         }
 
     # -------------------------------------------------------------
     # C. LICOR DE WHISKY HONEY
     # -------------------------------------------------------------
-    if ("jack daniel" in nom_l or "passport" in nom_l or "jim beam" in nom_l or "wild turkey" in nom_l or "william lawson" in nom_l) and ("honey" in nom_l or "miel" in nom_l):
+    if (
+        "jack daniel" in nom_l
+        or "passport" in nom_l
+        or "jim beam" in nom_l
+        or "wild turkey" in nom_l
+        or "william lawson" in nom_l
+    ) and ("honey" in nom_l or "miel" in nom_l):
         if precio_promo < 150:
             return None
         return {
@@ -192,14 +218,26 @@ def evaluar_y_normalizar_producto(
             "url": url,
             "fecha_consulta": fecha_actual,
             "fuente": fuente,
-            "confianza": "Confirmado"
+            "confianza": "Confirmado",
         }
 
     # -------------------------------------------------------------
     # D. WHISKY BLENDED SCOTCH
     # -------------------------------------------------------------
-    if "whisky" in nom_l or "whiskey" in nom_l or "johnnie walker" in nom_l or "buchanan" in nom_l or "chivas regal" in nom_l or "black & white" in nom_l or "ballantine" in nom_l or "william lawson" in nom_l:
-        if any(ign in nom_l for ign in ["single malt", "malt scotch", "bourbon", "tennessee", "apple", "fire", "peach", "blackberry"]):
+    if (
+        "whisky" in nom_l
+        or "whiskey" in nom_l
+        or "johnnie walker" in nom_l
+        or "buchanan" in nom_l
+        or "chivas regal" in nom_l
+        or "black & white" in nom_l
+        or "ballantine" in nom_l
+        or "william lawson" in nom_l
+    ):
+        if any(
+            ign in nom_l
+            for ign in ["single malt", "malt scotch", "bourbon", "tennessee", "apple", "fire", "peach", "blackberry"]
+        ):
             return None
         if precio_promo < 160:
             return None
@@ -226,13 +264,19 @@ def evaluar_y_normalizar_producto(
                 "url": url,
                 "fecha_consulta": fecha_actual,
                 "fuente": fuente,
-                "confianza": "Confirmado"
+                "confianza": "Confirmado",
             }
 
     # -------------------------------------------------------------
     # E. VINO TINTO PARA CLERICOT Y MESA
     # -------------------------------------------------------------
-    if ("vino tinto" in nom_l or "carlo rossi" in nom_l or "vino lambrusco" in nom_l or "tinto california" in nom_l or "padre kino" in nom_l):
+    if (
+        "vino tinto" in nom_l
+        or "carlo rossi" in nom_l
+        or "vino lambrusco" in nom_l
+        or "tinto california" in nom_l
+        or "padre kino" in nom_l
+    ):
         if any(ign in nom_l for ign in ["blanco", "rosado", "espumoso", "champagne", "prosecco"]):
             return None
         # Permitir botellas individuales económicas (<= $280) o garrafas familiares de 1.5L a 4L (<= $550)
@@ -260,7 +304,7 @@ def evaluar_y_normalizar_producto(
                 "url": url,
                 "fecha_consulta": fecha_actual,
                 "fuente": fuente,
-                "confianza": "Confirmado"
+                "confianza": "Confirmado",
             }
 
     return None
@@ -270,16 +314,32 @@ def evaluar_y_normalizar_producto(
 # 1. SCRAPER CHEDRAUI (API VTEX OFICIAL)
 # ==============================================================================
 def scrapear_chedraui() -> list[dict]:
-    print("\n" + "=" * 70)
-    print("1. SCRAPEANDO CHEDRAUI (API VTEX chedraui.com.mx)")
-    print("=" * 70)
+    logger.info("=" * 60)
+    logger.info("1. SCRAPEANDO CHEDRAUI (API VTEX chedraui.com.mx)")
+    logger.info("=" * 60)
     terminos = [
-        "tequila cristalino", "tequila anejo", "tequila 1800", "tequila herradura",
-        "tequila don julio", "tequila maestro dobel", "tequila centenario", "tequila don ramon",
-        "mezcal", "mezcal 400 conejos", "mezcal amaras", "mezcal montelobos",
-        "whisky", "johnnie walker", "black & white", "ballantines", "william lawsons",
+        "tequila cristalino",
+        "tequila anejo",
+        "tequila 1800",
+        "tequila herradura",
+        "tequila don julio",
+        "tequila maestro dobel",
+        "tequila centenario",
+        "tequila don ramon",
+        "mezcal",
+        "mezcal 400 conejos",
+        "mezcal amaras",
+        "mezcal montelobos",
+        "whisky",
+        "johnnie walker",
+        "black & white",
+        "ballantines",
+        "william lawsons",
         "jack daniels honey",
-        "vino tinto", "vino california", "carlo rossi", "concha y toro"
+        "vino tinto",
+        "vino california",
+        "carlo rossi",
+        "concha y toro",
     ]
     fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M")
     ids_vistos = set()
@@ -315,7 +375,11 @@ def scrapear_chedraui() -> list[dict]:
                     if disponible == "agotado":
                         resumen.registrar_descarte("agotado")
                         continue
-                    cond = "Oferta en línea Chedraui" if (p_reg and p_promo and p_reg > p_promo) else "Precio regular Chedraui"
+                    cond = (
+                        "Oferta en línea Chedraui"
+                        if (p_reg and p_promo and p_reg > p_promo)
+                        else "Precio regular Chedraui"
+                    )
 
                     item_norm = evaluar_y_normalizar_producto(
                         tienda="Chedraui",
@@ -327,7 +391,7 @@ def scrapear_chedraui() -> list[dict]:
                         url=link,
                         condicion=cond,
                         fuente="API VTEX chedraui.com.mx",
-                        fecha_actual=fecha_actual
+                        fecha_actual=fecha_actual,
                     )
                     if item_norm:
                         resultados.append(item_norm)
@@ -349,9 +413,9 @@ def scrapear_chedraui() -> list[dict]:
 # 2. SCRAPER SAM'S CLUB & WALMART (SSR __NEXT_DATA__)
 # ==============================================================================
 def scrapear_nextjs_walmart_platform(tienda: str, base_domain: str, terminos: list[str]) -> list[dict]:
-    print("\n" + "=" * 70)
-    print(f"SCRAPEANDO {tienda.upper()} ({base_domain} SSR __NEXT_DATA__)")
-    print("=" * 70)
+    logger.info("=" * 60)
+    logger.info(f"SCRAPEANDO {tienda.upper()} ({base_domain} SSR __NEXT_DATA__)")
+    logger.info("=" * 60)
     fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M")
     ids_vistos = set()
     resultados = []
@@ -373,7 +437,13 @@ def scrapear_nextjs_walmart_platform(tienda: str, base_domain: str, terminos: li
                 continue
 
             data = json.loads(script.string)
-            stacks = data.get("props", {}).get("pageProps", {}).get("initialData", {}).get("searchResult", {}).get("itemStacks", [])
+            stacks = (
+                data.get("props", {})
+                .get("pageProps", {})
+                .get("initialData", {})
+                .get("searchResult", {})
+                .get("itemStacks", [])
+            )
             nuevos_q = 0
             for st in stacks:
                 for it in st.get("items", []):
@@ -414,7 +484,7 @@ def scrapear_nextjs_walmart_platform(tienda: str, base_domain: str, terminos: li
                         url=full_url,
                         condicion=cond,
                         fuente=f"Portal oficial {base_domain}",
-                        fecha_actual=fecha_actual
+                        fecha_actual=fecha_actual,
                     )
                     if item_norm:
                         resultados.append(item_norm)
@@ -437,16 +507,34 @@ def scrapear_nextjs_walmart_platform(tienda: str, base_domain: str, terminos: li
 # 3. SCRAPER SORIANA (HTML SALESFORCE COMMERCE CLOUD)
 # ==============================================================================
 def scrapear_soriana() -> list[dict]:
-    print("\n" + "=" * 70)
-    print("SCRAPEANDO SORIANA (soriana.com SFCC Catalog)")
-    print("=" * 70)
+    logger.info("=" * 60)
+    logger.info("SCRAPEANDO SORIANA (soriana.com SFCC Catalog)")
+    logger.info("=" * 60)
     terminos = [
-        "tequila cristalino", "tequila anejo", "tequila 1800", "tequila herradura",
-        "tequila don julio", "tequila maestro dobel", "tequila centenario",
-        "mezcal 400 conejos", "mezcal amaras", "mezcal montelobos", "mezcal reposado", "mezcal anejo",
-        "whisky johnnie walker", "whisky buchanans", "whisky chivas", "whisky black & white", "whisky ballantines", "whisky william lawsons",
+        "tequila cristalino",
+        "tequila anejo",
+        "tequila 1800",
+        "tequila herradura",
+        "tequila don julio",
+        "tequila maestro dobel",
+        "tequila centenario",
+        "mezcal 400 conejos",
+        "mezcal amaras",
+        "mezcal montelobos",
+        "mezcal reposado",
+        "mezcal anejo",
+        "whisky johnnie walker",
+        "whisky buchanans",
+        "whisky chivas",
+        "whisky black & white",
+        "whisky ballantines",
+        "whisky william lawsons",
         "jack daniels honey",
-        "vino tinto california", "vino tinto carlo rossi", "vino tinto reservado", "vino tinto cuatro soles", "vino tinto lambrusco"
+        "vino tinto california",
+        "vino tinto carlo rossi",
+        "vino tinto reservado",
+        "vino tinto cuatro soles",
+        "vino tinto lambrusco",
     ]
     fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M")
     pids_vistos = set()
@@ -509,7 +597,7 @@ def scrapear_soriana() -> list[dict]:
                     url=full_url,
                     condicion=cond,
                     fuente="Portal oficial soriana.com",
-                    fecha_actual=fecha_actual
+                    fecha_actual=fecha_actual,
                 )
                 if item_norm:
                     resultados.append(item_norm)
@@ -531,16 +619,30 @@ def scrapear_soriana() -> list[dict]:
 def main():
     os.makedirs("data", exist_ok=True)
 
-    terminos_sams = [
-        "tequila", "tequila cristalino", "tequila anejo",
-        "mezcal", "whisky", "jack daniels", "vino tinto"
-    ]
+    terminos_sams = ["tequila", "tequila cristalino", "tequila anejo", "mezcal", "whisky", "jack daniels", "vino tinto"]
     terminos_walmart = [
-        "tequila cristalino", "tequila anejo", "tequila 1800", "tequila herradura", "tequila don julio", "tequila dobel",
-        "mezcal 400 conejos", "mezcal amaras", "mezcal montelobos", "mezcal reposado", "mezcal anejo",
-        "whisky johnnie walker", "whisky black & white", "whisky ballantines", "whisky william lawsons", "whisky chivas", "whisky buchanans",
+        "tequila cristalino",
+        "tequila anejo",
+        "tequila 1800",
+        "tequila herradura",
+        "tequila don julio",
+        "tequila dobel",
+        "mezcal 400 conejos",
+        "mezcal amaras",
+        "mezcal montelobos",
+        "mezcal reposado",
+        "mezcal anejo",
+        "whisky johnnie walker",
+        "whisky black & white",
+        "whisky ballantines",
+        "whisky william lawsons",
+        "whisky chivas",
+        "whisky buchanans",
         "jack daniels honey",
-        "vino tinto california", "carlo rossi", "vino tinto reservado", "vino tinto cuatro soles"
+        "vino tinto california",
+        "carlo rossi",
+        "vino tinto reservado",
+        "vino tinto cuatro soles",
     ]
 
     # 1. Chedraui

@@ -14,12 +14,11 @@ Filtros aplicados según solicitud:
 
 import os
 import sys
-import re
-import json
 import time
-import urllib.request
 import urllib.parse
+import urllib.request
 from datetime import datetime
+
 import pandas as pd
 
 USER_AGENT = "CantinaFamiliarBot/1.0 (+decision-support; personal-use; exhaustive-collector)"
@@ -28,23 +27,17 @@ RAIZ_PROYECTO = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if RAIZ_PROYECTO not in sys.path:
     sys.path.insert(0, RAIZ_PROYECTO)
 
-from src.clasificacion import (
-    extraer_ml,
-    clasificar_agave_mezcal,
-    clasificar_estricto,
-    KEYWORDS_SILVESTRES,
-    KEYWORDS_BLENDED_WHISKY
-)
-from src.io_utils import guardar_csv_atomico, ResumenScraping
+from src.clasificacion import KEYWORDS_BLENDED_WHISKY, KEYWORDS_SILVESTRES, clasificar_agave_mezcal, extraer_ml
 from src.http_utils import descargar_json_con_reintentos
+from src.io_utils import ResumenScraping, guardar_csv_atomico
 from src.logger import get_logger
 
 logger = get_logger("scraper_catalogo_completo")
 
 
-
-
-def consultar_endpoint_paginado(termino: str, max_paginas: int = 5, resumen: ResumenScraping | None = None) -> list[dict]:
+def consultar_endpoint_paginado(
+    termino: str, max_paginas: int = 5, resumen: ResumenScraping | None = None
+) -> list[dict]:
     """Consulta la API de VTEX con paginación de 50 en 50 elementos y reintentos automáticos."""
     items = []
     headers = {"User-Agent": USER_AGENT}
@@ -68,15 +61,23 @@ def consultar_endpoint_paginado(termino: str, max_paginas: int = 5, resumen: Res
     return items
 
 
-
-
 def procesar_catalogo_completo() -> list[dict]:
     """Descarga y clasifica todos los productos sin sesgo de marca."""
     terminos_busqueda = [
-        "tequila", "tequila cristalino", "tequila anejo",
-        "mezcal", "mezcal reposado", "mezcal anejo", "mezcal tobala", "mezcal cupreata",
-        "whisky", "whisky blended", "jack daniels honey",
-        "vino tinto", "vino california", "vino reservado"
+        "tequila",
+        "tequila cristalino",
+        "tequila anejo",
+        "mezcal",
+        "mezcal reposado",
+        "mezcal anejo",
+        "mezcal tobala",
+        "mezcal cupreata",
+        "whisky",
+        "whisky blended",
+        "jack daniels honey",
+        "vino tinto",
+        "vino california",
+        "vino reservado",
     ]
 
     productos_crudos = []
@@ -108,7 +109,10 @@ def procesar_catalogo_completo() -> list[dict]:
         nom_l = nombre.lower()
 
         # Descartar artículos no bebibles o mercancía
-        if any(ign in nom_l for ign in ["chocolate", "lata 180", "vaso", "termo", "estuche vacío", "hielera", "playera", "gorra"]):
+        if any(
+            ign in nom_l
+            for ign in ["chocolate", "lata 180", "vaso", "termo", "estuche vacío", "hielera", "playera", "gorra"]
+        ):
             resumen.registrar_descarte("mercancia")
             continue
 
@@ -127,13 +131,17 @@ def procesar_catalogo_completo() -> list[dict]:
             continue
 
         ml = extraer_ml(nombre)
-        condicion = "Descuento directo Aniversario Web" if (precio_regular > precio_promo) else "Precio regular catálogo"
+        condicion = (
+            "Descuento directo Aniversario Web" if (precio_regular > precio_promo) else "Precio regular catálogo"
+        )
 
         # -------------------------------------------------------------
         # 1. TEQUILA: Solo Cristalino, Añejo, Añejo Cristalino
         # -------------------------------------------------------------
         if "tequila" in nom_l:
-            es_cristalino = "cristalino" in nom_l or "diamante" in nom_l or "ultra" in nom_l or "punta diamante" in nom_l
+            es_cristalino = (
+                "cristalino" in nom_l or "diamante" in nom_l or "ultra" in nom_l or "punta diamante" in nom_l
+            )
             es_anejo = "añejo" in nom_l or "anejo" in nom_l or "extra añejo" in nom_l or "extra anejo" in nom_l
 
             # Descartar blancos puros y reposados tradicionales que no sean cristalinos
@@ -155,30 +163,32 @@ def procesar_catalogo_completo() -> list[dict]:
                 subcat = "Añejo Tradicional"
                 clase = "Añejo"
 
-            productos_filtrados.append({
-                "tienda": "Bodegas Alianza",
-                "producto": nombre,
-                "marca": marca,
-                "categoria": "Tequila",
-                "subcategoria": subcat,
-                "clase": clase,
-                "tipo_mezcal": "no_aplica",
-                "especie_agave": "Tequilana Weber azul",
-                "productor": marca,
-                "sello_regulador": "sí",
-                "ml": ml,
-                "abv": 38.0,
-                "precio_regular": float(precio_regular),
-                "precio_promo": float(precio_promo),
-                "unidades_promo": 1,
-                "precio_total_promo": float(precio_promo),
-                "condiciones": condicion,
-                "disponibilidad": disponible,
-                "url": link,
-                "fecha_consulta": fecha_actual,
-                "fuente": "API oficial Bodegas Alianza",
-                "confianza": "Confirmado"
-            })
+            productos_filtrados.append(
+                {
+                    "tienda": "Bodegas Alianza",
+                    "producto": nombre,
+                    "marca": marca,
+                    "categoria": "Tequila",
+                    "subcategoria": subcat,
+                    "clase": clase,
+                    "tipo_mezcal": "no_aplica",
+                    "especie_agave": "Tequilana Weber azul",
+                    "productor": marca,
+                    "sello_regulador": "sí",
+                    "ml": ml,
+                    "abv": 38.0,
+                    "precio_regular": float(precio_regular),
+                    "precio_promo": float(precio_promo),
+                    "unidades_promo": 1,
+                    "precio_total_promo": float(precio_promo),
+                    "condiciones": condicion,
+                    "disponibilidad": disponible,
+                    "url": link,
+                    "fecha_consulta": fecha_actual,
+                    "fuente": "API oficial Bodegas Alianza",
+                    "confianza": "Confirmado",
+                }
+            )
             resumen.registrar_exito()
             continue
 
@@ -215,30 +225,32 @@ def procesar_catalogo_completo() -> list[dict]:
 
             agave = clasificar_agave_mezcal(nombre)
 
-            productos_filtrados.append({
-                "tienda": "Bodegas Alianza",
-                "producto": nombre,
-                "marca": marca,
-                "categoria": "Mezcal",
-                "subcategoria": subcat,
-                "clase": clase,
-                "tipo_mezcal": "Artesanal",
-                "especie_agave": agave,
-                "productor": marca,
-                "sello_regulador": "sí",
-                "ml": ml,
-                "abv": 40.0,
-                "precio_regular": float(precio_regular),
-                "precio_promo": float(precio_promo),
-                "unidades_promo": 1,
-                "precio_total_promo": float(precio_promo),
-                "condiciones": condicion,
-                "disponibilidad": disponible,
-                "url": link,
-                "fecha_consulta": fecha_actual,
-                "fuente": "API oficial Bodegas Alianza",
-                "confianza": "Confirmado"
-            })
+            productos_filtrados.append(
+                {
+                    "tienda": "Bodegas Alianza",
+                    "producto": nombre,
+                    "marca": marca,
+                    "categoria": "Mezcal",
+                    "subcategoria": subcat,
+                    "clase": clase,
+                    "tipo_mezcal": "Artesanal",
+                    "especie_agave": agave,
+                    "productor": marca,
+                    "sello_regulador": "sí",
+                    "ml": ml,
+                    "abv": 40.0,
+                    "precio_regular": float(precio_regular),
+                    "precio_promo": float(precio_promo),
+                    "unidades_promo": 1,
+                    "precio_total_promo": float(precio_promo),
+                    "condiciones": condicion,
+                    "disponibilidad": disponible,
+                    "url": link,
+                    "fecha_consulta": fecha_actual,
+                    "fuente": "API oficial Bodegas Alianza",
+                    "confianza": "Confirmado",
+                }
+            )
             resumen.registrar_exito()
             continue
 
@@ -246,30 +258,32 @@ def procesar_catalogo_completo() -> list[dict]:
         # 3. LICOR DE WHISKY (HONEY)
         # -------------------------------------------------------------
         if "honey" in nom_l or "miel" in nom_l:
-            productos_filtrados.append({
-                "tienda": "Bodegas Alianza",
-                "producto": nombre,
-                "marca": marca,
-                "categoria": "Licor de Whisky",
-                "subcategoria": "Honey Liqueur",
-                "clase": "no_aplica",
-                "tipo_mezcal": "no_aplica",
-                "especie_agave": "no_aplica",
-                "productor": marca,
-                "sello_regulador": "no_aplica",
-                "ml": ml,
-                "abv": 35.0,
-                "precio_regular": float(precio_regular),
-                "precio_promo": float(precio_promo),
-                "unidades_promo": 1,
-                "precio_total_promo": float(precio_promo),
-                "condiciones": condicion,
-                "disponibilidad": disponible,
-                "url": link,
-                "fecha_consulta": fecha_actual,
-                "fuente": "API oficial Bodegas Alianza",
-                "confianza": "Confirmado"
-            })
+            productos_filtrados.append(
+                {
+                    "tienda": "Bodegas Alianza",
+                    "producto": nombre,
+                    "marca": marca,
+                    "categoria": "Licor de Whisky",
+                    "subcategoria": "Honey Liqueur",
+                    "clase": "no_aplica",
+                    "tipo_mezcal": "no_aplica",
+                    "especie_agave": "no_aplica",
+                    "productor": marca,
+                    "sello_regulador": "no_aplica",
+                    "ml": ml,
+                    "abv": 35.0,
+                    "precio_regular": float(precio_regular),
+                    "precio_promo": float(precio_promo),
+                    "unidades_promo": 1,
+                    "precio_total_promo": float(precio_promo),
+                    "condiciones": condicion,
+                    "disponibilidad": disponible,
+                    "url": link,
+                    "fecha_consulta": fecha_actual,
+                    "fuente": "API oficial Bodegas Alianza",
+                    "confianza": "Confirmado",
+                }
+            )
             resumen.registrar_exito()
             continue
 
@@ -283,30 +297,32 @@ def procesar_catalogo_completo() -> list[dict]:
 
             es_blended = any(k in nom_l for k in KEYWORDS_BLENDED_WHISKY)
             if es_blended:
-                productos_filtrados.append({
-                    "tienda": "Bodegas Alianza",
-                    "producto": nombre,
-                    "marca": marca,
-                    "categoria": "Whisky",
-                    "subcategoria": "Blended Scotch",
-                    "clase": "no_aplica",
-                    "tipo_mezcal": "no_aplica",
-                    "especie_agave": "no_aplica",
-                    "productor": marca,
-                    "sello_regulador": "no_aplica",
-                    "ml": ml,
-                    "abv": 40.0,
-                    "precio_regular": float(precio_regular),
-                    "precio_promo": float(precio_promo),
-                    "unidades_promo": 1,
-                    "precio_total_promo": float(precio_promo),
-                    "condiciones": condicion,
-                    "disponibilidad": disponible,
-                    "url": link,
-                    "fecha_consulta": fecha_actual,
-                    "fuente": "API oficial Bodegas Alianza",
-                    "confianza": "Confirmado"
-                })
+                productos_filtrados.append(
+                    {
+                        "tienda": "Bodegas Alianza",
+                        "producto": nombre,
+                        "marca": marca,
+                        "categoria": "Whisky",
+                        "subcategoria": "Blended Scotch",
+                        "clase": "no_aplica",
+                        "tipo_mezcal": "no_aplica",
+                        "especie_agave": "no_aplica",
+                        "productor": marca,
+                        "sello_regulador": "no_aplica",
+                        "ml": ml,
+                        "abv": 40.0,
+                        "precio_regular": float(precio_regular),
+                        "precio_promo": float(precio_promo),
+                        "unidades_promo": 1,
+                        "precio_total_promo": float(precio_promo),
+                        "condiciones": condicion,
+                        "disponibilidad": disponible,
+                        "url": link,
+                        "fecha_consulta": fecha_actual,
+                        "fuente": "API oficial Bodegas Alianza",
+                        "confianza": "Confirmado",
+                    }
+                )
                 resumen.registrar_exito()
                 continue
             else:
@@ -319,30 +335,32 @@ def procesar_catalogo_completo() -> list[dict]:
         if "vino" in nom_l and "tinto" in nom_l:
             # Vinos tintos de consumo accesible
             if float(precio_promo) <= 250:
-                productos_filtrados.append({
-                    "tienda": "Bodegas Alianza",
-                    "producto": nombre,
-                    "marca": marca,
-                    "categoria": "Vino",
-                    "subcategoria": "Tinto Clericot",
-                    "clase": "no_aplica",
-                    "tipo_mezcal": "no_aplica",
-                    "especie_agave": "no_aplica",
-                    "productor": marca,
-                    "sello_regulador": "no_aplica",
-                    "ml": ml,
-                    "abv": 12.0,
-                    "precio_regular": float(precio_regular),
-                    "precio_promo": float(precio_promo),
-                    "unidades_promo": 1,
-                    "precio_total_promo": float(precio_promo),
-                    "condiciones": condicion,
-                    "disponibilidad": disponible,
-                    "url": link,
-                    "fecha_consulta": fecha_actual,
-                    "fuente": "API oficial Bodegas Alianza",
-                    "confianza": "Confirmado"
-                })
+                productos_filtrados.append(
+                    {
+                        "tienda": "Bodegas Alianza",
+                        "producto": nombre,
+                        "marca": marca,
+                        "categoria": "Vino",
+                        "subcategoria": "Tinto Clericot",
+                        "clase": "no_aplica",
+                        "tipo_mezcal": "no_aplica",
+                        "especie_agave": "no_aplica",
+                        "productor": marca,
+                        "sello_regulador": "no_aplica",
+                        "ml": ml,
+                        "abv": 12.0,
+                        "precio_regular": float(precio_regular),
+                        "precio_promo": float(precio_promo),
+                        "unidades_promo": 1,
+                        "precio_total_promo": float(precio_promo),
+                        "condiciones": condicion,
+                        "disponibilidad": disponible,
+                        "url": link,
+                        "fecha_consulta": fecha_actual,
+                        "fuente": "API oficial Bodegas Alianza",
+                        "confianza": "Confirmado",
+                    }
+                )
                 resumen.registrar_exito()
                 continue
             else:
