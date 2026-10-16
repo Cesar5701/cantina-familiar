@@ -71,13 +71,20 @@ def actualizar_todo():
     df["subcategoria"] = [r[1] for r in resultados]
     df["clase"] = [r[2] for r in resultados]
 
+    # Sincronizar columna categoria consistente con categoria_comparable
+    df.loc[df["categoria_comparable"] == "Licor de Whisky - Honey", "categoria"] = "Licor de Whisky"
+    df.loc[df["categoria_comparable"] == "Whisky - Blended Scotch", "categoria"] = "Whisky"
+    df.loc[df["categoria_comparable"] == "Vino - Tinto Clericot", "categoria"] = "Vino"
+    df.loc[df["categoria_comparable"].str.startswith("Tequila"), "categoria"] = "Tequila"
+    df.loc[df["categoria_comparable"].str.startswith("Mezcal"), "categoria"] = "Mezcal"
+
     # Eliminar Tequilas que sean Reposado Tradicional, Blanco/Plata u Otros (solo conservar Añejo Cristalino, Reposado Cristalino y Añejo Tradicional)
     categorias_excluidas = ["Tequila - Reposado Tradicional", "Tequila - Blanco / Plata", "Tequila - Otros"]
     df = df[~df["categoria_comparable"].isin(categorias_excluidas)].copy()
 
     # En Licor de Whisky - Honey, asegurar que sea realmente Honey
     mask_honey_invalido = (df["categoria_comparable"] == "Licor de Whisky - Honey") & (
-        ~df["producto"].str.lower().str.contains("honey", na=False)
+        ~df["producto"].str.lower().str.contains("honey|miel", regex=True, na=False)
     )
     df = df[~mask_honey_invalido].copy()
 

@@ -1205,8 +1205,8 @@ html_template = """<!DOCTYPE html>
       const cat = item.categoria_comparable || '';
       if (cat.startsWith('Tequila')) return 'Tequila';
       if (cat.startsWith('Mezcal')) return 'Mezcal';
-      if (cat.startsWith('Whisky')) return 'Whisky';
       if (cat.startsWith('Licor de Whisky') || cat.includes('Honey')) return 'Honey';
+      if (cat.startsWith('Whisky')) return 'Whisky';
       if (cat.startsWith('Vino')) return 'Vino';
       return 'Otros';
     }

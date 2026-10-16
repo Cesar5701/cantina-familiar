@@ -471,12 +471,15 @@ def clasificar_estricto(row_o_nombre: Union[dict, Any, str], categoria: Optional
     # -----------------------------------------------------------------------
     # OTROS DESTILADOS Y BEBIDAS
     # -----------------------------------------------------------------------
-    elif cat == "Whisky" or "whisky" in nom_l or "whiskey" in nom_l:
-        return "Whisky - Blended Scotch", "Blended Scotch", "Blended Scotch"
-    elif cat == "Licor de Whisky" or (
-        "honey" in nom_l and ("whisky" in nom_l or "whiskey" in nom_l or "jack" in nom_l)
+    elif (
+        cat == "Licor de Whisky"
+        or "honey" in nom_l
+        or "miel" in nom_l
+        or ("licor" in nom_l and ("whisky" in nom_l or "whiskey" in nom_l))
     ):
         return "Licor de Whisky - Honey", "Honey Liqueur", "Honey Liqueur"
+    elif cat == "Whisky" or "whisky" in nom_l or "whiskey" in nom_l or any(k in nom_l for k in KEYWORDS_BLENDED_WHISKY):
+        return "Whisky - Blended Scotch", "Blended Scotch", "Blended Scotch"
     elif cat == "Vino" or "vino" in nom_l:
         return "Vino - Tinto Clericot", "Tinto Clericot", "Tinto Clericot"
 

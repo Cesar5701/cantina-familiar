@@ -194,6 +194,15 @@ def test_clasificacion_estricta_otras_bebidas():
     assert cat == "Licor de Whisky - Honey"
     assert sub == "Honey Liqueur"
 
+    # Caso clave: productos cuyo título empieza con "Whiskey" o "Whisky" pero son Honey
+    cat, sub, cla = clasificar_estricto("Whiskey Jack Daniel’s Honey Tennessee 700 ml")
+    assert cat == "Licor de Whisky - Honey"
+    assert sub == "Honey Liqueur"
+
+    cat, sub, cla = clasificar_estricto("Whisky Passport Honey 700ml")
+    assert cat == "Licor de Whisky - Honey"
+    assert sub == "Honey Liqueur"
+
     # Vino Tinto Clericot
     cat, sub, cla = clasificar_estricto("Vino Tinto Carlo Rossi California 4 L", "Vino")
     assert cat == "Vino - Tinto Clericot"
