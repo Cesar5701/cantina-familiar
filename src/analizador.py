@@ -123,6 +123,7 @@ def generar_rankings_por_categoria(df: pd.DataFrame) -> dict[str, pd.DataFrame]:
         "Tequila - Reposado": validos[(validos["categoria"] == "Tequila") & (validos["subcategoria"].str.contains("Reposado", case=False, na=False))],
         "Mezcal - Reposado": validos[(validos["categoria"] == "Mezcal") & (validos["subcategoria"] == "Reposado")],
         "Mezcal - Añejo": validos[(validos["categoria"] == "Mezcal") & (validos["subcategoria"] == "Añejo")],
+        "Mezcal - Silvestre": validos[(validos["categoria"] == "Mezcal") & (validos["subcategoria"] == "Silvestre")],
         "Mezcal - Silvestres (Tobalá/Cupreata/Cuishe)": validos[(validos["categoria"] == "Mezcal") & (validos["subcategoria"] == "Silvestre")],
         "Mezcal - Espadín Joven": validos[(validos["categoria"] == "Mezcal") & (validos["subcategoria"] == "Espadín Joven")],
         "Whisky - Blended Scotch": validos[(validos["categoria"] == "Whisky") & (validos["subcategoria"] == "Blended Scotch")],

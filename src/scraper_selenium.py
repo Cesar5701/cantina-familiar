@@ -33,9 +33,10 @@ if RAIZ_PROYECTO not in sys.path:
     sys.path.insert(0, RAIZ_PROYECTO)
 
 try:
-    from src.scraper_alianza import extraer_ml, clasificar_categoria
+    from src.clasificacion import extraer_ml, clasificar_categoria
 except ModuleNotFoundError:
-    from scraper_alianza import extraer_ml, clasificar_categoria
+    from clasificacion import extraer_ml, clasificar_categoria
+
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By

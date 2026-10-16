@@ -17,56 +17,14 @@ BASE_URL = "https://www.bodegasalianza.com/api/catalog_system/pub/products/searc
 USER_AGENT = "CantinaFamiliarBot/1.0 (+decision-support; personal-use)"
 
 
-def extraer_ml(nombre: str) -> int:
-    """Extrae el volumen en mililitros a partir del nombre del producto."""
-    # Buscar formato litros: ej. 1.75 L, 1.75L, 1 L, 2 L, 4 L
-    match_l = re.search(r'(\d+(?:\.\d+)?)\s*(?:l|lt|lts|litro|litros)\b', nombre, re.I)
-    if match_l:
-        return int(float(match_l.group(1)) * 1000)
+import os
 
-    # Buscar formato mililitros: ej. 700 ml, 750ml, 946 ml
-    match_ml = re.search(r'(\d+)\s*(?:ml|mls|mililitros)\b', nombre, re.I)
-    if match_ml:
-        return int(match_ml.group(1))
+RAIZ_PROYECTO = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if RAIZ_PROYECTO not in sys.path:
+    sys.path.insert(0, RAIZ_PROYECTO)
 
-    return 750  # Estándar por defecto si no se especifica
+from src.clasificacion import extraer_ml, clasificar_categoria
 
-
-def clasificar_categoria(nombre: str) -> tuple[str, str]:
-    """Clasifica categoría y subcategoría a partir del nombre."""
-    nombre_l = nombre.lower()
-    if "tequila" in nombre_l:
-        if "cristalino" in nombre_l:
-            return "Tequila", "Añejo Cristalino"
-        if "añejo" in nombre_l or "anejo" in nombre_l:
-            return "Tequila", "Añejo Tradicional"
-        if "reposado" in nombre_l or "rep" in nombre_l:
-            return "Tequila", "Reposado"
-        if "blanco" in nombre_l or "plata" in nombre_l:
-            return "Tequila", "Blanco"
-        return "Tequila", "Tequila General"
-
-    if "mezcal" in nombre_l:
-        if "tobalá" in nombre_l or "tobala" in nombre_l or "cupreata" in nombre_l or "cuishe" in nombre_l:
-            return "Mezcal", "Silvestre"
-        if "añejo" in nombre_l or "anejo" in nombre_l:
-            return "Mezcal", "Añejo"
-        if "cristalino" in nombre_l:
-            return "Mezcal", "Reposado Cristalino"
-        if "reposado" in nombre_l or "rep" in nombre_l:
-            return "Mezcal", "Reposado"
-        return "Mezcal", "Espadín Joven"
-
-    if "honey" in nombre_l:
-        return "Licor de Whisky", "Honey Liqueur"
-
-    if "whisky" in nombre_l or "whiskey" in nombre_l:
-        return "Whisky", "Blended Scotch"
-
-    if "vino" in nombre_l:
-        return "Vino", "Tinto Clericot"
-
-    return "Destilado", "General"
 
 
 def consultar_api_alianza(termino: str, delay_segundos: float = 1.0) -> list[dict]:

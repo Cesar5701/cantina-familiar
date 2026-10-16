@@ -28,95 +28,20 @@ HEADERS = {
     "Accept-Language": "es-MX,es;q=0.9,en;q=0.8"
 }
 
-KEYWORDS_SILVESTRES = [
-    'tobalá', 'tobala', 'cupreata', 'cuishe', 'cuixe', 'madrecuishe',
-    'madrecuixe', 'tepeztate', 'tepextate', 'arroqueño', 'arroqueno',
-    'jabalí', 'jabali', 'barril', 'papalometl', 'sincoyote', 'ensamble',
-    'silvestre', 'salmiana', 'cenizo'
-]
+RAIZ_PROYECTO = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if RAIZ_PROYECTO not in sys.path:
+    sys.path.insert(0, RAIZ_PROYECTO)
 
-KEYWORDS_BLENDED_WHISKY = [
-    'blended', 'red label', 'black label', 'black & white', 'black and white',
-    'ballantine', 'william lawson', 'dewar', 'grant', 'chivas', 'passport',
-    'j&b', 'jb', 'famous grouse', 'white horse', 'bell', 'cutty sark',
-    'johnnie walker', 'sir edward', 'vat 69', 'clan campbell', 'teacher',
-    'buchanan', 'label 5', 'old parr', 'gold label', 'swing'
-]
+from src.clasificacion import (
+    extraer_ml,
+    limpiar_precio,
+    clasificar_agave_mezcal,
+    clasificar_estricto,
+    KEYWORDS_SILVESTRES,
+    KEYWORDS_BLENDED_WHISKY,
+    PALABRAS_EXCLUIDAS
+)
 
-PALABRAS_EXCLUIDAS = [
-    'vinagre', 'salsa', 'aderezo', 'aceite', 'mostaza', 'mermelada', 'jalea',
-    'chocolate', 'bombon', 'bombón', 'pastel', 'rosca', 'galleta', 'helado',
-    'paleta', 'gomita', 'dulce', 'vaso', 'copa', 'caballito', 'decantador',
-    'licorera', 'sacacorchos', 'destapador', 'hielera', 'bolsa de regalo',
-    'sal de ', 'sal con ', 'sangrita', 'mezclador', 'agua quina', 'agua tonica',
-    'refresco', 'jugo', 'cerveza', 'sidra', 'rompope', 'jarabe', 'concentrado',
-    'sin alcohol', '0.0%', 'desalcoholizado', 'lata ', 'latas', 'lemonade',
-    'rtd ', 'cooler', 'hard seltzer', 'pachita', 'miniatura', 'crema de ',
-    'licor de agave', 'licor de mezcal', 'bebida preparada', 'new mix',
-    'carne', 'queso', 'jamon', 'jamón', 'chorizo', 'salchicha', 'estuche vacío'
-]
-
-
-def extraer_ml(nombre: str) -> int:
-    """Extrae el volumen en mililitros soportando decimales en litros y mililitros."""
-    # Si es un multipack (ej. 6 pzas, 4 pack, 12 latas), retornar 0 para descartar o manejar aparte
-    if re.search(r'\b(\d+)\s*(?:pzas|piezas|latas|pack|botellas)\b', nombre, re.I):
-        # A menos que sea "con 2 vasos" o similar, descartar multipacks de miniaturas
-        if re.search(r'\b(?:50|187|200|250|355|473)\s*ml\b', nombre, re.I):
-            return 200
-
-    # Buscar formato litros: ej. 1.75 L, 1.75L, 1 L, 2 L, 4 L, 3L
-    match_l = re.search(r'(\d+(?:\.\d+)?)\s*(?:l|lt|lts|litro|litros)\b', nombre, re.I)
-    if match_l:
-        val_l = float(match_l.group(1))
-        if 0.3 <= val_l <= 6.0:
-            return int(round(val_l * 1000))
-
-    # Buscar formato mililitros: ej. 700 ml, 750ml, 946 ml, 187.5 ml
-    match_ml = re.search(r'(\d+(?:\.\d+)?)\s*(?:ml|mls|mililitros|cc)\b', nombre, re.I)
-    if match_ml:
-        return int(round(float(match_ml.group(1))))
-
-    return 750
-
-
-def limpiar_precio(val) -> float | None:
-    if val is None:
-        return None
-    if isinstance(val, (int, float)):
-        return float(val) if val > 0 else None
-    s = str(val).replace('\xa0', ' ').strip()
-    m = re.search(r'[\$]?\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?|\d+(?:\.\d{2})?)', s)
-    if m:
-        try:
-            v = float(m.group(1).replace(',', ''))
-            return v if v > 0 else None
-        except ValueError:
-            return None
-    return None
-
-
-def clasificar_agave_mezcal(nombre: str) -> str:
-    nom_l = nombre.lower()
-    if 'espadín' in nom_l and ('tobalá' in nom_l or 'tobala' in nom_l):
-        return 'Ensamble Espadín-Tobalá'
-    if 'cuishe' in nom_l or 'cuixe' in nom_l:
-        return 'Cuishe silvestre (A. karwinskii)'
-    if 'tobalá' in nom_l or 'tobala' in nom_l:
-        return 'Tobalá silvestre (A. potatorum)'
-    if 'cupreata' in nom_l:
-        return 'Cupreata silvestre (A. cupreata)'
-    if 'tepeztate' in nom_l or 'tepextate' in nom_l:
-        return 'Tepeztate silvestre (A. marmorata)'
-    if 'arroqueño' in nom_l or 'arroqueno' in nom_l:
-        return 'Arroqueño silvestre (A. americana)'
-    if 'cenizo' in nom_l:
-        return 'Cenizo silvestre (A. durangensis)'
-    if 'salmiana' in nom_l:
-        return 'Salmiana silvestre'
-    if 'espadín' in nom_l or 'espadin' in nom_l:
-        return 'Espadín (A. angustifolia)'
-    return 'Agave mezcalero (NOM-070)'
 
 
 def evaluar_y_normalizar_producto(
@@ -164,42 +89,9 @@ def evaluar_y_normalizar_producto(
         if precio_promo < 200:
             return None
 
-        # Blanco / Plata (0 meses de barrica)
-        es_blanco = ("plata" in nom_l or "blanco" in nom_l or "silver" in nom_l) and not ("añejo" in nom_l or "anejo" in nom_l or "reposado" in nom_l)
-        if "don ramón plata" in nom_l or "don ramon plata" in nom_l:
-            es_blanco = True
-
-        es_rep = "reposado" in nom_l or "rep." in nom_l or "rep " in nom_l
-        es_crist = "cristalino" in nom_l or "ultra" in nom_l or "platinium" in nom_l or "diamante" in nom_l or "cristal" in nom_l
-        es_anejo = "añejo" in nom_l or "anejo" in nom_l or "extra añejo" in nom_l or "milenio" in nom_l or "70 " in nom_l
-
-        # Reglas específicas Don Ramón / Centenario / Dobel
-        if es_blanco:
-            return None  # El usuario pidió filtrar solo Cristalino, Añejo y Añejo Cristalino (o Reposados equivalentes)
-        elif "don ramón" in nom_l or "don ramon" in nom_l:
-            if "añejo" in nom_l and ("platinium" in nom_l or "cristalino" in nom_l):
-                subcat, clase = "Añejo Cristalino", "Añejo Cristalino"
-            elif "reposado" in nom_l and ("platinium" in nom_l or "cristalino" in nom_l):
-                subcat, clase = "Reposado Cristalino", "Reposado Cristalino"
-            elif "añejo" in nom_l:
-                subcat, clase = "Añejo Tradicional", "Añejo"
-            else:
-                return None
-        elif "centenario ultra" in nom_l:
-            subcat, clase = "Reposado Cristalino", "Reposado Cristalino"
-        elif "dobel diamante" in nom_l:
-            subcat, clase = "Añejo Cristalino", "Añejo Cristalino"
-        elif es_rep and es_crist and not es_anejo:
-            subcat, clase = "Reposado Cristalino", "Reposado Cristalino"
-        elif es_anejo and es_crist:
-            subcat, clase = "Añejo Cristalino", "Añejo Cristalino"
-        elif es_anejo and not es_crist:
-            subcat = "Añejo Tradicional"
-            clase = "Extra Añejo" if ("extra" in nom_l or "milenio" in nom_l) else "Añejo"
-        elif es_crist:
-            subcat, clase = "Añejo Cristalino", "Añejo Cristalino"
-        else:
-            # Descartar blancos y reposados comunes que no son cristalinos ni añejos
+        # Clasificación estricta NOM-006 unificada
+        cat_comp, subcat, clase = clasificar_estricto(nombre, "Tequila")
+        if cat_comp in ["Tequila - Blanco / Plata", "Tequila - Reposado Tradicional", "Tequila - Otros"]:
             return None
 
         return {
@@ -234,25 +126,12 @@ def evaluar_y_normalizar_producto(
         if precio_promo < 250:
             return None
 
-        es_rep = "reposado" in nom_l or "rep " in nom_l or "rep." in nom_l
-        es_anejo = "añejo" in nom_l or "anejo" in nom_l
-        es_crist = "cristalino" in nom_l
-        es_silvestre = any(k in nom_l for k in KEYWORDS_SILVESTRES)
         es_referencia = any(m in nom_l for m in ["400 conejos", "amarás", "amaras", "montelobos"])
+        cat_comp, subcat, clase = clasificar_estricto(nombre, "Mezcal")
 
-        if not (es_rep or es_anejo or es_crist or es_silvestre or es_referencia):
+        # Descartar espadines jóvenes que no pertenezcan a marcas de referencia para mantener rigor
+        if subcat == "Espadín Joven" and not es_referencia:
             return None
-
-        if es_silvestre and not es_rep and not es_anejo:
-            subcat, clase = "Silvestre", "Joven Silvestre"
-        elif es_anejo:
-            subcat, clase = "Añejo", "Añejo"
-        elif es_crist:
-            subcat, clase = "Reposado Cristalino", "Reposado Cristalino"
-        elif es_rep:
-            subcat, clase = "Reposado", "Reposado"
-        else:
-            subcat, clase = "Espadín Joven", "Joven"
 
         return {
             "tienda": tienda,

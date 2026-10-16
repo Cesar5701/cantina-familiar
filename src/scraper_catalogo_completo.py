@@ -24,34 +24,18 @@ import pandas as pd
 
 USER_AGENT = "CantinaFamiliarBot/1.0 (+decision-support; personal-use; exhaustive-collector)"
 
-KEYWORDS_SILVESTRES = [
-    'tobalá', 'tobala', 'cupreata', 'cuishe', 'cuixe', 'madrecuishe',
-    'madrecuixe', 'tepeztate', 'tepextate', 'arroqueño', 'arroqueno',
-    'jabalí', 'jabali', 'barril', 'papalometl', 'sincoyote', 'ensamble',
-    'silvestre', 'salmiana', 'cenizo'
-]
+RAIZ_PROYECTO = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if RAIZ_PROYECTO not in sys.path:
+    sys.path.insert(0, RAIZ_PROYECTO)
 
-KEYWORDS_BLENDED_WHISKY = [
-    'blended', 'red label', 'black & white', 'black and white', 'ballantine',
-    'william lawson', 'dewar', 'grant', 'chivas', 'passport', 'j&b', 'jb',
-    'famous grouse', 'white horse', 'bell', 'cutty sark', 'johnnie walker',
-    'sir edward', 'vat 69', 'clan campbell', 'teachers', 'buchanan', 'label 5'
-]
+from src.clasificacion import (
+    extraer_ml,
+    clasificar_agave_mezcal,
+    clasificar_estricto,
+    KEYWORDS_SILVESTRES,
+    KEYWORDS_BLENDED_WHISKY
+)
 
-
-def extraer_ml(nombre: str) -> int:
-    """Extrae el volumen en mililitros a partir del nombre del producto."""
-    # Buscar formato litros: ej. 1.75 L, 1.75L, 1 L, 2 L, 4 L
-    match_l = re.search(r'(\d+(?:\.\d+)?)\s*(?:l|lt|lts|litro|litros)\b', nombre, re.I)
-    if match_l:
-        return int(float(match_l.group(1)) * 1000)
-
-    # Buscar formato mililitros: ej. 700 ml, 750ml, 946 ml
-    match_ml = re.search(r'(\d+)\s*(?:ml|mls|mililitros)\b', nombre, re.I)
-    if match_ml:
-        return int(match_ml.group(1))
-
-    return 750
 
 
 def consultar_endpoint_paginado(termino: str, max_paginas: int = 5) -> list[dict]:
@@ -78,15 +62,6 @@ def consultar_endpoint_paginado(termino: str, max_paginas: int = 5) -> list[dict
     return items
 
 
-def clasificar_agave_mezcal(nombre: str) -> str:
-    """Identifica la especie de agave según el nombre."""
-    nom_l = nombre.lower()
-    for s in KEYWORDS_SILVESTRES:
-        if s in nom_l:
-            return s.capitalize()
-    if "espadín" in nom_l or "espadin" in nom_l:
-        return "Espadín (A. angustifolia)"
-    return "Maguey silvestre / ensamble"
 
 
 def procesar_catalogo_completo() -> list[dict]:

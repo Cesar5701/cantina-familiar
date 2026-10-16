@@ -14,12 +14,18 @@ Cantina Familiar/
 │   └── reporte_ranking.csv         # Salida generada con métricas por litro y rankings
 ├── src/
 │   ├── __init__.py
+│   ├── clasificacion.py            # Módulo unificado de reglas NOM-006 / NOM-070, volumen y precios
 │   ├── scraper_alianza.py          # Scraper ético para API pública VTEX de Bodegas Alianza
+│   ├── scraper_catalogo_completo.py# Scraper exhaustivo paginado para Bodegas Alianza
+│   ├── scraper_multitienda.py      # Scraper para Sam's Club, Walmart, Chedraui y Soriana
 │   ├── scraper_selenium.py         # Scraper dinámico con Selenium y BS4 (Human-in-the-Loop)
-│   └── analizador.py               # Motor de análisis en pandas (auditoría, métricas, rankings)
+│   ├── analizador.py               # Motor de análisis en pandas (auditoría, métricas, rankings)
+│   ├── actualizar_dashboard_completo.py # Consolidación general y pipeline
+│   └── generar_dashboard_v4.py     # Generador de dashboard BI (Material 3 Expressive)
 ├── tests/
 │   ├── __init__.py
-│   └── test_analizador.py          # Suite de pruebas unitarias (15 pruebas con pytest)
+│   ├── test_analizador.py          # Pruebas de métricas, rankings y deduplicación (15 pruebas)
+│   └── test_clasificacion.py       # Pruebas de clasificación NOM y extracción de volumen (48 pruebas)
 ├── requirements.txt                # Dependencias (pandas, numpy, pytest, beautifulsoup4, selenium)
 ├── index.html                      # Dashboard interactivo para GitHub Pages
 └── README.md                       # Documentación y guía de ejecución
@@ -69,7 +75,7 @@ python src/generar_dashboard_v4.py
 Valida la conversión de mililitros a litros, cálculo de descuentos, promociones multiunidad, detección de duplicados, datos faltantes, exclusión de precios nulos y partición estricta de categorías:
 
 ```bash
-pytest -v tests/test_analizador.py
+pytest -v
 ```
 
 ### 3. Ejecutar Scrapers Específicos
