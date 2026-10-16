@@ -258,3 +258,19 @@ def test_clasificacion_estricta_don_ramon_y_blancos():
         "producto": "Tequila Don Ramón Platinium Cristalino Añejo 700 ml"
     })
     assert cat_dr_ac == "Tequila - Añejo Cristalino"
+
+
+def test_precios_ausentes_excluidos_de_rankings():
+    """Valida que registros sin precio devuelvan NaN y no se cuelen en el ranking (H7)."""
+    df = crear_df_base([
+        {"producto": "Botella Sin Precio", "precio_regular": np.nan, "precio_promo": np.nan, "precio_total_promo": np.nan},
+        {"producto": "Botella Válida", "precio_regular": 600.0, "precio_promo": 500.0}
+    ])
+    metricas = calcular_metricas(df)
+    assert np.isnan(metricas.loc[0, "precio_efectivo"])
+    assert np.isnan(metricas.loc[0, "precio_por_litro"])
+
+    rankings = generar_rankings_por_categoria(metricas)
+    for cat, sub_df in rankings.items():
+        assert "Botella Sin Precio" not in sub_df["producto"].values
+

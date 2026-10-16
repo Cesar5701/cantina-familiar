@@ -19,8 +19,9 @@ Cantina Familiar/
 │   └── analizador.py               # Motor de análisis en pandas (auditoría, métricas, rankings)
 ├── tests/
 │   ├── __init__.py
-│   └── test_analizador.py          # Suite de pruebas unitarias (13 pruebas con pytest)
-├── requirements.txt                # Dependencias (pandas, pytest, beautifulsoup4, selenium)
+│   └── test_analizador.py          # Suite de pruebas unitarias (15 pruebas con pytest)
+├── requirements.txt                # Dependencias (pandas, numpy, pytest, beautifulsoup4, selenium)
+├── index.html                      # Dashboard interactivo para GitHub Pages
 └── README.md                       # Documentación y guía de ejecución
 ```
 
@@ -28,7 +29,7 @@ Cantina Familiar/
 
 ## Requisitos e Instalación
 
-Entorno probado: **Linux Fedora 44 (Plasma) / Python 3.14+ / Firefox**.
+Entorno probado: **Linux Fedora 44 (Plasma) / Python 3.14+ / Google Chrome o Firefox**.
 
 1. **Crear y activar el entorno virtual:**
    ```bash
@@ -43,36 +44,47 @@ Entorno probado: **Linux Fedora 44 (Plasma) / Python 3.14+ / Firefox**.
 
 ---
 
-## Cómo Ejecutar y Verificar
+## Pipeline de Datos y Ejecución
 
-### 1. Ejecutar el Analizador de Precios y Rankings
-Lee el archivo de datos, audita datos faltantes y duplicados, calcula el costo efectivo unitario (incluyendo promociones multiunidad como 3x2), calcula precio por litro y genera rankings separados por categoría:
+El flujo completo del proyecto consta de 3 fases:
 
+```
+[1. Recolección] Scrapers multitienda (Alianza, Sam's, Walmart, Chedraui, Soriana)
+       ↓
+[2. Consolidación] Clasificación estricta NOM-006 / NOM-070 y normalización de volumen
+       ↓
+[3. Dashboard BI] Generación reactiva de data/dashboard_bi.html e index.html
+```
+
+### 1. Ejecutar el Pipeline Completo
 ```bash
-python src/analizador.py --entrada data/bebidas_verificadas.csv --salida data/reporte_ranking.csv
+# Paso A: Consolidar y clasificar datasets de las 5 tiendas
+python src/actualizar_dashboard_completo.py
+
+# Paso B: Generar y sincronizar el Dashboard interactivo
+python src/generar_dashboard_v4.py
 ```
 
 ### 2. Ejecutar las Pruebas Unitarias
-Valida la conversión de mililitros a litros, cálculo de descuentos, promociones multiunidad, detección de duplicados, datos faltantes y partición estricta de categorías (tequila y mezcal):
+Valida la conversión de mililitros a litros, cálculo de descuentos, promociones multiunidad, detección de duplicados, datos faltantes, exclusión de precios nulos y partición estricta de categorías:
 
 ```bash
 pytest -v tests/test_analizador.py
 ```
 
-### 3. Ejecutar el Scraper de Bodegas Alianza (API VTEX oficial)
-Consulta exclusivamente la API pública oficial permitida en el `robots.txt` de Bodegas Alianza (`/api/catalog_system/pub/products/search/`):
+### 3. Ejecutar Scrapers Específicos
 
-```bash
-python src/scraper_alianza.py --terminos "1800" "Herradura" "Amarás" "Red Label" "Jack Daniel" --salida data/scraped_alianza.csv
-```
+- **Bodegas Alianza (API VTEX oficial):**
+  ```bash
+  python src/scraper_alianza.py --terminos "1800" "Herradura" "Amarás" "Red Label" "Jack Daniel" --salida data/scraped_alianza.csv
+  ```
 
-### 4. Ejecutar el Scraper Asistido con Selenium + BeautifulSoup (Sam's Club / SPAs)
-Abre un navegador real (Firefox por defecto) para permitir que el JavaScript hidrate precios y existencias. Si el sitio presenta un CAPTCHA o verificación WAF, el script se pausa y te notifica en terminal para resolverlo manualmente en la ventana abierta antes de continuar:
-
-```bash
-python src/scraper_selenium.py --url "https://www.sams.com.mx" --tienda "Sam's Club" --salida data/scraped_selenium.csv
-```
-*(Para ejecutar en modo sin cabeza usar la bandera `--headless`, aunque se recomienda modo visual para resolver desafíos de seguridad si se presentan).*
+- **Scraper Asistido con Selenium (Sam's Club / SPAs):**
+  Abre un navegador real (Chrome por defecto, o `--navegador firefox`) para permitir que el JavaScript hidrate precios y existencias:
+  ```bash
+  python src/scraper_selenium.py --urls "https://www.sams.com.mx" --tienda "Sam's Club" --salida data/scraped_selenium.csv
+  ```
+  *(Para ejecutar en modo sin cabeza usar la bandera `--headless`).*
 
 ---
 

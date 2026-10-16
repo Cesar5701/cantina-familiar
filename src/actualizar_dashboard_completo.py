@@ -51,11 +51,15 @@ def corregir_ml_producto(nombre: str, ml_actual: int) -> int:
     if not tiene_botella_grande and re.search(r'\b(?:pachitas|miniatura|50\s*ml|187\.?5?\s*ml|200\s*ml|355\s*ml|473\s*ml)\b', nom_l):
         return 200
 
-    # Detectar multiplicador "Pack de N" (ej. "Pack de 2 Tequila 1800 ... 700 ml")
+    # Detectar multiplicador "Pack de N", "Pack N", "Paquete N" o "N pack"
     mult_pack = 1
-    m_pack_de = re.search(r'\bpack\s*de\s*(\d+)\b', nom_l)
+    m_pack_de = re.search(r'\b(?:pack|paquete)\s*(?:de\s*)?(\d+)\b', nom_l)
     if m_pack_de:
         mult_pack = int(m_pack_de.group(1))
+    else:
+        m_n_pack = re.search(r'\b(\d+)\s*(?:pack|botellas?)\b', nom_l)
+        if m_n_pack:
+            mult_pack = int(m_n_pack.group(1))
 
     # Formatos en litros (ej. 1.75 L, 4 L, 5 L, 1.5 L)
     m_l = re.search(r'(\d+(?:\.\d+)?)\s*(?:l|lt|lts|litro|litros)\b', nom_l)

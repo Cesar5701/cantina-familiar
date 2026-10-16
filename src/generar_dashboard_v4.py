@@ -8,24 +8,42 @@ Diseño Híbrido:
 
 import os
 import json
+from pathlib import Path
 
-ARTIFACT_DIR = "/home/cesar/.gemini/antigravity/brain/cf5b6fe1-c31f-46a0-a350-06d6d2e984ca"
-HTML_ARTIFACT_PATH = os.path.join(ARTIFACT_DIR, "dashboard_bi.html")
-LOCAL_HTML_PATH = "data/dashboard_bi.html"
+ROOT_DIR = Path(__file__).resolve().parent.parent
+LOCAL_HTML_PATH = ROOT_DIR / "data" / "dashboard_bi.html"
+INDEX_HTML_PATH = ROOT_DIR / "index.html"
+DATA_JSON_PATH = ROOT_DIR / "data" / "dashboard_data.json"
+
+# Ruta opcional de artefactos de entorno asistido
+DEFAULT_ARTIFACT_DIR = "/home/cesar/.gemini/antigravity/brain/cf5b6fe1-c31f-46a0-a350-06d6d2e984ca"
+ARTIFACT_DIR = os.environ.get("ANTIGRAVITY_ARTIFACT_DIR", DEFAULT_ARTIFACT_DIR)
+HTML_ARTIFACT_PATH = Path(ARTIFACT_DIR) / "dashboard_bi.html" if ARTIFACT_DIR else None
 
 # Cargar los datos auditados (653 productos en 5 tiendas)
-with open("data/dashboard_data.json", "r", encoding="utf-8") as f:
+with open(DATA_JSON_PATH, "r", encoding="utf-8") as f:
     datos_json_str = f.read()
 
 # =====================================================================
-# CONFIGURACIÓN EDITABLE: VIGENCIA Y LEYENDAS PARA LA FAMILIA
-# Modifica estas fechas y textos cada vez que actualices promociones o tiendas
+# MATRIZ OFICIAL DE VIGENCIAS Y PROMOCIONES MULTITIENDA (OCTUBRE 2026)
 # =====================================================================
+VIGENCIAS_TIENDAS = {
+    "alianza": "25 de octubre 2026 (Aniversario Web)",
+    "sams": "2 de noviembre 2026 (Cuponera Octubre / Día de Muertos)",
+    "chedraui": "31 de octubre 2026 (Quincena MiChedraui)",
+    "soriana": "22 de octubre 2026 (Folleto Semanal de Licores)",
+    "walmart": "31 de octubre 2026 (Rebajas de Temporada en Línea)"
+}
+
 CONFIG_VIGENCIA = {
-    "alianza_fecha": "25 de octubre de 2026",
-    "general_texto": "Precios de Sam's Club, Walmart, Chedraui y Soriana consultados en octubre 2026 (sujetos a disponibilidad o variación en tienda sin previo aviso).",
     "corte_auditoria": "Octubre 2026",
-    "aviso_resumen": "Promociones de Bodegas Alianza válidas hasta el 25 de octubre de 2026. Anticipar compras para asegurar disponibilidad.",
+    "resumen_whatsapp": (
+        "🟠 Bodegas Alianza: hasta 25 Oct (Aniversario)\n"
+        "🔵 Sam's Club: hasta 2 Nov (Cuponera)\n"
+        "🟧 Chedraui: hasta 31 Oct (Quincena)\n"
+        "🔴 Soriana: hasta 22 Oct (Folleto semanal)\n"
+        "🩵 Walmart: hasta 31 Oct (Rebajas)"
+    )
 }
 
 html_template = """<!DOCTYPE html>
@@ -330,19 +348,43 @@ html_template = """<!DOCTYPE html>
         </div>
     </header>
 
-    <!-- BANNER DE VIGENCIA DE PRECIOS Y AUDITORÍA DE TIENDAS -->
-    <div class="md3-surface-tonal p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs border border-[#DFD5C7]">
-      <div class="flex items-start sm:items-center gap-2.5">
-        <span class="text-xl">📅</span>
-        <div class="text-[#574A3D] leading-relaxed">
-          <span class="font-bold text-[#1F1B16]">Vigencia de Precios y Promociones:</span>
-          <span>Bodegas Alianza válido hasta el <strong class="text-[#784516]">__VIGENCIA_ALIANZA__</strong>. __VIGENCIA_GENERAL__</span>
+    <!-- BANNER MULTITIENDA DE VIGENCIAS Y AUDITORÍA DE PROMOCIONES -->
+    <div class="md3-surface-tonal p-3.5 sm:p-4 rounded-2xl space-y-2.5 text-xs border border-[#DFD5C7]">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-[#DFD5C7]/70 pb-2">
+        <div class="flex items-center gap-2 font-bold text-[#1F1B16]">
+          <span class="text-base">📅</span>
+          <span>Vigencias de Ofertas y Promociones por Tienda (Octubre 2026):</span>
         </div>
-      </div>
-      <div class="flex items-center gap-2 self-end sm:self-auto flex-shrink-0">
         <span class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] font-mono text-[11px]">
           Auditoría: __CORTE_AUDITORIA__
         </span>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 font-mono text-[11px]">
+        <div class="p-2.5 rounded-xl bg-white/90 border border-[#E5C8A3] flex flex-col justify-between">
+          <span class="font-bold text-[#784516]">🟠 Bodegas Alianza</span>
+          <span class="text-[10px] text-[#574A3D] truncate">Aniversario Web</span>
+          <span class="font-extrabold text-[#784516] mt-0.5">Hasta 25 Oct 2026</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-white/90 border border-[#BFDBFE] flex flex-col justify-between">
+          <span class="font-bold text-[#1E3A8A]">🔵 Sam's Club</span>
+          <span class="text-[10px] text-[#574A3D] truncate">Cuponera de Octubre</span>
+          <span class="font-extrabold text-[#1E3A8A] mt-0.5">Hasta 2 Nov 2026</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-white/90 border border-[#FED7AA] flex flex-col justify-between">
+          <span class="font-bold text-[#7C2D12]">🟧 Chedraui</span>
+          <span class="text-[10px] text-[#574A3D] truncate">Quincena MiChedraui</span>
+          <span class="font-extrabold text-[#7C2D12] mt-0.5">Hasta 31 Oct 2026</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-white/90 border border-[#FECDD3] flex flex-col justify-between">
+          <span class="font-bold text-[#881337]">🔴 Soriana</span>
+          <span class="text-[10px] text-[#574A3D] truncate">Folleto Licores</span>
+          <span class="font-extrabold text-[#881337] mt-0.5">Hasta 22 Oct 2026</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-white/90 border border-[#BAE6FD] flex flex-col justify-between col-span-2 sm:col-span-1">
+          <span class="font-bold text-[#0C4A6E]">🩵 Walmart</span>
+          <span class="text-[10px] text-[#574A3D] truncate">Rebajas en Línea</span>
+          <span class="font-extrabold text-[#0C4A6E] mt-0.5">Hasta 31 Oct 2026</span>
+        </div>
       </div>
     </div>
 
@@ -830,11 +872,18 @@ html_template = """<!DOCTYPE html>
             </div>
 
             <!-- NOTA DE VIGENCIA DE PRECIOS EN CARRITO -->
-            <div class="p-3 rounded-xl bg-[#FAF6F0] border border-[#DFD5C7] text-[11px] text-[#574A3D] space-y-1">
-              <div class="font-bold text-[#1F1B16] flex items-center gap-1.5">
-                <span>⚠️</span> <span>Aviso de Vigencia:</span>
+            <div class="p-3 rounded-xl bg-[#FAF6F0] border border-[#DFD5C7] text-[11px] text-[#574A3D] space-y-1.5">
+              <div class="font-bold text-[#1F1B16] flex items-center justify-between">
+                <span class="flex items-center gap-1"><span>⚠️</span> <span>Vigencias de Ofertas:</span></span>
+                <span class="text-[10px] text-[#784516] font-mono">5 tiendas</span>
               </div>
-              <p>Promociones de Bodegas Alianza válidas al <strong class="text-[#784516]">__VIGENCIA_ALIANZA__</strong>. Se recomienda anticipar la compra para asegurar existencias.</p>
+              <ul class="space-y-0.5 text-[10px] font-mono">
+                <li>• 🟠 Alianza: <strong class="text-[#784516]">25 Oct</strong> (Aniversario)</li>
+                <li>• 🔵 Sam's: <strong class="text-[#1E3A8A]">2 Nov</strong> (Cuponera)</li>
+                <li>• 🟧 Chedraui: <strong class="text-[#7C2D12]">31 Oct</strong> (Quincena)</li>
+                <li>• 🔴 Soriana: <strong class="text-[#881337]">22 Oct</strong> (Folleto)</li>
+                <li>• 🩵 Walmart: <strong class="text-[#0C4A6E]">31 Oct</strong> (Rebajas)</li>
+              </ul>
             </div>
 
             <!-- BOTONES DE ACCIÓN RÁPIDA -->
@@ -918,7 +967,7 @@ html_template = """<!DOCTYPE html>
         Cantina Familiar 2026 · Comparador Multitienda para Reunión Familiar
       </p>
       <p>
-        Precios auditados en 5 tiendas: Bodegas Alianza, Sam's Club, Walmart, Chedraui y Soriana. Promociones de Bodegas Alianza válidas al <strong class="text-[#784516]">__VIGENCIA_ALIANZA__</strong>.
+        Precios auditados en 5 cadenas: Bodegas Alianza, Sam's Club, Walmart, Chedraui y Soriana. Vigencias por tienda detalladas en el panel superior.
       </p>
       <p class="text-[11px] text-[#8A7B6B]">
         Corte de catálogo: __CORTE_AUDITORIA__ · Precios sujetos a cambios y existencias por tienda.
@@ -1490,7 +1539,12 @@ html_template = """<!DOCTYPE html>
                     <span class="text-xs font-mono text-[#574A3D]">${item.ml} ml</span>
                   </div>
                   <div class="font-semibold text-sm text-[#1F1B16] leading-tight break-words">
-                    ${item.producto}
+                    <a href="${item.url}" target="_blank" rel="noopener noreferrer" 
+                       class="hover:underline hover:text-[#784516] inline-flex items-center gap-1 group" 
+                       title="Ver en tienda oficial ${item.tienda}">
+                      <span>${item.producto}</span>
+                      <span class="text-[10px] text-[#8A7B6B] group-hover:text-[#784516] inline-block">↗</span>
+                    </a>
                   </div>
                   <div class="text-xs text-[#574A3D] font-mono">
                     Unitario: <strong class="text-[#784516] font-bold">$${item.precio_promo.toFixed(2)}</strong> · <span class="text-[#486355] font-semibold">$${item.precio_por_litro.toFixed(2)} / L</span>
@@ -1635,7 +1689,7 @@ html_template = """<!DOCTYPE html>
             const sub = cant * item.precio_promo;
             total += sub;
             subTiendas[item.tienda] = (subTiendas[item.tienda] || 0) + sub;
-            texto += `• ${cant}× ${item.producto} (${item.ml}ml) - $${item.precio_promo.toFixed(2)} c/u [Sub: $${sub.toFixed(2)}] (${item.tienda})\n`;
+            texto += `• ${cant}× ${item.producto} (${item.ml}ml) - $${item.precio_promo.toFixed(2)} c/u [Sub: $${sub.toFixed(2)}] (${item.tienda})\n  🔗 ${item.url}\n`;
           });
         }
       });
@@ -1651,7 +1705,7 @@ html_template = """<!DOCTYPE html>
         texto += `CUOTA POR PERSONA (${COOPERADORES_TOTAL} personas): $${(total / COOPERADORES_TOTAL).toFixed(2)} MXN\n`;
       }
       texto += `--------------------------------------------------------\n`;
-      texto += `⚠️ VIGENCIA: Promociones de Bodegas Alianza válidas al __VIGENCIA_ALIANZA__. Precios multitienda sujetos a disponibilidad en sucursal.\n`;
+      texto += `📅 VIGENCIAS DE OFERTAS POR TIENDA:\n__RESUMEN_WHATSAPP_VIGENCIAS__\n`;
 
       navigator.clipboard.writeText(texto).then(() => {
         mostrarToast("📋 ¡Lista de compras copiada al portapapeles!");
@@ -1755,7 +1809,12 @@ html_template = """<!DOCTYPE html>
 
         tr.innerHTML = `
           <td class="p-3.5 font-medium text-[#1F1B16]">
-            <div class="line-clamp-1 font-semibold">${item.producto}</div>
+            <a href="${item.url}" target="_blank" rel="noopener noreferrer" 
+               class="hover:underline text-[#1F1B16] hover:text-[#784516] flex items-center gap-1 group font-semibold" 
+               title="Ver ${item.producto} en tienda oficial ${item.tienda}">
+              <span class="line-clamp-1">${item.producto}</span>
+              <span class="text-[10px] text-[#8A7B6B] group-hover:text-[#784516] flex-shrink-0">↗</span>
+            </a>
             <div class="text-xs text-[#574A3D] flex items-center gap-1.5 mt-0.5">
               <span>${item.marca}</span>
               <span class="sm:hidden">· ${item.ml}ml</span>
@@ -1770,9 +1829,16 @@ html_template = """<!DOCTYPE html>
           <td class="p-3.5 hidden lg:table-cell">${ahorroBadge}</td>
           <td class="p-3.5">${tiendaBadge}</td>
           <td class="p-3.5 text-center">
-            <button onclick="agregarDesdeTabla(${originalIndex})" class="px-3.5 py-1.5 text-xs md3-btn-tonal cursor-pointer whitespace-nowrap">
-              + Carrito
-            </button>
+            <div class="flex items-center justify-center gap-1.5">
+              <button onclick="agregarDesdeTabla(${originalIndex})" class="px-3 py-1.5 text-xs md3-btn-tonal cursor-pointer whitespace-nowrap">
+                + Carrito
+              </button>
+              <a href="${item.url}" target="_blank" rel="noopener noreferrer" 
+                 class="w-7 h-7 rounded-full border border-[#D6C8B8] hover:bg-[#EFE8DC] text-[#784516] inline-flex items-center justify-center transition-colors text-xs" 
+                 title="Abrir ${item.producto} en ${item.tienda}">
+                ↗
+              </a>
+            </div>
           </td>
         `;
         tbody.appendChild(tr);
@@ -2157,9 +2223,16 @@ html_template = """<!DOCTYPE html>
               lo que equivale a un ahorro real de <strong class="text-[#486355]">$${difLitro.toFixed(2)} por cada litro (${pctLitro}%)</strong>.
             </p>
           </div>
-          <button onclick="modificarCantidad(${DATOS_COMPLETOS.indexOf(ganadorLitro)}, 1); mostrarToast('🏆 Ganador añadido al carrito: ${ganadorLitro.producto}');" class="px-5 py-2.5 md3-btn-filled text-xs whitespace-nowrap cursor-pointer">
-            + Agregar Ganador al Carrito
-          </button>
+          <div class="flex items-center gap-2 flex-wrap">
+            <a href="${ganadorLitro.url}" target="_blank" rel="noopener noreferrer" 
+               class="px-4 py-2.5 md3-btn-tonal text-xs whitespace-nowrap inline-flex items-center gap-1.5"
+               title="Abrir ${ganadorLitro.producto} en ${ganadorLitro.tienda}">
+              <span>Ver en ${ganadorLitro.tienda}</span> <span>↗</span>
+            </a>
+            <button onclick="modificarCantidad(${DATOS_COMPLETOS.indexOf(ganadorLitro)}, 1); mostrarToast('🏆 Ganador añadido al carrito: ${ganadorLitro.producto}');" class="px-5 py-2.5 md3-btn-filled text-xs whitespace-nowrap cursor-pointer">
+              + Agregar Ganador al Carrito
+            </button>
+          </div>
         </div>
       `;
     }
@@ -2171,19 +2244,24 @@ html_template = """<!DOCTYPE html>
 html_final = (
     html_template
     .replace("__DATA_JSON__", datos_json_str)
-    .replace("__VIGENCIA_ALIANZA__", CONFIG_VIGENCIA["alianza_fecha"])
-    .replace("__VIGENCIA_GENERAL__", CONFIG_VIGENCIA["general_texto"])
     .replace("__CORTE_AUDITORIA__", CONFIG_VIGENCIA["corte_auditoria"])
-    .replace("__AVISO_RESUMEN__", CONFIG_VIGENCIA["aviso_resumen"])
+    .replace("__RESUMEN_WHATSAPP_VIGENCIAS__", CONFIG_VIGENCIA["resumen_whatsapp"])
 )
 
 with open(LOCAL_HTML_PATH, "w", encoding="utf-8") as f:
     f.write(html_final)
 
-os.makedirs(ARTIFACT_DIR, exist_ok=True)
-with open(HTML_ARTIFACT_PATH, "w", encoding="utf-8") as f:
+with open(INDEX_HTML_PATH, "w", encoding="utf-8") as f:
     f.write(html_final)
 
-print(f"[OK] Dashboard v6.0 (MD3 Expressive Almond + Apple HIG Mobile) generado exitosamente:")
+if HTML_ARTIFACT_PATH:
+    try:
+        os.makedirs(HTML_ARTIFACT_PATH.parent, exist_ok=True)
+        with open(HTML_ARTIFACT_PATH, "w", encoding="utf-8") as f:
+            f.write(html_final)
+    except Exception:
+        pass
+
+print(f"[OK] Dashboard v6.0 sincronizado exitosamente:")
 print(f"  - Local:    {LOCAL_HTML_PATH} ({len(html_final):,} bytes)")
-print(f"  - Artifact: {HTML_ARTIFACT_PATH} ({len(html_final):,} bytes)")
+print(f"  - Root:     {INDEX_HTML_PATH} ({len(html_final):,} bytes)")

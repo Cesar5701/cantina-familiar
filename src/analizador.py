@@ -67,7 +67,7 @@ def calcular_costo_efectivo(row: pd.Series) -> float:
     if pd.notnull(precio_regular) and precio_regular > 0:
         return float(precio_regular)
 
-    return 0.0
+    return np.nan
 
 
 def calcular_metricas(df: pd.DataFrame) -> pd.DataFrame:
@@ -83,13 +83,19 @@ def calcular_metricas(df: pd.DataFrame) -> pd.DataFrame:
     # Validación de ml > 0 para evitar división por cero
     df["ml"] = pd.to_numeric(df["ml"], errors="coerce").fillna(750)
     df["litros"] = df["ml"] / 1000.0
-    df["precio_por_litro"] = (df["precio_efectivo"] / df["litros"]).round(2)
+    df["precio_por_litro"] = np.where(
+        (df["litros"] > 0) & pd.notnull(df["precio_efectivo"]) & (df["precio_efectivo"] > 0),
+        (df["precio_efectivo"] / df["litros"]).round(2),
+        np.nan
+    )
 
     # Ahorro verificable
     df["precio_regular"] = pd.to_numeric(df["precio_regular"], errors="coerce").fillna(df["precio_efectivo"])
-    df["ahorro_verificable"] = (df["precio_regular"] - df["precio_efectivo"]).apply(lambda x: max(0.0, round(x, 2)))
+    df["ahorro_verificable"] = (df["precio_regular"] - df["precio_efectivo"]).apply(
+        lambda x: max(0.0, round(x, 2)) if pd.notnull(x) else 0.0
+    )
     df["porcentaje_ahorro"] = np.where(
-        df["precio_regular"] > 0,
+        (pd.notnull(df["precio_regular"])) & (df["precio_regular"] > 0),
         ((df["ahorro_verificable"] / df["precio_regular"]) * 100.0).round(1),
         0.0
     )
@@ -102,8 +108,13 @@ def generar_rankings_por_categoria(df: pd.DataFrame) -> dict[str, pd.DataFrame]:
     Genera rankings ordenados por precio_por_litro dentro de cada subcategoría comparable
     respetando estrictamente la Regla de Rigor 6 (no mezclar categorías no equivalentes).
     """
-    # Filtrar solo registros no duplicados y disponibles
-    validos = df[~df["es_duplicado"]].copy()
+    # Filtrar solo registros no duplicados y con precio por litro válido y positivo
+    no_duplicados = (~df["es_duplicado"]) if "es_duplicado" in df.columns else True
+    validos = df[
+        no_duplicados & 
+        (pd.notnull(df["precio_por_litro"])) & 
+        (df["precio_por_litro"] > 0)
+    ].copy()
 
     # Definición de grupos comparables estrictos
     grupos = {
