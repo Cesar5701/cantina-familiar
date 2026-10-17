@@ -11,8 +11,10 @@ Filtros aplicados según solicitud:
 5. Vino: Tintos para clericot y mesa familiar.
 """
 
+import json
 import sys
 import time
+import urllib.error
 import urllib.parse
 from datetime import datetime
 from pathlib import Path
@@ -54,7 +56,14 @@ def consultar_endpoint_paginado(
             items.extend(data)
             if len(data) < 50:
                 break
-        except Exception as e:
+        except (
+            urllib.error.URLError,
+            urllib.error.HTTPError,
+            TimeoutError,
+            ConnectionError,
+            json.JSONDecodeError,
+            OSError,
+        ) as e:
             if resumen:
                 resumen.registrar_error_red(url, e)
             logger.warning(f"Fin o error en '{termino}' pag {pag}: {e}")

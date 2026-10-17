@@ -418,3 +418,25 @@ def test_h35_dashboard_cross_tienda_700_vs_750ml(tmp_path: Path):
     assert rec_walmart["es_precio_mas_bajo"] is False
     assert rec_walmart["tienda_mas_barata"] == "Sam's Club"
     assert rec_walmart["diferencia_vs_minimo"] > 240.0
+
+
+def test_h33_sin_except_exception_genericos():
+    """Valida mediante análisis sintáctico (AST) que ningún módulo en src/ use 'except Exception' ni 'except:' genérico (H33)."""
+    import ast
+    import glob
+
+    violaciones = []
+    archivos = sorted(glob.glob("src/**/*.py", recursive=True))
+    assert len(archivos) > 0, "No se encontraron archivos en src/"
+
+    for py_file in archivos:
+        with open(py_file, "r", encoding="utf-8") as f:
+            arbol = ast.parse(f.read(), filename=py_file)
+        for nodo in ast.walk(arbol):
+            if isinstance(nodo, ast.ExceptHandler):
+                if nodo.type is None:
+                    violaciones.append(f"{py_file}:{nodo.lineno} (bare except:)")
+                elif isinstance(nodo.type, ast.Name) and nodo.type.id == "Exception":
+                    violaciones.append(f"{py_file}:{nodo.lineno} (except Exception:)")
+
+    assert len(violaciones) == 0, f"Se detectaron manejadores genéricos prohibidos (H33): {violaciones}"

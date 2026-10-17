@@ -40,7 +40,7 @@ def guardar_csv_atomico(df: pd.DataFrame, ruta_archivo: str, **kwargs) -> str:
     try:
         df.to_csv(ruta_tmp, **kwargs)
         os.replace(ruta_tmp, ruta_archivo)
-    except Exception:
+    except (OSError, TypeError, ValueError):
         if os.path.exists(ruta_tmp):
             os.remove(ruta_tmp)
         raise
@@ -60,7 +60,7 @@ def guardar_json_atomico(data: Any, ruta_archivo: str, indent: Optional[int] = N
         with open(fd, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=ensure_ascii, indent=indent)
         os.replace(ruta_tmp, ruta_archivo)
-    except Exception:
+    except (OSError, TypeError, ValueError):
         if os.path.exists(ruta_tmp):
             os.remove(ruta_tmp)
         raise

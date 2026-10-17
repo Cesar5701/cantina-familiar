@@ -5,7 +5,9 @@ Consulta exclusivamente la API pública permitida en robots.txt:
 """
 
 import argparse
+import json
 import time
+import urllib.error
 import urllib.parse
 from datetime import datetime
 
@@ -28,7 +30,14 @@ def consultar_api_alianza(
         data = descargar_json_con_reintentos(url, headers=HEADERS_BOT)
         if not data:
             return []
-    except Exception as e:
+    except (
+        urllib.error.URLError,
+        urllib.error.HTTPError,
+        TimeoutError,
+        ConnectionError,
+        json.JSONDecodeError,
+        OSError,
+    ) as e:
         if resumen:
             resumen.registrar_error_red(url, e)
         logger.error(f"Error al consultar '{termino}': {e}")

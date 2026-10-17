@@ -58,7 +58,7 @@ def configurar_logging(
             logger_raiz.removeHandler(h)
             try:
                 h.close()
-            except Exception:
+            except (OSError, ValueError):
                 pass
 
     # 1. Handler de Consola
@@ -80,7 +80,7 @@ def configurar_logging(
         )
         handler_archivo.setFormatter(formato_archivo)
         logger_raiz.addHandler(handler_archivo)
-    except Exception as e:
+    except (OSError, PermissionError) as e:
         sys.stderr.write(f"Aviso: No se pudo inicializar archivo de log: {e}\n")
 
 

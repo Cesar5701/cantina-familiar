@@ -5,6 +5,7 @@ Proporciona funciones seguras y resilientes para consultas HTTP a APIs y portale
 manejando automáticamente interrupciones de red, rate limits (HTTP 429) y errores temporales de servidor (HTTP 5xx).
 """
 
+import http.client
 import json
 import random
 import socket
@@ -85,10 +86,10 @@ def peticion_http_con_reintentos(
                     raise
                 return None
 
-        except (urllib.error.URLError, socket.timeout, TimeoutError, ConnectionError) as e:
+        except (urllib.error.URLError, socket.timeout, TimeoutError, ConnectionError, http.client.HTTPException) as e:
             ultimo_error = e
 
-        except Exception as e:
+        except (OSError, UnicodeDecodeError) as e:
             ultimo_error = e
             if lanzar_error:
                 raise

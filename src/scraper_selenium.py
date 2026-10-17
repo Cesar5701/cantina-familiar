@@ -42,6 +42,13 @@ logger = get_logger("scraper_selenium")
 
 
 from selenium import webdriver
+from selenium.common.exceptions import (
+    JavascriptException,
+    NoSuchElementException,
+    SessionNotCreatedException,
+    TimeoutException,
+    WebDriverException,
+)
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
@@ -93,7 +100,7 @@ def inicializar_driver(headless: bool = False, navegador: str = "chrome") -> web
                 """
                 },
             )
-        except Exception as e:
+        except (WebDriverException, SessionNotCreatedException, FileNotFoundError, OSError) as e:
             logger.warning(f"No se pudo iniciar Chrome ({e}). Intentando con Firefox...")
             return inicializar_driver(headless=headless, navegador="firefox")
     else:
@@ -128,21 +135,21 @@ def detectar_desafio(driver: webdriver.Remote) -> tuple[bool, str]:
             px = driver.find_elements(By.ID, "px-captcha")
             if px and any(p.is_displayed() for p in px):
                 return True, "Elemento #px-captcha activo en pantalla"
-        except Exception as e:
+        except (WebDriverException, NoSuchElementException) as e:
             logger.debug(f"Error verificando elemento px-captcha: {e}")
 
         try:
             top_msg = driver.find_elements(By.ID, "topmessage")
             if top_msg and any("identidad" in m.text.lower() or "identity" in m.text.lower() for m in top_msg):
                 return True, "Mensaje de verificación de identidad activo (#topmessage)"
-        except Exception as e:
+        except (WebDriverException, NoSuchElementException) as e:
             logger.debug(f"Error verificando elemento topmessage: {e}")
 
         try:
             cf = driver.find_elements(By.ID, "challenge-running")
             if cf and any(c.is_displayed() for c in cf):
                 return True, "Desafío Cloudflare activo (#challenge-running)"
-        except Exception as e:
+        except (WebDriverException, NoSuchElementException) as e:
             logger.debug(f"Error verificando elemento challenge-running: {e}")
 
         # Búsqueda en los primeros 10KB del código fuente
@@ -152,7 +159,7 @@ def detectar_desafio(driver: webdriver.Remote) -> tuple[bool, str]:
         ) and ("mantén presionado el botón" in html_head or "press and hold" in html_head):
             return True, "Texto de desafío PerimeterX en código fuente"
 
-    except Exception as e:
+    except (WebDriverException, NoSuchElementException, TimeoutException) as e:
         logger.debug(f"Error general en detección de desafío: {e}")
 
     return False, ""
@@ -254,7 +261,7 @@ def extraer_de_json_embebido(soup: BeautifulSoup, url: str, tienda: str, fecha_c
             continue
         try:
             data = json.loads(s.string)
-        except Exception:
+        except (json.JSONDecodeError, ValueError, TypeError):
             continue
 
         # Caso 1: JSON-LD ItemList
@@ -470,7 +477,7 @@ def consultar_urls_secuenciales(
                 driver.execute_script("window.scrollTo(0, 500);")
                 time.sleep(1.0)
                 driver.execute_script("window.scrollTo(0, 0);")
-            except Exception as e:
+            except (WebDriverException, JavascriptException) as e:
                 logger.debug(f"Error en scroll de hidratación: {e}")
 
             # ESPERA ACTIVA DE HIDRATACIÓN TRAS DESAFÍO
@@ -515,7 +522,7 @@ def consultar_urls_secuenciales(
             if i < len(urls):
                 pausa_humana(3.0, 5.0)
 
-    except Exception as e:
+    except (WebDriverException, TimeoutException, OSError) as e:
         logger.error(f"Error durante la ejecución del navegador: {e}")
         resumen.registrar_error_red("navegador", e)
     finally:

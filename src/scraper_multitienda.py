@@ -14,6 +14,7 @@ y descarta mercancía, alimentos, mezcladores, latas RTD y miniaturas (< 650 ml)
 import json
 import os
 import time
+import urllib.error
 import urllib.parse
 from datetime import datetime
 
@@ -392,7 +393,16 @@ def scrapear_chedraui() -> list[dict]:
                 if len(data) < 50:
                     break
                 time.sleep(0.3)
-            except Exception as e:
+            except (
+                urllib.error.URLError,
+                urllib.error.HTTPError,
+                TimeoutError,
+                ConnectionError,
+                json.JSONDecodeError,
+                OSError,
+                KeyError,
+                ValueError,
+            ) as e:
                 resumen.registrar_error_red(url, e)
                 logger.warning(f"Aviso Chedraui '{t}': {e}")
                 break
@@ -485,7 +495,16 @@ def scrapear_nextjs_walmart_platform(tienda: str, base_domain: str, terminos: li
                         resumen.registrar_descarte("filtro categoría o volumen")
             logger.info(f"  -> '{t}': +{nuevos_q} productos (Acumulado {tienda}: {len(resultados)})")
             time.sleep(0.8)
-        except Exception as e:
+        except (
+            urllib.error.URLError,
+            urllib.error.HTTPError,
+            TimeoutError,
+            ConnectionError,
+            json.JSONDecodeError,
+            OSError,
+            KeyError,
+            ValueError,
+        ) as e:
             resumen.registrar_error_red(url, e)
             logger.warning(f"[{tienda} '{t}']: {e}")
             time.sleep(1.0)
@@ -598,7 +617,15 @@ def scrapear_soriana() -> list[dict]:
                     resumen.registrar_descarte("criterio exclusión o volumen")
             logger.info(f"  -> '{t}': +{nuevos_q} productos (Acumulado Soriana: {len(resultados)})")
             time.sleep(0.5)
-        except Exception as e:
+        except (
+            urllib.error.URLError,
+            urllib.error.HTTPError,
+            TimeoutError,
+            ConnectionError,
+            OSError,
+            KeyError,
+            ValueError,
+        ) as e:
             resumen.registrar_error_red(url, e)
             logger.warning(f"[Soriana '{t}']: {e}")
 
