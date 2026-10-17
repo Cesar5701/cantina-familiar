@@ -8,6 +8,7 @@ hallazgos H1 y H2 de la auditoría técnica.
 Funciones públicas:
 - extraer_ml(nombre, ml_defecto=750) -> int
 - corregir_ml_producto(nombre, ml_actual=750) -> int
+- normalizar_medidas_en_nombre(nombre: str) -> str
 - limpiar_precio(val) -> float | None
 - clasificar_agave_mezcal(nombre) -> str
 - clasificar_estricto(row_o_nombre, categoria=None) -> tuple[str, str, str]
@@ -254,6 +255,31 @@ def extraer_ml(nombre: str, ml_defecto: int = 750) -> int:
 def corregir_ml_producto(nombre: str, ml_actual: int = 750) -> int:
     """Alias compatible para corregir_ml_producto."""
     return extraer_ml(nombre, ml_defecto=ml_actual)
+
+
+def normalizar_medidas_en_nombre(nombre: str) -> str:
+    """
+    Separa y unifica el espaciado/unidad de las medidas (ml y L) dentro de un
+    nombre de producto. Convierte <1000 ml a 'ml' y >=1000 ml a 'L'.
+    Idempotente. No suma volúmenes de medidas múltiples.
+    """
+    if not nombre:
+        return nombre
+    U_ML = r"mililitros|mililitro|mls|ml|cc"
+    U_L = r"litros|litro|lts|lt|l"
+    patron = re.compile(rf"(?P<num>\d+(?:[.,]\d+)?)\s*(?P<u>{U_ML}|{U_L})\b", re.IGNORECASE)
+
+    def _repl(m):
+        num = m.group("num").replace(",", ".")
+        u = m.group("u").lower()
+        ml = float(num) * 1000.0 if u in {"l", "lt", "lts", "litro", "litros"} else float(num)
+        if ml >= 1000:
+            texto = f"{ml / 1000:.3f}".rstrip("0").rstrip(".")
+            return f"{texto} L"
+        return f"{int(ml)} ml" if ml == int(ml) else f"{ml} ml"
+
+    resultado = patron.sub(_repl, str(nombre))
+    return re.sub(r"\s+", " ", resultado).strip()
 
 
 # ---------------------------------------------------------------------------

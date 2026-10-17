@@ -16,6 +16,7 @@ from src.clasificacion import (
     corregir_ml_producto,
     extraer_ml,
     limpiar_precio,
+    normalizar_medidas_en_nombre,
 )
 
 # ---------------------------------------------------------------------------
@@ -229,3 +230,55 @@ def test_clasificar_categoria_compatibilidad():
     cat, sub = clasificar_categoria("Vino Tinto Carlo Rossi 4L")
     assert cat == "Vino"
     assert sub == "Tinto Clericot"
+
+
+# ---------------------------------------------------------------------------
+# Pruebas de normalización de medidas en nombres de producto (Fase 1)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "entrada,esperado",
+    [
+        ("Tequila X 700ml", "Tequila X 700 ml"),
+        ("Tequila X 700 ml", "Tequila X 700 ml"),
+        ("Mezcal Y 750ML", "Mezcal Y 750 ml"),
+        ("Whisky Z 1.75L", "Whisky Z 1.75 L"),
+        ("Whisky Z 1.75 lt", "Whisky Z 1.75 L"),
+        ("Whisky Z 1.75 litros", "Whisky Z 1.75 L"),
+        ("Vino W 1.5 l", "Vino W 1.5 L"),
+        ("Garrafa 4L", "Garrafa 4 L"),
+        ("Garrafa 5 litros", "Garrafa 5 L"),
+        ("Tetra 946ml", "Tetra 946 ml"),
+        ("Tetra 999 ml", "Tetra 999 ml"),
+        ("Botella 1000ml", "Botella 1 L"),
+        ("Pack 1500 ml", "Pack 1.5 L"),
+        ("Medida 0.75L", "Medida 750 ml"),
+        ("Medida 187.5 ml", "Medida 187.5 ml"),
+        ("Mezcal J 750 ml C/Reposado 375ml", "Mezcal J 750 ml C/Reposado 375 ml"),
+        ("Tequila 1800 Añejo", "Tequila 1800 Añejo"),
+        ("Siete Leguas", "Siete Leguas"),
+        ("Tequila 100% Agave", "Tequila 100% Agave"),
+    ],
+)
+def test_normalizar_medidas_en_nombre(entrada, esperado):
+    """Valida la matriz completa de normalización de medidas en nombres de producto (Fase 1)."""
+    assert normalizar_medidas_en_nombre(entrada) == esperado
+
+
+def test_normalizar_medidas_en_nombre_idempotencia():
+    """Valida que aplicar la normalización dos veces arroje el mismo resultado (idempotente)."""
+    muestras = [
+        "Tequila X 700ml",
+        "Whisky Z 1.75 lt",
+        "Botella 1000ml",
+        "Medida 0.75L",
+        "Mezcal J 750 ml C/Reposado 375ml",
+        "Tequila 1800 Añejo",
+        "Pack 1500 ml",
+        "Vino W 1.5 l",
+    ]
+    for m in muestras:
+        una_vez = normalizar_medidas_en_nombre(m)
+        dos_veces = normalizar_medidas_en_nombre(una_vez)
+        assert dos_veces == una_vez

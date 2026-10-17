@@ -35,7 +35,11 @@ from src.logger import get_logger
 logger = get_logger("actualizador")
 
 
-from src.clasificacion import clasificar_estricto, corregir_ml_producto
+from src.clasificacion import (
+    clasificar_estricto,
+    corregir_ml_producto,
+    normalizar_medidas_en_nombre,
+)
 
 
 def actualizar_todo(archivos_fuente: list[str] | None = None, carpeta_salida: str = "data") -> list[dict]:
@@ -60,6 +64,9 @@ def actualizar_todo(archivos_fuente: list[str] | None = None, carpeta_salida: st
         return []
 
     df = pd.concat(dfs, ignore_index=True)
+
+    # Normalizar medidas en los nombres de producto (Fase 1)
+    df["producto"] = df["producto"].map(normalizar_medidas_en_nombre)
 
     # Limpiar artículos que sean latas RTD, cajas mayoristas o miniaturas (< 650 ml)
     df["ml"] = [corregir_ml_producto(row["producto"], row["ml"]) for _, row in df.iterrows()]

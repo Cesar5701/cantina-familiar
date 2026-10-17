@@ -80,8 +80,8 @@ def generar_dashboard(
 
     html_final = renderizar_plantilla(template_content, datos_json_str)
 
-    # Definir destinos de salida por defecto (solo index.html, autocontenido y publicado)
-    destinos = [Path(p) for p in output_paths] if output_paths is not None else [INDEX_HTML_PATH]
+    # Definir destinos de salida por defecto
+    destinos = [Path(p) for p in output_paths] if output_paths is not None else [LOCAL_HTML_PATH, INDEX_HTML_PATH]
 
     # Ruta opcional de artefactos de entorno asistido
     artifact_dir = os.environ.get("ANTIGRAVITY_ARTIFACT_DIR")
