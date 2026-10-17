@@ -2060,6 +2060,24 @@
       actualizarEstadoOrden();
     }
 
+    const PREFIJOS_CATEGORIA = [
+      "licor de whisky", "licor de wisky", "tequila", "mezcal",
+      "whisky", "whiskey", "vino", "licor", "ron", "cerveza",
+      "brandy", "vodka", "ginebra"
+    ];
+
+    function nombreSinCategoria(item) {
+      let nombre = (item.producto || "").trim();
+      const lower = nombre.toLowerCase();
+      for (const pref of PREFIJOS_CATEGORIA) {
+        if (lower.startsWith(pref)) {
+          nombre = nombre.slice(pref.length).trim();
+          break;
+        }
+      }
+      return nombre || item.producto || "";
+    }
+
     function renderizarTabla() {
       const tbody = document.getElementById("tabla-productos-body");
       tbody.innerHTML = "";
@@ -2112,12 +2130,11 @@
             <a href="${item.url}" target="_blank" rel="noopener noreferrer"
                class="hover:underline text-[#1F1B16] hover:text-[#784516] flex items-center gap-1 group font-semibold"
                title="Ver ${item.producto} en tienda oficial ${item.tienda}">
-              <span class="line-clamp-1">${item.producto}</span>
+              <span class="line-clamp-1">${nombreSinCategoria(item)}</span>
               <span class="text-[10px] text-[#8A7B6B] group-hover:text-[#784516] flex-shrink-0">↗</span>
             </a>
-            <div class="text-xs text-[#574A3D] flex items-center gap-1.5 mt-0.5">
-              <span>${item.marca}</span>
-              <span class="sm:hidden">· ${item.ml}ml</span>
+            <div class="text-xs text-[#574A3D] flex items-center gap-1.5 mt-0.5 sm:hidden">
+              <span>· ${item.ml} ml</span>
             </div>
             ${crossBadge}
           </td>
@@ -2130,16 +2147,9 @@
           <td class="p-3.5 hidden lg:table-cell">${ahorroBadge}</td>
           <td class="p-3.5">${tiendaBadge}</td>
           <td class="p-3.5 text-center">
-            <div class="flex items-center justify-center gap-1.5">
-              <button onclick="agregarDesdeTabla(${originalIndex})" class="px-3 py-1.5 text-xs md3-btn-tonal cursor-pointer whitespace-nowrap">
-                + Carrito
-              </button>
-              <a href="${item.url}" target="_blank" rel="noopener noreferrer"
-                 class="w-7 h-7 rounded-full border border-[#D6C8B8] hover:bg-[#EFE8DC] text-[#784516] inline-flex items-center justify-center transition-colors text-xs"
-                 title="Abrir ${item.producto} en ${item.tienda}">
-                ↗
-              </a>
-            </div>
+            <button onclick="agregarDesdeTabla(${originalIndex})" class="px-3 py-1.5 text-xs md3-btn-tonal cursor-pointer whitespace-nowrap">
+              + Carrito
+            </button>
           </td>
         `;
         tbody.appendChild(tr);

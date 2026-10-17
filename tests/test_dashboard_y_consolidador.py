@@ -179,3 +179,22 @@ def test_fase2_botones_orden_template():
     assert "CLASE_ORDEN_ACTIVO" in contenido
     assert "CLASE_ORDEN_INACTIVO" in contenido
     assert "orden-flecha" in contenido
+
+
+def test_fase3_sin_redundancias_template():
+    """Valida la eliminación de redundancias de categoría y enlaces duplicados (Fase 3 - Opción A)."""
+    tpl_path = Path("src/templates/dashboard_template.html")
+    assert tpl_path.exists()
+    contenido = tpl_path.read_text(encoding="utf-8")
+
+    # Helper para quitar prefijo de categoría y lista de prefijos
+    assert "const PREFIJOS_CATEGORIA =" in contenido
+    assert "function nombreSinCategoria(item)" in contenido
+
+    # Nombre visible usa el helper
+    assert "${nombreSinCategoria(item)}" in contenido
+
+    # Columna acción solo contiene el botón + Carrito (sin el enlace ↗ duplicado)
+    assert '<button onclick="agregarDesdeTabla(${originalIndex})"' in contenido
+    # No debe haber enlace duplicado de acción dentro de la celda de acción
+    assert 'title="Abrir ${item.producto} en ${item.tienda}"' not in contenido
