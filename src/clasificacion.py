@@ -14,6 +14,8 @@ Funciones públicas:
 - clasificar_estricto(row_o_nombre, categoria=None) -> tuple[str, str, str]
 - clasificar_categoria(nombre) -> tuple[str, str]
 - detectar_categoria_base(nombre) -> str
+- es_mercancia_o_no_bebible(nombre, ml=None) -> bool
+- generar_etiqueta_condicion(nombre, precio_regular, precio_promo) -> str
 """
 
 import re
@@ -44,6 +46,8 @@ KEYWORDS_SILVESTRES = [
     "silvestre",
     "salmiana",
     "cenizo",
+    "salvaje",
+    "mexicano",
 ]
 
 KEYWORDS_BLENDED_WHISKY = [
@@ -94,18 +98,29 @@ PALABRAS_EXCLUIDAS = [
     "helado",
     "paleta",
     "gomita",
-    "dulce",
-    "vaso",
-    "copa",
-    "caballito",
+    "dulce de ",
+    "dulces ",
+    "set de vasos",
+    "juego de vasos",
+    "vasos tequileros",
+    "vaso tequilero",
+    "vaso tubo",
+    "set de copas",
+    "juego de copas",
+    "copas para vino",
+    "copa para vino",
+    "copas de vino",
+    "copa de vino",
+    "caballitos tequileros",
     "decantador",
     "licorera",
     "sacacorchos",
     "destapador",
     "hielera",
     "bolsa de regalo",
-    "sal de ",
-    "sal con ",
+    "sal de gusano",
+    "sal con chapulin",
+    "sal con chapulín",
     "sangrita",
     "mezclador",
     "agua quina",
@@ -341,8 +356,14 @@ def clasificar_agave_mezcal(nombre: str) -> str:
     Identifica la especie de agave o ensamble para mezcales según la NOM-070.
     """
     nom_l = str(nombre).lower()
+    if "cosecha salvaje" in nom_l:
+        return "Ensamble Silvestre Tobalá-Mexicano (A. potatorum / A. rhodacantha)"
+    if "mexicano" in nom_l and ("tobalá" in nom_l or "tobala" in nom_l):
+        return "Ensamble Silvestre Tobalá-Mexicano (A. potatorum / A. rhodacantha)"
     if "espadín" in nom_l and ("tobalá" in nom_l or "tobala" in nom_l):
         return "Ensamble Espadín-Tobalá"
+    if "mexicano" in nom_l:
+        return "Mexicano silvestre (A. rhodacantha)"
     if "cuishe" in nom_l or "cuixe" in nom_l:
         return "Cuishe silvestre (A. karwinskii)"
     if "tobalá" in nom_l or "tobala" in nom_l:
@@ -544,3 +565,122 @@ def clasificar_categoria(nombre: str) -> Tuple[str, str]:
     cat_base = detectar_categoria_base(nombre)
     _, subcat, _ = clasificar_estricto(nombre, cat_base)
     return cat_base, subcat
+
+
+def es_mercancia_o_no_bebible(nombre: str, ml: Optional[int] = None) -> bool:
+    """
+    Identifica si un producto es mercancía física (vasos, copas, playeras, hieleras),
+    alimentos ajenos (sal sola, chocolates, vinagres) o presentaciones no bebibles.
+
+    Distingue y permite combos con botellas completas de licor (ml >= 650) que incluyan
+    artículos de obsequio (ej. '+ 2 Vasos + Sal', 'C/Vaso Balón', 'kit con vasos').
+    """
+    if not nombre:
+        return True
+    nom_l = str(nombre).lower().strip()
+
+    # 1. Artículos que son inherentemente mercancía pura o comida ajena
+    mercancia_pura = [
+        "playera",
+        "gorra",
+        "hielera",
+        "estuche vacío",
+        "sacacorchos",
+        "destapador",
+        "decantador",
+        "licorera",
+        "lata 180",
+        "chocolate",
+        "bombón",
+        "bombon",
+        "pastel",
+        "galleta",
+        "gomita",
+        "dulce de ",
+        "dulces ",
+        "carne",
+        "queso",
+        "jamon",
+        "jamón",
+        "chorizo",
+        "salchicha",
+        "aderezo",
+        "aceite",
+        "mostaza",
+        "mermelada",
+        "vinagre",
+        "salsa tabasco",
+        "salsa inglesa",
+    ]
+    if any(m in nom_l for m in mercancia_pura):
+        return True
+
+    # 2. Artículos que inician directamente como cristalería o botanas/sales sueltas
+    prefijos_cristaleria = (
+        "vaso ",
+        "vasos ",
+        "copa ",
+        "copas ",
+        "caballito ",
+        "caballitos ",
+        "tarro ",
+        "tarros ",
+        "set de ",
+        "juego de ",
+        "sal de ",
+        "sal con ",
+        "papas ",
+    )
+    if nom_l.startswith(prefijos_cristaleria):
+        return True
+
+    # 3. Detectar si contiene palabras de cristalería o accesorios en el cuerpo del nombre
+    es_cristaleria_o_combo = any(
+        w in nom_l for w in ["vaso", "copa", "caballito", "sal de ", "sal con ", "termo", "porta vaso"]
+    )
+    if es_cristaleria_o_combo:
+        vol = ml if ml is not None else extraer_ml(nombre)
+        tiene_categoria_licor = any(cat in nom_l for cat in ["tequila", "mezcal", "whisky", "whiskey", "vino"]) or any(
+            k in nom_l for k in KEYWORDS_BLENDED_WHISKY
+        )
+        if vol >= 650 and tiene_categoria_licor:
+            return False
+        return True
+
+    return False
+
+
+def generar_etiqueta_condicion(nombre: str, precio_regular: float, precio_promo: float) -> str:
+    """
+    Genera la descripción de condiciones comerciales detectando si el producto
+    incluye accesorios u obsequios (vasos, copas, sal, kits promocionales).
+    """
+    nom_l = str(nombre).lower()
+    es_promo_precio = precio_regular > precio_promo
+
+    # Detectar obsequios en el empaque
+    detalles = []
+    if "vaso" in nom_l:
+        m_v = re.search(r"(\d+)\s*vasos?", nom_l)
+        detalles.append(f"{m_v.group(1)} Vasos" if m_v else ("Vasos" if "vasos" in nom_l else "Vaso"))
+    if "copa" in nom_l:
+        m_c = re.search(r"(\d+)\s*copas?", nom_l)
+        detalles.append(f"{m_c.group(1)} Copas" if m_c else ("Copas" if "copas" in nom_l else "Copa"))
+    if "sal" in nom_l and any(k in nom_l for k in ["+ sal", "c/sal", "con sal", "y sal"]):
+        detalles.append("Sal")
+    if "kit" in nom_l:
+        detalles.append("Kit mezcalero" if "mezcal" in nom_l else "Kit coctelería")
+    if "termo" in nom_l:
+        detalles.append("Termo")
+    if "porta vaso" in nom_l or "portavaso" in nom_l:
+        detalles.append("Portavasos")
+
+    if detalles:
+        obs_str = " + ".join(detalles)
+        if es_promo_precio:
+            return f"Descuento Web + 🎁 Obsequio ({obs_str})"
+        return f"🎁 Edición con obsequio ({obs_str})"
+
+    if es_promo_precio:
+        return "Descuento directo Aniversario Web"
+    return "Precio regular catálogo"

@@ -25,6 +25,7 @@ from src.clasificacion import (
     PALABRAS_EXCLUIDAS,
     clasificar_agave_mezcal,
     clasificar_estricto,
+    es_mercancia_o_no_bebible,
     extraer_ml,
     limpiar_precio,
 )
@@ -55,7 +56,14 @@ def evaluar_y_normalizar_producto(
         return None
     nom_l = nombre.lower()
 
-    # 1. Descartar artículos no deseados (alimentos, vasos, latas RTD, mezcladores)
+    ml = extraer_ml(nombre)
+    # Solo botellas de tamaño estándar o familiar (>= 650 ml)
+    if ml < 650:
+        return None
+
+    # 1. Descartar artículos no deseados (mercancía física, no bebibles, latas RTD, mezcladores)
+    if es_mercancia_o_no_bebible(nombre, ml):
+        return None
     if any(excl in nom_l for excl in PALABRAS_EXCLUIDAS):
         return None
 
@@ -63,11 +71,6 @@ def evaluar_y_normalizar_producto(
         return None
     if precio_regular is None or precio_regular < precio_promo:
         precio_regular = precio_promo
-
-    ml = extraer_ml(nombre)
-    # Solo botellas de tamaño estándar o familiar (>= 650 ml)
-    if ml < 650:
-        return None
 
     if not marca or marca.lower() in ["desconocida", "sin marca", "null", "none"]:
         palabras = [

@@ -14,7 +14,9 @@ from src.clasificacion import (
     clasificar_categoria,
     clasificar_estricto,
     corregir_ml_producto,
+    es_mercancia_o_no_bebible,
     extraer_ml,
+    generar_etiqueta_condicion,
     limpiar_precio,
     normalizar_medidas_en_nombre,
 )
@@ -97,6 +99,19 @@ def test_limpiar_precio(entrada, esperado):
     "nombre,esperado",
     [
         ("Mezcal 400 Conejos Tobalá 750 ml", "Tobalá silvestre (A. potatorum)"),
+        (
+            "Mezcal 400 Conejos Joven 100% Cosecha Salvaje 700 ml",
+            "Ensamble Silvestre Tobalá-Mexicano (A. potatorum / A. rhodacantha)",
+        ),
+        (
+            "Mezcal 400 Conejos Joven 100% Cosecha Salvaje 700 ml + 2 Vasos + Sal",
+            "Ensamble Silvestre Tobalá-Mexicano (A. potatorum / A. rhodacantha)",
+        ),
+        (
+            "Mezcal 400 Conejos Cosecha Salvaje Tobala 700 ml",
+            "Ensamble Silvestre Tobalá-Mexicano (A. potatorum / A. rhodacantha)",
+        ),
+        ("Mezcal Amores Mexicano 750 ml", "Mexicano silvestre (A. rhodacantha)"),
         ("Mezcal Amarás Cupreata 750 ml", "Cupreata silvestre (A. cupreata)"),
         ("Mezcal Creyente Cuishe 750 ml", "Cuishe silvestre (A. karwinskii)"),
         ("Mezcal Alipús San Andrés Cuixe 750 ml", "Cuishe silvestre (A. karwinskii)"),
@@ -162,6 +177,25 @@ def test_clasificacion_estricta_tequila():
 def test_clasificacion_estricta_mezcal():
     # Silvestres
     cat, sub, cla = clasificar_estricto("Mezcal 400 Conejos Tobalá 750 ml", "Mezcal")
+    assert cat == "Mezcal - Silvestre"
+    assert sub == "Silvestre"
+
+    # Cosecha Salvaje (100% Silvestre bajo NOM-070)
+    cat, sub, cla = clasificar_estricto("Mezcal 400 Conejos Joven 100% Cosecha Salvaje 700 ml", "Mezcal")
+    assert cat == "Mezcal - Silvestre"
+    assert sub == "Silvestre"
+    assert cla == "Joven Silvestre"
+
+    # Cosecha Salvaje combo promocional con vasos y sal
+    cat, sub, cla = clasificar_estricto(
+        "Mezcal 400 Conejos Joven 100% Cosecha Salvaje 700 ml + 2 Vasos + Sal", "Mezcal"
+    )
+    assert cat == "Mezcal - Silvestre"
+    assert sub == "Silvestre"
+    assert cla == "Joven Silvestre"
+
+    # Mexicano silvestre
+    cat, sub, cla = clasificar_estricto("Mezcal Amores Mexicano 750 ml", "Mezcal")
     assert cat == "Mezcal - Silvestre"
     assert sub == "Silvestre"
 
@@ -294,3 +328,60 @@ def test_normalizar_medidas_en_nombre_idempotencia():
         una_vez = normalizar_medidas_en_nombre(m)
         dos_veces = normalizar_medidas_en_nombre(una_vez)
         assert dos_veces == una_vez
+
+
+# ---------------------------------------------------------------------------
+# Pruebas de discriminación de mercancía vs combos con obsequio
+# ---------------------------------------------------------------------------
+
+
+def test_es_mercancia_o_no_bebible():
+    # Artículos que deben descartarse como mercancía / cristalería pura / comida
+    descartados = [
+        "Vaso Alianza Carat 280ml (2pz)",
+        "Copa Cristalex Lara (6Pzs-450 ml)",
+        "Copa Stolzle Burgundy 710 ml Set de 6 Piezas",
+        "Vaso Tubo Baraima 6 pz",
+        "Sal de gusano 50g",
+        "Juego de 6 vasos tequileros",
+        "Set de 4 copas de vino tinto",
+        "Playera oficial Don Julio",
+        "Hielera Corona acero inoxidable",
+        "Chocolate Ferrero Rocher",
+        "Papas Alianza C/Sal 195 g",
+    ]
+    for item in descartados:
+        assert es_mercancia_o_no_bebible(item) is True, f"Debería descartarse como mercancía: {item}"
+
+    # Combos legítimos con botella completa (ml >= 650) que NO deben descartarse
+    admitidos = [
+        "Mezcal 400 Conejos Joven 100% Cosecha Salvaje 700 ml + 2 Vasos + Sal",
+        "Whisky Label 5 700 ml C/Vaso",
+        "Whisky Johnnie Walker Black 750 ml C/Vaso Balón",
+        "Whisky Buchanans 750 ml + Termo Tumbler Edición Limitada",
+        "Mezcal Mitre Artesanal Joven 750ml kit mezcalero",
+        "Vino Tinto Dulce Tres Coronas 750 ml",
+        "Tequila Don Ramón Platinium Añejo Cristalino 700 ml con 2 copas",
+    ]
+    for item in admitidos:
+        assert es_mercancia_o_no_bebible(item) is False, f"NO debería descartarse: {item}"
+
+
+def test_generar_etiqueta_condicion():
+    # Combo con 2 vasos y sal sin descuento de precio
+    cond1 = generar_etiqueta_condicion(
+        "Mezcal 400 Conejos Joven 100% Cosecha Salvaje 700 ml + 2 Vasos + Sal", 849.0, 849.0
+    )
+    assert cond1 == "🎁 Edición con obsequio (2 Vasos + Sal)"
+
+    # Combo con vaso con descuento web
+    cond2 = generar_etiqueta_condicion("Whisky Label 5 700 ml C/Vaso", 250.0, 200.0)
+    assert cond2 == "Descuento Web + 🎁 Obsequio (Vaso)"
+
+    # Botella normal sin obsequio ni descuento
+    cond3 = generar_etiqueta_condicion("Mezcal 400 Conejos Joven 100% Cosecha Salvaje 700 ml", 849.0, 849.0)
+    assert cond3 == "Precio regular catálogo"
+
+    # Botella normal con descuento
+    cond4 = generar_etiqueta_condicion("Mezcal 400 Conejos Joven 100% Cosecha Salvaje 700 ml", 900.0, 849.0)
+    assert cond4 == "Descuento directo Aniversario Web"

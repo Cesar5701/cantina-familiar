@@ -23,7 +23,14 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from src.clasificacion import KEYWORDS_BLENDED_WHISKY, KEYWORDS_SILVESTRES, clasificar_agave_mezcal, extraer_ml
+from src.clasificacion import (
+    KEYWORDS_BLENDED_WHISKY,
+    KEYWORDS_SILVESTRES,
+    clasificar_agave_mezcal,
+    es_mercancia_o_no_bebible,
+    extraer_ml,
+    generar_etiqueta_condicion,
+)
 from src.http_utils import HEADERS_BOT, descargar_json_con_reintentos
 from src.io_utils import ResumenScraping, guardar_csv_atomico
 from src.logger import get_logger
@@ -105,11 +112,10 @@ def procesar_catalogo_completo() -> list[dict]:
         link = p.get("link", "")
         nom_l = nombre.lower()
 
-        # Descartar artículos no bebibles o mercancía
-        if any(
-            ign in nom_l
-            for ign in ["chocolate", "lata 180", "vaso", "termo", "estuche vacío", "hielera", "playera", "gorra"]
-        ):
+        ml = extraer_ml(nombre)
+
+        # Descartar artículos no bebibles o mercancía (permitiendo botellas completas ml >= 650 con obsequios)
+        if es_mercancia_o_no_bebible(nombre, ml):
             resumen.registrar_descarte("mercancia")
             continue
 
@@ -127,10 +133,7 @@ def procesar_catalogo_completo() -> list[dict]:
             resumen.registrar_descarte("precio invalido")
             continue
 
-        ml = extraer_ml(nombre)
-        condicion = (
-            "Descuento directo Aniversario Web" if (precio_regular > precio_promo) else "Precio regular catálogo"
-        )
+        condicion = generar_etiqueta_condicion(nombre, float(precio_regular), float(precio_promo))
 
         # -------------------------------------------------------------
         # 1. TEQUILA: Solo Cristalino, Añejo, Añejo Cristalino
