@@ -10,7 +10,11 @@ Herramienta de optimización y auditoría de precios para compras familiares de 
 Cantina Familiar/
 ├── data/
 │   ├── plantilla_bebidas.csv       # Esquema oficial con columnas obligatorias y ejemplos
-│   ├── bebidas_verificadas.csv     # Dataset auditado con precios de Alianza, Sam's, etc.
+│   ├── bebidas_verificadas.csv     # Dataset auditado con 32 etiquetas confirmadas
+│   ├── scraped_*.csv               # Catálogos fuente por tienda (Alianza, Chedraui, Sam's, Soriana, Walmart)
+│   ├── catalogo_completo_consolidado.csv # Catálogo unificado y normalizado (1,004 registros)
+│   ├── ranking_completo_general.csv# Ranking filtrado libre de outliers de lujo (866 registros)
+│   ├── dashboard_data.json         # JSON optimizado para el dashboard interactivo (775 registros)
 │   └── reporte_ranking.csv         # Salida generada con métricas por litro y rankings
 ├── docs/
 │   └── politica_scraping.md        # Política de Scraping Ético y Gobernanza de Datos (H17)
@@ -22,19 +26,23 @@ Cantina Familiar/
 │   ├── http_utils.py               # Cliente HTTP resiliente con reintentos exponenciales y jitter (H20)
 │   ├── io_utils.py                 # Guardado atómico de CSV/JSON y métricas de scraping (H10)
 │   ├── logger.py                   # Sistema centralizado de logging con consola y archivo rotativo (H19)
-│   ├── scraper_alianza.py          # Scraper API pública VTEX de Bodegas Alianza
+│   ├── scraper_alianza.py          # Scraper API pública VTEX de Bodegas Alianza por término
 │   ├── scraper_catalogo_completo.py# Scraper exhaustivo paginado para Bodegas Alianza
 │   ├── scraper_multitienda.py      # Scraper multitienda (Sam's Club, Walmart, Chedraui, Soriana)
-│   ├── scraper_selenium.py         # Scraper SPA asistido (Human-in-the-Loop)
+│   ├── scraper_selenium.py         # Scraper SPA asistido (Human-in-the-Loop para retos WAF)
 │   ├── analizador.py               # Motor de análisis en pandas (auditoría, métricas, rankings, cross-tienda)
 │   ├── actualizar_dashboard_completo.py # Pipeline de consolidación, validación de esquema y cross-tienda
-│   └── generar_dashboard_v4.py     # Generador de dashboard BI (Material 3 Expressive)
+│   ├── generar_dashboard_v4.py     # Generador de dashboard BI (Material 3 Expressive)
+│   └── templates/
+│       └── dashboard_template.html # Plantilla HTML+CSS+JS reactiva del dashboard
 ├── tests/
 │   ├── __init__.py
-│   ├── test_analizador.py          # Pruebas de métricas, rankings y deduplicación (15 pruebas)
-│   ├── test_clasificacion.py       # Pruebas de clasificación NOM y extracción de volumen (50 pruebas)
+│   ├── conftest.py                 # Fixtures y generadores de DataFrames sintéticos
+│   ├── test_analizador.py          # Pruebas de métricas, rankings y deduplicación (17 pruebas)
+│   ├── test_clasificacion.py       # Pruebas de clasificación NOM y extracción de volumen (53 pruebas)
+│   ├── test_dashboard_y_consolidador.py # Pruebas del generador y consolidador maestro (8 pruebas)
 │   ├── test_sprint2.py             # Pruebas de comparativas cross-tienda, esquema y guardado atómico (11 pruebas)
-│   └── test_sprint3.py             # Pruebas de HTTP backoff, mocks VTEX/NextJS/SFCC y logger (9 pruebas)
+│   └── test_sprint3.py             # Pruebas de HTTP backoff, mocks VTEX/NextJS/SFCC y logger (11 pruebas)
 ├── pyproject.toml                  # Empaquetado estándar pip, metadatos y configuración de herramientas (H13)
 ├── requirements.txt                # Dependencias base con cotas de versión fijadas
 ├── requirements-dev.txt            # Dependencias de desarrollo y testing (pytest, ruff)
@@ -89,7 +97,7 @@ python src/generar_dashboard_v4.py
 ```
 
 ### 2. Ejecutar la Suite de Pruebas Unitarias
-El proyecto cuenta con **85 pruebas automatizadas** que cubren clasificación NOM, normalización de multipacks (`Pack 6`, `Pack x 3`, etc.), métricas por litro, exclusión de nulos, detección de arbitraje cross-tienda, validación de esquema, escritura atómica, cliente HTTP con backoff y parseo con mocks:
+El proyecto cuenta con **119 pruebas automatizadas** que cubren clasificación NOM, normalización de multipacks (`Pack 6`, `Pack x 3`, `(8 Bot)`, etc.), normalización de medidas (`ml` y `L`), métricas por litro, exclusión de nulos y outliers de lujo, arbitraje cross-tienda, validación de esquema, escritura atómica, cliente HTTP con backoff y parseo con mocks:
 
 ```bash
 pytest -v
