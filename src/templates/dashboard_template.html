@@ -443,7 +443,12 @@
             <h3 class="font-bold text-base sm:text-lg font-display-md3 text-[#1F1B16]">Catálogo General Normalizado</h3>
             <p class="text-xs text-[#574A3D]">Pulsa <strong>+ Carrito</strong> para sumar cualquier botella a tu cuenta</p>
           </div>
-          <div class="flex items-center gap-2 text-xs">
+          <div class="flex flex-wrap items-center gap-2 text-xs">
+            <label class="flex items-center gap-1.5 text-xs text-[#1F1B16] cursor-pointer px-3 py-1.5 rounded-full bg-white border border-[#D6C8B8] hover:bg-[#EFE8DC] transition-colors select-none min-h-[36px]" title="Mostrar únicamente la opción más barata por cada producto (oculta ofertas repetidas de tiendas más caras)">
+              <input type="checkbox" id="filtro-mejor-precio" onchange="aplicarFiltros()" checked class="w-4 h-4 rounded accent-[#486355]">
+              <span class="font-semibold text-[#0B2016]">⭐ Solo mejor precio</span>
+            </label>
+            <div class="h-4 w-px bg-[#DFD5C7] hidden sm:block"></div>
             <span class="text-[#574A3D] font-medium">Ordenar:</span>
             <button data-orden="precio_por_litro" onclick="ordenarPor('precio_por_litro')"
                     class="px-3 py-1.5 rounded-full font-semibold text-xs transition-colors cursor-pointer min-h-[36px]">
@@ -2003,6 +2008,23 @@
       const tienda = document.getElementById("filtro-tienda").value;
       const soloDesc = document.getElementById("filtro-descuento").checked;
       const soloCross = document.getElementById("filtro-cross-tienda") ? document.getElementById("filtro-cross-tienda").checked : false;
+      const chkMejor = document.getElementById("filtro-mejor-precio");
+      const soloMejor = chkMejor ? chkMejor.checked : true;
+
+      // Actualizar estado visual y disponibilidad del toggle según la tienda seleccionada
+      if (chkMejor) {
+        if (tienda !== "Todas") {
+          chkMejor.disabled = true;
+          chkMejor.parentElement.classList.add("opacity-50", "cursor-not-allowed");
+          chkMejor.parentElement.classList.remove("hover:bg-[#EFE8DC]", "cursor-pointer");
+          chkMejor.parentElement.title = "Filtro activo solo al ver Todas las Tiendas";
+        } else {
+          chkMejor.disabled = false;
+          chkMejor.parentElement.classList.remove("opacity-50", "cursor-not-allowed");
+          chkMejor.parentElement.classList.add("hover:bg-[#EFE8DC]", "cursor-pointer");
+          chkMejor.parentElement.title = "Mostrar únicamente la opción más barata por cada producto (oculta ofertas repetidas de tiendas más caras)";
+        }
+      }
 
       datosFiltrados = DATOS_COMPLETOS.filter(item => {
         const matchBusq = !busq || item.producto.toLowerCase().includes(busq) || item.marca.toLowerCase().includes(busq);
@@ -2013,6 +2035,18 @@
         const matchCross = !soloCross || (item.es_comparable_cross_tienda === true);
         return matchBusq && matchMacro && matchSub && matchTienda && matchDesc && matchCross;
       });
+
+      // Si está en 'Todas las Tiendas' y el filtro está activo, mostrar únicamente la mejor oferta por producto
+      if (tienda === "Todas" && soloMejor) {
+        const clavesVistas = new Set();
+        datosFiltrados = datosFiltrados.filter(item => {
+          if (!item.es_precio_mas_bajo) return false;
+          const k = item.clave_comparativa || (item.producto + "_" + item.ml);
+          if (clavesVistas.has(k)) return false;
+          clavesVistas.add(k);
+          return true;
+        });
+      }
 
       datosFiltrados.sort((a, b) => {
         let vA = a[columnaOrden] || 0;

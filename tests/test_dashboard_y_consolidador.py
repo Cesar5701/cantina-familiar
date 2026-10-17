@@ -198,3 +198,22 @@ def test_fase3_sin_redundancias_template():
     assert '<button onclick="agregarDesdeTabla(${originalIndex})"' in contenido
     # No debe haber enlace duplicado de acción dentro de la celda de acción
     assert 'title="Abrir ${item.producto} en ${item.tienda}"' not in contenido
+
+
+def test_toggle_solo_mejor_precio_template():
+    """Valida la presencia del toggle de solo mejor precio y su lógica de deduplicación."""
+    tpl_path = Path("src/templates/dashboard_template.html")
+    assert tpl_path.exists()
+    contenido = tpl_path.read_text(encoding="utf-8")
+
+    # Toggle en el encabezado de catálogo
+    assert 'id="filtro-mejor-precio"' in contenido
+    assert "⭐ Solo mejor precio" in contenido
+
+    # Activo por defecto
+    assert '<input type="checkbox" id="filtro-mejor-precio" onchange="aplicarFiltros()" checked' in contenido
+
+    # Lógica de deduplicación y filtrado por es_precio_mas_bajo en aplicarFiltros
+    assert 'if (tienda === "Todas" && soloMejor)' in contenido
+    assert "if (!item.es_precio_mas_bajo) return false;" in contenido
+    assert "clavesVistas.has(k)" in contenido
