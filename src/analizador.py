@@ -45,7 +45,7 @@ COLUMNAS_OBLIGATORIAS = [
 
 
 def normalizar_texto_clave(texto: str) -> str:
-    """Normaliza un nombre de producto eliminando acentos, puntuación, stop-words y unificando el volumen estándar (650-800 ml) para match cross-tienda (H8 / H35). Preserva el tamaño canónico para formatos no estándar (<650 o >800 ml)."""
+    """Normaliza un nombre de producto eliminando acentos, puntuación, stop-words, prefijos legales/genéricos y unificando el volumen estándar (650-800 ml) para match cross-tienda (H8 / H35). Preserva el tamaño canónico para formatos no estándar (<650 o >800 ml)."""
     if not texto or pd.isnull(texto):
         return ""
 
@@ -54,10 +54,19 @@ def normalizar_texto_clave(texto: str) -> str:
     ml = extraer_ml(s_orig, ml_defecto=750)
 
     s = unicodedata.normalize("NFKD", s_orig).encode("ascii", "ignore").decode("utf-8")
-    # Eliminar especificaciones de volumen en el título (ej. 700 ml, 750ml, 1.75 L, 1 L, 750 mililitros)
+    # 1. Unificar posesivos ingleses eliminando apóstrofes antes de limpiar puntuación (Daniel's / Daniel’s -> Daniels, Buchanan's -> Buchanans)
+    s = re.sub(r"['’`]", "", s)
+    # 2. Eliminar especificaciones de volumen en el título (ej. 700 ml, 750ml, 1.75 L, 1 L, 750 mililitros)
     s = re.sub(r"\b\d+(\.\d+)?\s*(ml|l|litros?|mililitros?)\b", " ", s, flags=re.IGNORECASE)
+    # 3. Unificar variantes ortográficas de bebidas (whiskey/wisky -> whisky, licor de whisky -> whisky)
+    s = re.sub(r"\b(whiskey|wisky)\b", "whisky", s, flags=re.IGNORECASE)
+    s = re.sub(r"\blicor\s+de\s+whisky\b", "whisky", s, flags=re.IGNORECASE)
+    s = re.sub(r"\blicor\s+de\b", " ", s, flags=re.IGNORECASE)
+    # 4. Omitir descriptores regionales/opcionales en marcas reconocidas (ej. Tennessee en Jack Daniel's)
+    s = re.sub(r"\btennessee\b", " ", s, flags=re.IGNORECASE)
+
     s = re.sub(r"[^a-zA-Z0-9\s]", " ", s.lower())
-    stop_words = {"de", "del", "el", "la", "los", "las", "en", "para"}
+    stop_words = {"de", "del", "el", "la", "los", "las", "en", "para", "licor"}
     tokens = [t for t in s.split() if t not in stop_words]
 
     # Blindaje H35: botellas no estándar (<650 ml o >800 ml) conservan su tamaño canónico

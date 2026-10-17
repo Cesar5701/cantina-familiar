@@ -445,6 +445,44 @@ def test_h35_normalizar_texto_clave_distingue_volumen_no_estandar():
     assert clave_200 != clave_750
 
 
+def test_unificacion_honey_cross_tienda():
+    """
+    Valida la unificación de claves cross-tienda para Licor de Whisky - Honey:
+    - Passport Honey (Chedraui vs Walmart).
+    - Jack Daniel's Honey 700 ml (Alianza, Soriana, Chedraui, Walmart).
+    - Jack Daniel's 1 L (Sam's Club) permanece independiente.
+    - Posesivos ingleses con apóstrofes (Buchanan's, Ballantine's, William Lawson's).
+    """
+    # 1. Passport Honey
+    clave_chedraui_p = normalizar_texto_clave("Whisky Passport Honey 700 ml")
+    clave_walmart_p = normalizar_texto_clave("Licor de Whisky Passport Honey 700 ml")
+    assert clave_chedraui_p == clave_walmart_p == "honey passport whisky"
+
+    # 2. Jack Daniel's Honey 700 ml
+    clave_alianza_jd = normalizar_texto_clave("Whiskey Jack Daniel’s Honey Tennessee 700 ml")
+    clave_soriana_jd = normalizar_texto_clave("Whisky Jack Daniels Tennessee Honey 700 ml")
+    clave_chedraui_jd = normalizar_texto_clave("Whisky Jack Daniel's Tennessee Honey 700 ml")
+    clave_walmart_jd = normalizar_texto_clave("Whiskey Jack Daniel's Honey 700 ml")
+
+    assert clave_alianza_jd == clave_soriana_jd == clave_chedraui_jd == clave_walmart_jd == "daniels honey jack whisky"
+
+    # 3. Jack Daniel's 1 L (Sam's Club) no se mezcla
+    clave_sams_1l = normalizar_texto_clave("Whiskey Jack Daniel's Tennessee Honey 1 L")
+    assert clave_sams_1l == "1000ml daniels honey jack whisky"
+    assert clave_sams_1l != clave_alianza_jd
+
+    # 4. Posesivos ingleses con apóstrofes (Buchanan's, Ballantine's, William Lawson's)
+    assert normalizar_texto_clave("Whisky Buchanan’s 12 Años 750 ml") == normalizar_texto_clave(
+        "Whisky Buchanan's 12 Años 750 ml"
+    )
+    assert normalizar_texto_clave("Whisky Ballantine’s Finest 700 ml") == normalizar_texto_clave(
+        "Whisky Ballantine's Finest 700 ml"
+    )
+    assert normalizar_texto_clave("Whisky William Lawson’s 700 ml") == normalizar_texto_clave(
+        "Whisky William Lawson's 700 ml"
+    )
+
+
 def test_h25_marcar_outliers_lujo():
     """Valida la detección y marcaje de botellas de ultra-lujo y colección (H25)."""
     df = crear_df_base(
