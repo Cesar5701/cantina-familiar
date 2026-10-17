@@ -20,6 +20,7 @@ from src.analizador import (
     es_producto_paquete,
     generar_rankings_por_categoria,
     marcar_outliers_lujo,
+    normalizar_texto_clave,
     obtener_comparativa_cross_tienda,
 )
 from tests.conftest import crear_df_base
@@ -415,6 +416,33 @@ def test_h35_comparativa_cross_tienda_700_vs_750ml():
     # Ahorro normalizado: ($1277.33 - $925.09) * 0.70 L = $246.57 aprox
     assert res["ahorro_maximo"] > 240.0
     assert res["porcentaje_ahorro_maximo"] > 25.0
+
+
+def test_h35_normalizar_texto_clave_distingue_volumen_no_estandar():
+    """
+    Valida el blindaje de normalizar_texto_clave (H35):
+    - 700 ml y 750 ml unifican su clave al ser botellas estándar equivalentes.
+    - 1.75 L, 1 L y formatos no estándar (<650 ml o >800 ml) conservan su tamaño canónico
+      evitando cualquier riesgo latente de comparaciones engañosas.
+    """
+    clave_700 = normalizar_texto_clave("Tequila Herradura Ultra Añejo 700 ml")
+    clave_750 = normalizar_texto_clave("Tequila Herradura Ultra Añejo 750 ml")
+    clave_1750 = normalizar_texto_clave("Tequila Herradura Ultra Añejo 1.75 L")
+    clave_1000 = normalizar_texto_clave("Tequila Herradura Ultra Añejo 1 L")
+    clave_200 = normalizar_texto_clave("Tequila Herradura Ultra Añejo 200 ml")
+
+    # Estándar unificado
+    assert clave_700 == clave_750
+    assert clave_700 == "anejo herradura tequila ultra"
+
+    # No estándar preservan volumen canónico y no colisionan
+    assert clave_1750 == "1750ml anejo herradura tequila ultra"
+    assert clave_1000 == "1000ml anejo herradura tequila ultra"
+    assert clave_200 == "200ml anejo herradura tequila ultra"
+
+    assert clave_1750 != clave_750
+    assert clave_1000 != clave_750
+    assert clave_200 != clave_750
 
 
 def test_h25_marcar_outliers_lujo():

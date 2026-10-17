@@ -12,7 +12,7 @@ from typing import Any, Optional
 import numpy as np
 import pandas as pd
 
-from src.clasificacion import TECHOS_LITRO_OUTLIERS
+from src.clasificacion import TECHOS_LITRO_OUTLIERS, extraer_ml
 from src.logger import get_logger
 
 logger = get_logger("analizador")
@@ -45,16 +45,25 @@ COLUMNAS_OBLIGATORIAS = [
 
 
 def normalizar_texto_clave(texto: str) -> str:
-    """Normaliza un nombre de producto eliminando acentos, puntuación, especificaciones de volumen, stop-words y ordenando tokens para match cross-tienda."""
+    """Normaliza un nombre de producto eliminando acentos, puntuación, stop-words y unificando el volumen estándar (650-800 ml) para match cross-tienda (H8 / H35). Preserva el tamaño canónico para formatos no estándar (<650 o >800 ml)."""
     if not texto or pd.isnull(texto):
         return ""
 
-    s = unicodedata.normalize("NFKD", str(texto)).encode("ascii", "ignore").decode("utf-8")
-    # H35: Eliminar especificaciones de volumen en el título (ej. 700 ml, 750ml, 1.75 L, 1 L, 750 mililitros)
+    s_orig = str(texto)
+    # H35: Extraer volumen previo a la limpieza para preservar formatos no estándar
+    ml = extraer_ml(s_orig, ml_defecto=750)
+
+    s = unicodedata.normalize("NFKD", s_orig).encode("ascii", "ignore").decode("utf-8")
+    # Eliminar especificaciones de volumen en el título (ej. 700 ml, 750ml, 1.75 L, 1 L, 750 mililitros)
     s = re.sub(r"\b\d+(\.\d+)?\s*(ml|l|litros?|mililitros?)\b", " ", s, flags=re.IGNORECASE)
     s = re.sub(r"[^a-zA-Z0-9\s]", " ", s.lower())
     stop_words = {"de", "del", "el", "la", "los", "las", "en", "para"}
     tokens = [t for t in s.split() if t not in stop_words]
+
+    # Blindaje H35: botellas no estándar (<650 ml o >800 ml) conservan su tamaño canónico
+    if ml and (ml < 650 or ml > 800):
+        tokens.append(f"{ml}ml")
+
     tokens.sort()
     return " ".join(tokens)
 
