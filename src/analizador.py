@@ -64,9 +64,28 @@ def normalizar_texto_clave(texto: str) -> str:
     s = re.sub(r"\blicor\s+de\b", " ", s, flags=re.IGNORECASE)
     # 4. Omitir descriptores regionales/opcionales en marcas reconocidas (ej. Tennessee en Jack Daniel's)
     s = re.sub(r"\btennessee\b", " ", s, flags=re.IGNORECASE)
+    # 5. Abreviaturas de reposado frecuentes en retail (Rep -> reposado)
+    s = re.sub(r"\brep\.?\b", "reposado", s, flags=re.IGNORECASE)
+    # 6. Descriptores de pureza de agave / artesanales / envase genérico en Tequila y Mezcal
+    s = re.sub(r"\b100%?\s*(puro\s+de\s+|de\s+)?(agave(\s+azul)?)?\b", " ", s, flags=re.IGNORECASE)
+    s = re.sub(r"\b(artesanal|botella)\b", " ", s, flags=re.IGNORECASE)
+    # 7. Descriptores genéricos de Scotch en Whisky
+    s = re.sub(r"\bblended\s+scotch\b", " ", s, flags=re.IGNORECASE)
+    s = re.sub(r"\bscotch\b", " ", s, flags=re.IGNORECASE)
+    # 8. Espaciado en marcas conocidas (Mc Harrison -> Mcharrison)
+    s = re.sub(r"\bmc\s+harrison\b", "mcharrison", s, flags=re.IGNORECASE)
+    # 9. Normalización de Cristalinos de clase única en Tequila y Mezcal
+    s = re.sub(r"\bpatron\s+cristalino\b", "patron anejo cristalino", s, flags=re.IGNORECASE)
+    s = re.sub(r"\bdobel\s+diamante\s+cristalino\b", "dobel diamante", s, flags=re.IGNORECASE)
+    s = re.sub(
+        r"\b(mayorazgo|ollitas|viuda\s+de\s+romero|contraluz)\s+cristalino\b",
+        r"\1 reposado cristalino",
+        s,
+        flags=re.IGNORECASE,
+    )
 
     s = re.sub(r"[^a-zA-Z0-9\s]", " ", s.lower())
-    stop_words = {"de", "del", "el", "la", "los", "las", "en", "para", "licor"}
+    stop_words = {"de", "del", "el", "la", "los", "las", "en", "para", "licor", "100"}
     tokens = [t for t in s.split() if t not in stop_words]
 
     # Blindaje H35: botellas no estándar (<650 ml o >800 ml) conservan su tamaño canónico

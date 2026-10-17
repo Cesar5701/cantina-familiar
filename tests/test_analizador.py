@@ -483,6 +483,51 @@ def test_unificacion_honey_cross_tienda():
     )
 
 
+def test_unificacion_tequila_mezcal_whisky_cross_tienda():
+    """
+    Valida la unificación cross-tienda en Tequila, Mezcal y Whisky:
+    - Tequila: Patrón Cristalino (añejo cristalino unificado), Dobel Diamante, Mayorazgo/Ollitas.
+    - Mezcal: Zignum Reposado (Rep vs Reposado), Contraluz Cristalino, Montelobos Espadín (Botella).
+    - Whisky: Johnnie Walker Red/Blue Label (Blended Scotch vs sin descriptor), McHarrison.
+    """
+    # 1. Tequila
+    assert normalizar_texto_clave("Tequila Patrón Cristalino 700 ml") == normalizar_texto_clave(
+        "Tequila Patrón Añejo Cristalino 700 ml"
+    )
+    assert normalizar_texto_clave("Tequila Maestro Dobel Diamante Cristalino 700 ml") == normalizar_texto_clave(
+        "Tequila Maestro Dobel Diamante 700 ml"
+    )
+    assert normalizar_texto_clave("Tequila Mayorazgo Cristalino 750 ml") == normalizar_texto_clave(
+        "Tequila Mayorazgo Reposado Cristalino 750 ml"
+    )
+    assert normalizar_texto_clave("Tequila Tres Generaciones Añejo 750 ml 100% Agave Azul") == normalizar_texto_clave(
+        "Tequila Tres Generaciones Añejo 750 ml"
+    )
+
+    # 2. Mezcal
+    assert normalizar_texto_clave("Mezcal Zignum Rep 700 ml") == normalizar_texto_clave("Mezcal Zignum Reposado 700 ml")
+    assert normalizar_texto_clave("Mezcal Contraluz Rep Cristalino 700 ml") == normalizar_texto_clave(
+        "Mezcal Contraluz Cristalino 700 ml"
+    )
+    assert normalizar_texto_clave("Mezcal Montelobos Espadín 750 ml Botella") == normalizar_texto_clave(
+        "Mezcal Montelobos Espadín 750 ml"
+    )
+    assert normalizar_texto_clave("Mezcal artesanal Amarás Espadín Reposado 750 ml") == normalizar_texto_clave(
+        "Mezcal Amarás Espadín Reposado 750 ml"
+    )
+
+    # 3. Whisky
+    assert normalizar_texto_clave("Whisky Johnnie Walker Red Label 700 ml") == normalizar_texto_clave(
+        "Whisky Johnnie Walker Red Label Blended Scotch 700 ml"
+    )
+    assert normalizar_texto_clave("Whisky Johnnie Walker Blue Label 750 ml") == normalizar_texto_clave(
+        "Whisky Johnnie Walker Blue Label Blended Scotch 750 ml"
+    )
+    assert normalizar_texto_clave("Whisky Mc Harrison Blended Scotch 700 ml") == normalizar_texto_clave(
+        "Whisky McHarrison Blended Scotch 700 ml"
+    )
+
+
 def test_h25_marcar_outliers_lujo():
     """Valida la detección y marcaje de botellas de ultra-lujo y colección (H25)."""
     df = crear_df_base(
