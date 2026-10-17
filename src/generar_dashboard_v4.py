@@ -14,6 +14,7 @@ if str(ROOT_DIR) not in sys.path:
 from src.logger import get_logger
 
 logger = get_logger("dashboard_v4")
+LOCAL_HTML_PATH = ROOT_DIR / "data" / "dashboard_bi.html"
 INDEX_HTML_PATH = ROOT_DIR / "index.html"
 DATA_JSON_PATH = ROOT_DIR / "data" / "dashboard_data.json"
 TEMPLATE_PATH = ROOT_DIR / "src" / "templates" / "dashboard_template.html"

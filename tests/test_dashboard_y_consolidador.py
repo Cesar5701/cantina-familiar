@@ -158,3 +158,24 @@ def test_actualizar_todo_sin_archivos_fuente(tmp_path: Path):
         carpeta_salida=str(tmp_path),
     )
     assert res == []
+
+
+def test_fase2_botones_orden_template():
+    """Valida que la plantilla HTML contenga los atributos data-orden y la función de estado (Fase 2)."""
+    tpl_path = Path("src/templates/dashboard_template.html")
+    assert tpl_path.exists()
+    contenido = tpl_path.read_text(encoding="utf-8")
+
+    # Botones con atributos data-orden
+    assert 'data-orden="precio_por_litro"' in contenido
+    assert 'data-orden="precio_promo"' in contenido
+
+    # Encabezados de tabla con atributos data-orden-header
+    assert 'data-orden-header="precio_promo"' in contenido
+    assert 'data-orden-header="precio_por_litro"' in contenido
+
+    # Función y clases de sincronización de estado de orden
+    assert "function actualizarEstadoOrden()" in contenido
+    assert "CLASE_ORDEN_ACTIVO" in contenido
+    assert "CLASE_ORDEN_INACTIVO" in contenido
+    assert "orden-flecha" in contenido

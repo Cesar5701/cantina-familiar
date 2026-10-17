@@ -445,11 +445,13 @@
           </div>
           <div class="flex items-center gap-2 text-xs">
             <span class="text-[#574A3D] font-medium">Ordenar:</span>
-            <button onclick="ordenarPor('precio_por_litro')" class="md3-btn-tonal px-3 py-1.5 text-xs cursor-pointer">
-              Menor $/Litro ↕
+            <button data-orden="precio_por_litro" onclick="ordenarPor('precio_por_litro')"
+                    class="px-3 py-1.5 rounded-full font-semibold text-xs transition-colors cursor-pointer min-h-[36px]">
+              Menor $/Litro <span class="orden-flecha">↕</span>
             </button>
-            <button onclick="ordenarPor('precio_promo')" class="px-3 py-1.5 rounded-full bg-white border border-[#D6C8B8] text-[#1F1B16] hover:bg-[#EFE8DC] font-semibold text-xs transition-colors cursor-pointer min-h-[36px]">
-              Precio Botella ↕
+            <button data-orden="precio_promo" onclick="ordenarPor('precio_promo')"
+                    class="px-3 py-1.5 rounded-full font-semibold text-xs transition-colors cursor-pointer min-h-[36px]">
+              Precio Botella <span class="orden-flecha">↕</span>
             </button>
           </div>
         </div>
@@ -461,8 +463,12 @@
                 <th class="p-3.5">Botella / Marca</th>
                 <th class="p-3.5 hidden sm:table-cell">Categoría & Tipo</th>
                 <th class="p-3.5 hidden md:table-cell">Volumen</th>
-                <th class="p-3.5 cursor-pointer hover:text-[#784516]" onclick="ordenarPor('precio_promo')">Precio ↕</th>
-                <th class="p-3.5 cursor-pointer hover:text-[#784516]" onclick="ordenarPor('precio_por_litro')">$/Litro ↕</th>
+                <th data-orden-header="precio_promo" class="p-3.5 cursor-pointer hover:text-[#784516]" onclick="ordenarPor('precio_promo')" aria-sort="none">
+                  Precio <span class="orden-flecha">↕</span>
+                </th>
+                <th data-orden-header="precio_por_litro" class="p-3.5 cursor-pointer hover:text-[#784516]" onclick="ordenarPor('precio_por_litro')" aria-sort="none">
+                  $/Litro <span class="orden-flecha">↕</span>
+                </th>
                 <th class="p-3.5 hidden lg:table-cell">Promoción</th>
                 <th class="p-3.5">Tienda</th>
                 <th class="p-3.5 text-center">Acción</th>
@@ -1172,6 +1178,7 @@
       poblarSelectoresAgregarPorCategoria();
       renderizarCanastasDinamicas();
       renderizarConstructorCanasta();
+      actualizarEstadoOrden();
     });
 
     // =========================================================================
@@ -2021,10 +2028,36 @@
       document.getElementById("chart-titulo").innerText = `Top 10 Rendimiento $/Litro: ${tituloG}`;
     }
 
+    const CLASE_ORDEN_BASE = "px-3 py-1.5 rounded-full font-semibold text-xs transition-colors cursor-pointer min-h-[36px]";
+    const CLASE_ORDEN_ACTIVO = "md3-btn-tonal border border-transparent";
+    const CLASE_ORDEN_INACTIVO = "bg-white border border-[#D6C8B8] text-[#1F1B16] hover:bg-[#EFE8DC]";
+
+    function actualizarEstadoOrden() {
+      document.querySelectorAll("[data-orden]").forEach(btn => {
+        const activo = btn.dataset.orden === columnaOrden;
+        btn.className = `${CLASE_ORDEN_BASE} ${activo ? CLASE_ORDEN_ACTIVO : CLASE_ORDEN_INACTIVO}`;
+        const f = btn.querySelector(".orden-flecha");
+        if (f) f.textContent = activo ? (ordenAsc ? "↑" : "↓") : "↕";
+      });
+
+      document.querySelectorAll("[data-orden-header]").forEach(th => {
+        const activo = th.dataset.ordenHeader === columnaOrden;
+        th.setAttribute("aria-sort", activo ? (ordenAsc ? "ascending" : "descending") : "none");
+        const f = th.querySelector(".orden-flecha");
+        if (f) f.textContent = activo ? (ordenAsc ? "↑" : "↓") : "↕";
+        if (activo) {
+          th.classList.add("text-[#784516]", "font-bold");
+        } else {
+          th.classList.remove("text-[#784516]", "font-bold");
+        }
+      });
+    }
+
     function ordenarPor(col) {
       if (columnaOrden === col) ordenAsc = !ordenAsc;
       else { columnaOrden = col; ordenAsc = true; }
       aplicarFiltros();
+      actualizarEstadoOrden();
     }
 
     function renderizarTabla() {
