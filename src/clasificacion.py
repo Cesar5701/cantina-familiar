@@ -239,12 +239,12 @@ def extraer_ml(nombre: str, ml_defecto: int = 750) -> int:
     if m_l:
         val_l = float(m_l.group(1))
         if 0.35 <= val_l <= 6.0:
-            return int(round(val_l * 1000)) * mult_pack
+            return round(val_l * 1000) * mult_pack
 
     # 4. Formatos en mililitros con posible decimal (ej. 187.5 ml, 700 ml, 750 ml, 946 ml, 750 cc)
     m_ml = re.search(r"(\d+(?:\.\d+)?)\s*(?:ml|mls|mililitros|cc)\b", nom_l)
     if m_ml:
-        return int(round(float(m_ml.group(1)))) * mult_pack
+        return round(float(m_ml.group(1))) * mult_pack
 
     # 5. Menciones a miniaturas/pachitas sin volumen numérico
     if re.search(r"\b(?:pachitas?|miniaturas?)\b", nom_l):

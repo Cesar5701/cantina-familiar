@@ -219,6 +219,7 @@ def test_clasificacion_estricta_otras_bebidas():
     cat, sub, cla = clasificar_estricto("Vino Tinto Carlo Rossi California 4 L", "Vino")
     assert cat == "Vino - Tinto Clericot"
     assert sub == "Tinto Clericot"
+    assert cla == "Tinto Clericot"
 
 
 def test_clasificar_categoria_compatibilidad():

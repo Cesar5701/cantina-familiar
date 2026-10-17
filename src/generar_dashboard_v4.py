@@ -22,14 +22,6 @@ TEMPLATE_PATH = ROOT_DIR / "src" / "templates" / "dashboard_template.html"
 # =====================================================================
 # MATRIZ OFICIAL DE VIGENCIAS Y PROMOCIONES MULTITIENDA (OCTUBRE 2026)
 # =====================================================================
-VIGENCIAS_TIENDAS = {
-    "alianza": "25 de octubre 2026 (Aniversario Web)",
-    "sams": "2 de noviembre 2026 (Cuponera Octubre / Día de Muertos)",
-    "chedraui": "31 de octubre 2026 (Quincena MiChedraui)",
-    "soriana": "22 de octubre 2026 (Folleto Semanal de Licores)",
-    "walmart": "31 de octubre 2026 (Rebajas de Temporada en Línea)",
-}
-
 CONFIG_VIGENCIA = {
     "corte_auditoria": "Octubre 2026",
     "resumen_whatsapp": (

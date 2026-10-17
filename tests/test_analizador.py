@@ -275,18 +275,21 @@ def test_clasificacion_estricta_don_ramon_y_blancos():
     )
     assert cat_rep == "Tequila - Reposado Tradicional"
     assert sub_rep == "Reposado"
+    assert cla_rep == "Reposado"
 
     # Gran Centenario Ultra debe ser Reposado Cristalino
     cat_gc, sub_gc, _ = clasificar_estricto(
         {"categoria": "Tequila", "producto": "Tequila Gran Centenario Ultra Reposado Cristalino 700 ml"}
     )
     assert cat_gc == "Tequila - Reposado Cristalino"
+    assert sub_gc == "Reposado Cristalino"
 
     # Don Ramón Añejo Cristalino Platinium sí es Añejo Cristalino
     cat_dr_ac, sub_dr_ac, _ = clasificar_estricto(
         {"categoria": "Tequila", "producto": "Tequila Don Ramón Platinium Cristalino Añejo 700 ml"}
     )
     assert cat_dr_ac == "Tequila - Añejo Cristalino"
+    assert sub_dr_ac == "Añejo Cristalino"
 
 
 def test_precios_ausentes_excluidos_de_rankings():

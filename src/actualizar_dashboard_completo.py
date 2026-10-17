@@ -36,6 +36,7 @@ logger = get_logger("actualizador")
 
 
 from src.clasificacion import (
+    CATEGORIAS_COMPARABLES_VALIDAS,
     clasificar_estricto,
     corregir_ml_producto,
     normalizar_medidas_en_nombre,
@@ -96,9 +97,10 @@ def actualizar_todo(archivos_fuente: list[str] | None = None, carpeta_salida: st
     df.loc[df["categoria_comparable"].str.startswith("Tequila"), "categoria"] = "Tequila"
     df.loc[df["categoria_comparable"].str.startswith("Mezcal"), "categoria"] = "Mezcal"
 
-    # Eliminar Tequilas que sean Reposado Tradicional, Blanco/Plata u Otros (solo conservar Añejo Cristalino, Reposado Cristalino y Añejo Tradicional)
-    categorias_excluidas = ["Tequila - Reposado Tradicional", "Tequila - Blanco / Plata", "Tequila - Otros"]
-    df = df[~df["categoria_comparable"].isin(categorias_excluidas)].copy()
+    # Eliminar Tequilas que sean Reposado Tradicional, Blanco/Plata u Otros (solo conservar categorías válidas del alcance familiar)
+    categorias_excluidas = {"Tequila - Reposado Tradicional", "Tequila - Blanco / Plata", "Tequila - Otros"}
+    categorias_permitidas = set(CATEGORIAS_COMPARABLES_VALIDAS) - categorias_excluidas
+    df = df[df["categoria_comparable"].isin(categorias_permitidas)].copy()
 
     # En Licor de Whisky - Honey, asegurar que sea realmente Honey
     mask_honey_invalido = (df["categoria_comparable"] == "Licor de Whisky - Honey") & (

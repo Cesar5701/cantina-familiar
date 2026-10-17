@@ -137,7 +137,7 @@ def detectar_duplicados(df: pd.DataFrame) -> pd.DataFrame:
             try:
                 ml_num = float(val_ml)
                 if not pd.isna(ml_num) and ml_num > 0:
-                    ml_val = int(round(ml_num))
+                    ml_val = round(ml_num)
             except (ValueError, TypeError):
                 ml_val = 750
         claves.append(f"{prod_norm}_{ml_val}")
@@ -368,7 +368,7 @@ def imprimir_resumen_rankings(rankings: dict[str, pd.DataFrame]):
         logger.info("\n" + sub.to_string(index=True))
 
 
-def procesar_archivo(ruta_entrada: str, ruta_salida: str = None) -> pd.DataFrame:
+def procesar_archivo(ruta_entrada: str, ruta_salida: str | None = None) -> pd.DataFrame:
     """Ejecuta el flujo completo de validación, auditoría, cálculo y reporte."""
     df = cargar_datos(ruta_entrada)
     df = auditar_datos_faltantes(df)

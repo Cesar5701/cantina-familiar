@@ -125,6 +125,7 @@ def test_validar_esquema_y_rangos_deteccion_anomalias():
     assert reporte["anomalias_volumen_ml"] == 2  # NaN y 25000
     assert reporte["anomalias_graduacion_abv"] == 1  # 150.0%
     assert reporte["registros_sin_precio"] == 1  # Sin precio
+    assert "datos_validos" in df_val.columns
 
 
 def test_validar_esquema_columnas_faltantes():

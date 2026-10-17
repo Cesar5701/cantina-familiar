@@ -14,7 +14,6 @@ Filtros aplicados según solicitud:
 import sys
 import time
 import urllib.parse
-import urllib.request
 from datetime import datetime
 from pathlib import Path
 
@@ -25,11 +24,9 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 from src.clasificacion import KEYWORDS_BLENDED_WHISKY, KEYWORDS_SILVESTRES, clasificar_agave_mezcal, extraer_ml
-from src.http_utils import USER_AGENT_BOT, descargar_json_con_reintentos
+from src.http_utils import HEADERS_BOT, descargar_json_con_reintentos
 from src.io_utils import ResumenScraping, guardar_csv_atomico
 from src.logger import get_logger
-
-USER_AGENT = USER_AGENT_BOT
 
 logger = get_logger("scraper_catalogo_completo")
 
@@ -39,13 +36,12 @@ def consultar_endpoint_paginado(
 ) -> list[dict]:
     """Consulta la API de VTEX con paginación de 50 en 50 elementos y reintentos automáticos."""
     items = []
-    headers = {"User-Agent": USER_AGENT}
     for pag in range(max_paginas):
         inicio = pag * 50
         fin = inicio + 49
         url = f"https://www.bodegasalianza.com/api/catalog_system/pub/products/search/{urllib.parse.quote(termino)}?_from={inicio}&_to={fin}"
         try:
-            data = descargar_json_con_reintentos(url, headers=headers)
+            data = descargar_json_con_reintentos(url, headers=HEADERS_BOT)
             if not data:
                 break
             items.extend(data)

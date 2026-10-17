@@ -7,16 +7,13 @@ Consulta exclusivamente la API pública permitida en robots.txt:
 import argparse
 import time
 import urllib.parse
-import urllib.request
 from datetime import datetime
 
 BASE_URL = "https://www.bodegasalianza.com/api/catalog_system/pub/products/search/{term}"
 from src.clasificacion import clasificar_categoria, extraer_ml
-from src.http_utils import USER_AGENT_BOT, descargar_json_con_reintentos
+from src.http_utils import HEADERS_BOT, descargar_json_con_reintentos
 from src.io_utils import ResumenScraping, guardar_csv_atomico
 from src.logger import get_logger
-
-USER_AGENT = USER_AGENT_BOT
 
 logger = get_logger("scraper_alianza")
 
@@ -28,7 +25,7 @@ def consultar_api_alianza(
     url = BASE_URL.format(term=urllib.parse.quote(termino))
 
     try:
-        data = descargar_json_con_reintentos(url, headers={"User-Agent": USER_AGENT})
+        data = descargar_json_con_reintentos(url, headers=HEADERS_BOT)
         if not data:
             return []
     except Exception as e:

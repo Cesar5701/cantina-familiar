@@ -15,7 +15,6 @@ import json
 import os
 import time
 import urllib.parse
-import urllib.request
 from datetime import datetime
 
 import pandas as pd
@@ -33,7 +32,6 @@ from src.http_utils import HEADERS_DEFAULT, descargar_html_con_reintentos, desca
 from src.io_utils import ResumenScraping, guardar_csv_atomico
 from src.logger import get_logger
 
-HEADERS = HEADERS_DEFAULT
 logger = get_logger("scraper_multitienda")
 
 
@@ -342,7 +340,7 @@ def scrapear_chedraui() -> list[dict]:
             fin = ini + 49
             url = f"https://www.chedraui.com.mx/api/catalog_system/pub/products/search/{urllib.parse.quote(t)}?_from={ini}&_to={fin}"
             try:
-                data = descargar_json_con_reintentos(url, headers=HEADERS, timeout=12)
+                data = descargar_json_con_reintentos(url, headers=HEADERS_DEFAULT, timeout=12)
                 if not data:
                     break
                 for p in data:
@@ -414,7 +412,7 @@ def scrapear_nextjs_walmart_platform(tienda: str, base_domain: str, terminos: li
     for t in terminos:
         url = f"https://{base_domain}/search?q={urllib.parse.quote(t)}"
         try:
-            html = descargar_html_con_reintentos(url, headers=HEADERS, timeout=15)
+            html = descargar_html_con_reintentos(url, headers=HEADERS_DEFAULT, timeout=15)
             if not html:
                 resumen.registrar_error_red(url, ConnectionError("Respuesta vacía"))
                 continue
@@ -534,7 +532,7 @@ def scrapear_soriana() -> list[dict]:
     for t in terminos:
         url = f"https://www.soriana.com/buscar?q={urllib.parse.quote(t)}"
         try:
-            html = descargar_html_con_reintentos(url, headers=HEADERS, timeout=15)
+            html = descargar_html_con_reintentos(url, headers=HEADERS_DEFAULT, timeout=15)
             if not html:
                 resumen.registrar_error_red(url, ConnectionError("Respuesta vacía"))
                 continue

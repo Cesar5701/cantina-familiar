@@ -46,9 +46,6 @@ from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 
-CHROME_USER_AGENT = USER_AGENT_CHROME
-
-
 INDICADORES_CHALLENGE = [
     "verify your identity",
     "verifica tu identidad",
@@ -77,7 +74,7 @@ def inicializar_driver(headless: bool = False, navegador: str = "chrome") -> web
         if headless:
             options.add_argument("--headless=new")
         options.add_argument("--start-maximized")
-        options.add_argument(f"user-agent={CHROME_USER_AGENT}")
+        options.add_argument(f"user-agent={USER_AGENT_CHROME}")
         options.add_argument("--disable-blink-features=AutomationControlled")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
@@ -103,7 +100,7 @@ def inicializar_driver(headless: bool = False, navegador: str = "chrome") -> web
         options = FirefoxOptions()
         if headless:
             options.add_argument("-headless")
-        options.set_preference("general.useragent.override", CHROME_USER_AGENT)
+        options.set_preference("general.useragent.override", USER_AGENT_CHROME)
         options.set_preference("dom.webdriver.enabled", False)
         options.set_preference("useAutomationExtension", False)
         driver = webdriver.Firefox(options=options)
@@ -150,9 +147,10 @@ def detectar_desafio(driver: webdriver.Remote) -> tuple[bool, str]:
 
         # Búsqueda en los primeros 10KB del código fuente
         html_head = (driver.page_source or "")[:10000].lower()
-        if "px-captcha" in html_head or "verifica tu identidad" in html_head or "verify your identity" in html_head:
-            if "mantén presionado el botón" in html_head or "press and hold" in html_head:
-                return True, "Texto de desafío PerimeterX en código fuente"
+        if (
+            "px-captcha" in html_head or "verifica tu identidad" in html_head or "verify your identity" in html_head
+        ) and ("mantén presionado el botón" in html_head or "press and hold" in html_head):
+            return True, "Texto de desafío PerimeterX en código fuente"
 
     except Exception as e:
         logger.debug(f"Error general en detección de desafío: {e}")
@@ -206,8 +204,44 @@ def verificar_y_esperar_desafio(driver: webdriver.Remote, timeout_humano: int = 
     return True
 
 
-# Unificado con dominio clasificacion.py (H27)
-extraer_precio_texto = limpiar_precio
+def _construir_registro_producto(
+    tienda: str,
+    nombre: str,
+    precio_regular: float,
+    precio_promo: float,
+    condicion: str,
+    url: str,
+    fecha_consulta: str,
+) -> dict:
+    """Construye un diccionario estandarizado para un producto extraído vía DOM."""
+    cat, subcat = clasificar_categoria(nombre)
+    ml = extraer_ml(nombre)
+    return {
+        "tienda": tienda,
+        "producto": nombre,
+        "marca": nombre.split()[0],
+        "categoria": cat,
+        "subcategoria": subcat,
+        "clase": subcat if cat in ["Tequila", "Mezcal"] else "no_aplica",
+        "tipo_mezcal": "Artesanal" if cat == "Mezcal" else "no_aplica",
+        "especie_agave": "Tequilana Weber azul"
+        if cat == "Tequila"
+        else ("Espadín" if cat == "Mezcal" else "no_aplica"),
+        "productor": "no_verificado",
+        "sello_regulador": "no_verificado",
+        "ml": ml,
+        "abv": 38.0 if cat in ["Tequila", "Mezcal"] else 40.0,
+        "precio_regular": precio_regular,
+        "precio_promo": precio_promo,
+        "unidades_promo": 1,
+        "precio_total_promo": precio_promo,
+        "condiciones": condicion,
+        "disponibilidad": "disponible",
+        "url": url,
+        "fecha_consulta": fecha_consulta,
+        "fuente": f"Página oficial ({tienda})",
+        "confianza": "Confirmado",
+    }
 
 
 def extraer_de_json_embebido(soup: BeautifulSoup, url: str, tienda: str, fecha_consulta: str) -> list[dict]:
@@ -232,37 +266,18 @@ def extraer_de_json_embebido(soup: BeautifulSoup, url: str, tienda: str, fecha_c
                 ofertas = item.get("offers", {})
                 precio = ofertas.get("price") if isinstance(ofertas, dict) else None
                 if nombre and precio:
-                    p_val = extraer_precio_texto(str(precio))
+                    p_val = limpiar_precio(str(precio))
                     if p_val and p_val > 50:
-                        cat, subcat = clasificar_categoria(nombre)
-                        ml = extraer_ml(nombre)
                         productos.append(
-                            {
-                                "tienda": tienda,
-                                "producto": nombre,
-                                "marca": nombre.split()[0],
-                                "categoria": cat,
-                                "subcategoria": subcat,
-                                "clase": subcat if cat in ["Tequila", "Mezcal"] else "no_aplica",
-                                "tipo_mezcal": "Artesanal" if cat == "Mezcal" else "no_aplica",
-                                "especie_agave": "Tequilana Weber azul"
-                                if cat == "Tequila"
-                                else ("Espadín" if cat == "Mezcal" else "no_aplica"),
-                                "productor": "no_verificado",
-                                "sello_regulador": "no_verificado",
-                                "ml": ml,
-                                "abv": 38.0 if cat in ["Tequila", "Mezcal"] else 40.0,
-                                "precio_regular": p_val,
-                                "precio_promo": p_val,
-                                "unidades_promo": 1,
-                                "precio_total_promo": p_val,
-                                "condiciones": "Consulta web directa (JSON-LD)",
-                                "disponibilidad": "disponible",
-                                "url": item.get("url") or url,
-                                "fecha_consulta": fecha_consulta,
-                                "fuente": f"Página oficial ({tienda})",
-                                "confianza": "Confirmado",
-                            }
+                            _construir_registro_producto(
+                                tienda=tienda,
+                                nombre=nombre,
+                                precio_regular=p_val,
+                                precio_promo=p_val,
+                                condicion="Consulta web directa (JSON-LD)",
+                                url=item.get("url") or url,
+                                fecha_consulta=fecha_consulta,
+                            )
                         )
 
         # Caso 2: __NEXT_DATA__ (Next.js / Electrode / Walmart platform)
@@ -278,11 +293,11 @@ def extraer_de_json_embebido(soup: BeautifulSoup, url: str, tienda: str, fecha_c
                         if isinstance(precio_obj, (int, float)):
                             p_val = float(precio_obj)
                         elif isinstance(precio_obj, str):
-                            p_val = extraer_precio_texto(precio_obj)
+                            p_val = limpiar_precio(precio_obj)
                         elif isinstance(precio_obj, dict):
                             for k in ["price", "itemPrice", "currentPrice", "finalPrice", "priceString"]:
                                 if k in precio_obj and precio_obj[k] is not None:
-                                    p_val = extraer_precio_texto(str(precio_obj[k]))
+                                    p_val = limpiar_precio(str(precio_obj[k]))
                                     if p_val:
                                         break
                         if p_val and p_val > 50:
@@ -302,36 +317,17 @@ def extraer_de_json_embebido(soup: BeautifulSoup, url: str, tienda: str, fecha_c
                 if nombre in nombres_vistos:
                     continue
                 nombres_vistos.add(nombre)
-                cat, subcat = clasificar_categoria(nombre)
-                ml = extraer_ml(nombre)
                 full_url = f"https://www.sams.com.mx{prod_url}" if prod_url.startswith("/") else prod_url
                 productos.append(
-                    {
-                        "tienda": tienda,
-                        "producto": nombre,
-                        "marca": nombre.split()[0],
-                        "categoria": cat,
-                        "subcategoria": subcat,
-                        "clase": subcat if cat in ["Tequila", "Mezcal"] else "no_aplica",
-                        "tipo_mezcal": "Artesanal" if cat == "Mezcal" else "no_aplica",
-                        "especie_agave": "Tequilana Weber azul"
-                        if cat == "Tequila"
-                        else ("Espadín" if cat == "Mezcal" else "no_aplica"),
-                        "productor": "no_verificado",
-                        "sello_regulador": "no_verificado",
-                        "ml": ml,
-                        "abv": 38.0 if cat in ["Tequila", "Mezcal"] else 40.0,
-                        "precio_regular": p_val,
-                        "precio_promo": p_val,
-                        "unidades_promo": 1,
-                        "precio_total_promo": p_val,
-                        "condiciones": "Consulta web directa (__NEXT_DATA__)",
-                        "disponibilidad": "disponible",
-                        "url": full_url,
-                        "fecha_consulta": fecha_consulta,
-                        "fuente": f"Página oficial ({tienda})",
-                        "confianza": "Confirmado",
-                    }
+                    _construir_registro_producto(
+                        tienda=tienda,
+                        nombre=nombre,
+                        precio_regular=p_val,
+                        precio_promo=p_val,
+                        condicion="Consulta web directa (__NEXT_DATA__)",
+                        url=full_url,
+                        fecha_consulta=fecha_consulta,
+                    )
                 )
 
     return productos
@@ -354,37 +350,18 @@ def parsear_html_con_bs4(html_source: str, url: str, tienda: str) -> list[dict]:
     precios_pdp = soup.find_all(attrs={"class": re.compile(r"price|precio|val", re.I)})
     if h1 and precios_pdp:
         nombre = h1.get_text(strip=True)
-        precio = extraer_precio_texto(precios_pdp[0].get_text(strip=True))
+        precio = limpiar_precio(precios_pdp[0].get_text(strip=True))
         if precio and len(nombre) > 5:
-            categoria, subcategoria = clasificar_categoria(nombre)
-            ml = extraer_ml(nombre)
             return [
-                {
-                    "tienda": tienda,
-                    "producto": nombre,
-                    "marca": nombre.split()[0],
-                    "categoria": categoria,
-                    "subcategoria": subcategoria,
-                    "clase": subcategoria if categoria in ["Tequila", "Mezcal"] else "no_aplica",
-                    "tipo_mezcal": "Artesanal" if categoria == "Mezcal" else "no_aplica",
-                    "especie_agave": "Tequilana Weber azul"
-                    if categoria == "Tequila"
-                    else ("Espadín" if categoria == "Mezcal" else "no_aplica"),
-                    "productor": "no_verificado",
-                    "sello_regulador": "no_verificado",
-                    "ml": ml,
-                    "abv": 38.0 if categoria in ["Tequila", "Mezcal"] else 40.0,
-                    "precio_regular": precio,
-                    "precio_promo": precio,
-                    "unidades_promo": 1,
-                    "precio_total_promo": precio,
-                    "condiciones": "Consulta web directa en página de producto",
-                    "disponibilidad": "disponible",
-                    "url": url,
-                    "fecha_consulta": fecha_consulta,
-                    "fuente": f"Página oficial ({tienda})",
-                    "confianza": "Confirmado",
-                }
+                _construir_registro_producto(
+                    tienda=tienda,
+                    nombre=nombre,
+                    precio_regular=precio,
+                    precio_promo=precio,
+                    condicion="Consulta web directa en página de producto",
+                    url=url,
+                    fecha_consulta=fecha_consulta,
+                )
             ]
 
     # Estrategia 3: Listado de búsqueda o catálogo (búsqueda amplia de contenedores)
@@ -427,7 +404,7 @@ def parsear_html_con_bs4(html_source: str, url: str, tienda: str) -> list[dict]:
         valores_precio = []
         for ep in elems_precio:
             t = ep.get_text(strip=True) if hasattr(ep, "get_text") else str(ep)
-            val = extraer_precio_texto(t)
+            val = limpiar_precio(t)
             if val and val > 40:
                 valores_precio.append(val)
 
@@ -439,9 +416,6 @@ def parsear_html_con_bs4(html_source: str, url: str, tienda: str) -> list[dict]:
         precio_promo = min(valores_precio)
         condicion = "Descuento en línea" if precio_regular > precio_promo else "Precio regular de catálogo"
 
-        categoria, subcategoria = clasificar_categoria(nombre)
-        ml = extraer_ml(nombre)
-
         # Extraer link del producto si existe
         link_elem = tarjeta.find("a", href=re.compile(r"/p/|/ip/", re.I))
         item_url = url
@@ -450,32 +424,15 @@ def parsear_html_con_bs4(html_source: str, url: str, tienda: str) -> list[dict]:
             item_url = f"https://www.sams.com.mx{href}" if href.startswith("/") else href
 
         productos.append(
-            {
-                "tienda": tienda,
-                "producto": nombre,
-                "marca": nombre.split()[0],
-                "categoria": categoria,
-                "subcategoria": subcategoria,
-                "clase": subcategoria if categoria in ["Tequila", "Mezcal"] else "no_aplica",
-                "tipo_mezcal": "Artesanal" if categoria == "Mezcal" else "no_aplica",
-                "especie_agave": "Tequilana Weber azul"
-                if categoria == "Tequila"
-                else ("Espadín" if categoria == "Mezcal" else "no_aplica"),
-                "productor": "no_verificado",
-                "sello_regulador": "no_verificado",
-                "ml": ml,
-                "abv": 38.0 if categoria in ["Tequila", "Mezcal"] else 40.0,
-                "precio_regular": precio_regular,
-                "precio_promo": precio_promo,
-                "unidades_promo": 1,
-                "precio_total_promo": precio_promo,
-                "condiciones": condicion,
-                "disponibilidad": "disponible",
-                "url": item_url,
-                "fecha_consulta": fecha_consulta,
-                "fuente": f"Página oficial ({tienda})",
-                "confianza": "Confirmado",
-            }
+            _construir_registro_producto(
+                tienda=tienda,
+                nombre=nombre,
+                precio_regular=precio_regular,
+                precio_promo=precio_promo,
+                condicion=condicion,
+                url=item_url,
+                fecha_consulta=fecha_consulta,
+            )
         )
 
     return productos

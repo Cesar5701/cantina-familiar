@@ -78,6 +78,7 @@ class ResumenScraping:
         self.descartados_criterio: int = 0
         self.fallos_red: int = 0
         self.errores_parseo: int = 0
+        self.motivos_descarte: Dict[str, int] = {}
         self.detalles_errores: List[str] = []
 
     def registrar_exito(self):
@@ -87,6 +88,8 @@ class ResumenScraping:
     def registrar_descarte(self, motivo: str = ""):
         self.total_consultados += 1
         self.descartados_criterio += 1
+        clave = motivo or "sin_especificar"
+        self.motivos_descarte[clave] = self.motivos_descarte.get(clave, 0) + 1
 
     def registrar_error_red(self, url_o_termino: str, error: Exception):
         self.total_consultados += 1
@@ -106,6 +109,7 @@ class ResumenScraping:
             "descartados_criterio": self.descartados_criterio,
             "fallos_red": self.fallos_red,
             "errores_parseo": self.errores_parseo,
+            "motivos_descarte": self.motivos_descarte,
             "errores": self.detalles_errores[:10],  # Limitar a primeros 10
         }
 
