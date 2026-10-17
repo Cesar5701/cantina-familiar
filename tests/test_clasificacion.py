@@ -182,6 +182,15 @@ def test_clasificacion_estricta_mezcal():
     cat, sub, cla = clasificar_estricto("Mezcal 400 Conejos Joven 750 ml", "Mezcal")
     assert cat == "Mezcal - Espadín Joven"
     assert sub == "Espadín Joven"
+    assert cla == "Joven"
+
+    cat, sub, cla = clasificar_estricto("Mezcal Amarás Joven Espadín 750 ml", "Mezcal")
+    assert cat == "Mezcal - Espadín Joven"
+    assert sub == "Espadín Joven"
+
+    cat, sub, cla = clasificar_estricto("Mezcal Montelobos Espadín 750 ml", "Mezcal")
+    assert cat == "Mezcal - Espadín Joven"
+    assert sub == "Espadín Joven"
 
 
 def test_clasificacion_estricta_otras_bebidas():

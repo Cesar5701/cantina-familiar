@@ -4,20 +4,25 @@ Scraper exhaustivo para Bodegas Alianza por tipo de bebida (sin sesgo de marca).
 Filtros aplicados según solicitud:
 1. Tequila: Exclusivamente Cristalino, Añejo y Añejo Cristalino.
    (Descarta Blancos y Reposados tradicionales no cristalinos).
-2. Mezcal: Desde Reposado hasta Añejo, y Silvestres (Tobalá, Cupreata, Cuishe, etc.).
-   (Descarta Espadín Joven básico).
+2. Mezcal: Silvestres, Reposado, Añejo, Reposado Cristalino y Joven / Espadín Joven.
 3. Whisky: Exclusivamente Blended Scotch y similares a Red Label.
    (Descarta Single Malts).
 4. Honey: Licores de whisky con miel (Jack Daniel's Honey).
 5. Vino: Tintos para clericot y mesa familiar.
 """
 
+import sys
 import time
 import urllib.parse
 import urllib.request
 from datetime import datetime
+from pathlib import Path
 
 import pandas as pd
+
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 
 from src.clasificacion import KEYWORDS_BLENDED_WHISKY, KEYWORDS_SILVESTRES, clasificar_agave_mezcal, extraer_ml
 from src.http_utils import USER_AGENT_BOT, descargar_json_con_reintentos
@@ -62,6 +67,8 @@ def procesar_catalogo_completo() -> list[dict]:
         "tequila cristalino",
         "tequila anejo",
         "mezcal",
+        "mezcal joven",
+        "mezcal espadin",
         "mezcal reposado",
         "mezcal anejo",
         "mezcal tobala",
@@ -187,11 +194,15 @@ def procesar_catalogo_completo() -> list[dict]:
             continue
 
         # -------------------------------------------------------------
-        # 2. MEZCAL: Reposado hasta Añejo, y Silvestres
+        # 2. MEZCAL: Silvestres, Reposado, Añejo, Reposado Cristalino y Joven / Espadín Joven
         # -------------------------------------------------------------
         if "mezcal" in nom_l:
-            if any(ign in nom_l for ign in ["crema de", "licor de mezcal", "gomitas"]):
+            if any(ign in nom_l for ign in ["crema de", "licor de mezcal", "gomitas", "mezcamaica", "mezcarindo"]):
                 resumen.registrar_descarte("mezcal no apto")
+                continue
+
+            if float(precio_promo) < 250:
+                resumen.registrar_descarte("mezcal precio < 250")
                 continue
 
             es_rep = "reposado" in nom_l or "rep " in nom_l or "rep." in nom_l
@@ -199,23 +210,24 @@ def procesar_catalogo_completo() -> list[dict]:
             es_cristalino = "cristalino" in nom_l
             es_silvestre = any(k in nom_l for k in KEYWORDS_SILVESTRES)
 
-            # Descartar Espadín joven común que no sea silvestre ni reposado/añejo
-            if not es_rep and not es_anejo and not es_cristalino and not es_silvestre:
-                resumen.registrar_descarte("espadin joven no silvestre")
-                continue
-
             if es_silvestre and not es_rep and not es_anejo:
                 subcat = "Silvestre"
                 clase = "Joven Silvestre"
-            elif es_anejo:
+            elif es_cristalino and es_anejo:
                 subcat = "Añejo"
-                clase = "Añejo"
+                clase = "Añejo Cristalino"
             elif es_cristalino:
                 subcat = "Reposado Cristalino"
                 clase = "Reposado Cristalino"
-            else:
+            elif es_anejo:
+                subcat = "Añejo"
+                clase = "Añejo"
+            elif es_rep:
                 subcat = "Reposado"
                 clase = "Reposado"
+            else:
+                subcat = "Espadín Joven"
+                clase = "Joven"
 
             agave = clasificar_agave_mezcal(nombre)
 
@@ -232,7 +244,7 @@ def procesar_catalogo_completo() -> list[dict]:
                     "productor": marca,
                     "sello_regulador": "sí",
                     "ml": ml,
-                    "abv": 40.0,
+                    "abv": 38.0 if "400 conejos" in nom_l else 40.0,
                     "precio_regular": float(precio_regular),
                     "precio_promo": float(precio_promo),
                     "unidades_promo": 1,

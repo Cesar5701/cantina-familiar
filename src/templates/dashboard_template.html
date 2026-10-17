@@ -377,7 +377,7 @@
             </p>
           </div>
           <div class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] font-mono text-xs self-start sm:self-auto px-3 py-1" id="contador-filtrados">
-            653 botellas verificadas (5 tiendas)
+            760 botellas verificadas (5 tiendas)
           </div>
         </div>
 
@@ -386,12 +386,12 @@
           <div>
             <label class="block text-xs font-bold text-[#784516] mb-1.5">1. Categoría de Bebida:</label>
             <select id="filtro-macro-categoria" onchange="actualizarSubtiposCatalogo()" class="w-full md3-input px-3 py-2 font-semibold">
-              <option value="Todas" selected>🍾 Todas las Bebidas (653)</option>
-              <option value="Tequila">🥃 Tequila (209)</option>
-              <option value="Mezcal">🌵 Mezcal (119)</option>
-              <option value="Whisky">🥃 Whisky Escocés (168)</option>
+              <option value="Todas" selected>🍾 Todas las Bebidas (760)</option>
+              <option value="Tequila">🥃 Tequila (210)</option>
+              <option value="Mezcal">🌵 Mezcal (225)</option>
+              <option value="Whisky">🥃 Whisky Escocés (166)</option>
               <option value="Licor de Whisky">🍯 Licor Whisky Honey (12)</option>
-              <option value="Vino">🍷 Vino Tinto (145)</option>
+              <option value="Vino">🍷 Vino Tinto (147)</option>
             </select>
           </div>
 
@@ -407,11 +407,11 @@
             <label class="block text-xs font-bold text-[#574A3D] mb-1.5">3. Tienda / Comercio:</label>
             <select id="filtro-tienda" onchange="aplicarFiltros()" class="w-full md3-input px-3 py-2">
               <option value="Todas">🏬 Todas las Tiendas (5)</option>
-              <option value="Bodegas Alianza">🟠 Bodegas Alianza (270)</option>
-              <option value="Chedraui">🟧 Chedraui (115)</option>
+              <option value="Bodegas Alianza">🟠 Bodegas Alianza (380)</option>
+              <option value="Chedraui">🟧 Chedraui (114)</option>
               <option value="Soriana">🔴 Soriana (112)</option>
-              <option value="Walmart">🩵 Walmart (87)</option>
-              <option value="Sam's Club">🔵 Sam's Club (69)</option>
+              <option value="Walmart">🩵 Walmart (86)</option>
+              <option value="Sam's Club">🔵 Sam's Club (68)</option>
             </select>
           </div>
 
@@ -486,7 +486,7 @@
         </div>
 
         <div class="p-4 border-t border-[#DFD5C7] flex justify-between items-center text-xs text-[#574A3D] bg-[#F7F2EA]">
-          <div id="info-paginacion" class="font-medium">Mostrando 1 a 20 de 653</div>
+          <div id="info-paginacion" class="font-medium">Mostrando 1 a 20 de 760</div>
           <div class="flex gap-2">
             <button onclick="cambiarPagina(-1)" id="btn-prev" class="px-4 py-2 rounded-full bg-white border border-[#D6C8B8] hover:bg-[#EFE8DC] disabled:opacity-40 transition-colors text-[#1F1B16] font-semibold cursor-pointer min-h-[40px]">← Anterior</button>
             <button onclick="cambiarPagina(1)" id="btn-next" class="px-4 py-2 rounded-full bg-white border border-[#D6C8B8] hover:bg-[#EFE8DC] disabled:opacity-40 transition-colors text-[#1F1B16] font-semibold cursor-pointer min-h-[40px]">Siguiente →</button>
@@ -1028,41 +1028,41 @@
     // DEFINICIÓN JERÁRQUICA DE CATEGORÍA -> SUBTIPOS
     const SUBTIPOS_POR_MACRO = {
       "Todas": [
-        { value: "Todas", label: "🌐 Todos los Tipos (653)" },
-        { value: "Tequila - Añejo Cristalino", label: "🥃 Tequila · Añejo Cristalino (87)" },
+        { value: "Todas", label: "🌐 Todos los Tipos (760)" },
+        { value: "Tequila - Añejo Cristalino", label: "🥃 Tequila · Añejo Cristalino (88)" },
         { value: "Tequila - Reposado Cristalino", label: "🥃 Tequila · Reposado Cristalino (68)" },
         { value: "Tequila - Añejo Tradicional", label: "🥃 Tequila · Añejo Tradicional (54)" },
-        { value: "Mezcal - Silvestre", label: "🌵 Mezcal · Silvestre (47)" },
+        { value: "Mezcal - Espadín Joven", label: "🌵 Mezcal · Espadín Joven (124)" },
+        { value: "Mezcal - Silvestre", label: "🌵 Mezcal · Silvestre (46)" },
         { value: "Mezcal - Reposado", label: "🌵 Mezcal · Reposado (32)" },
-        { value: "Mezcal - Espadín Joven", label: "🌵 Mezcal · Espadín Joven (17)" },
         { value: "Mezcal - Reposado Cristalino", label: "🌵 Mezcal · Reposado Cristalino (13)" },
         { value: "Mezcal - Añejo", label: "🌵 Mezcal · Añejo (10)" },
-        { value: "Whisky - Blended Scotch", label: "🥃 Whisky · Blended Scotch (168)" },
+        { value: "Whisky - Blended Scotch", label: "🥃 Whisky · Blended Scotch (166)" },
         { value: "Licor de Whisky - Honey", label: "🍯 Licor Whisky · Honey (12)" },
-        { value: "Vino - Tinto Clericot", label: "🍷 Vino · Tinto Clericot (145)" }
+        { value: "Vino - Tinto Clericot", label: "🍷 Vino · Tinto Clericot (147)" }
       ],
       "Tequila": [
-        { value: "Todos_Macro", label: "🥃 Todos los Tipos de Tequila (209)" },
-        { value: "Tequila - Añejo Cristalino", label: "✨ Añejo Cristalino (87)" },
+        { value: "Todos_Macro", label: "🥃 Todos los Tipos de Tequila (210)" },
+        { value: "Tequila - Añejo Cristalino", label: "✨ Añejo Cristalino (88)" },
         { value: "Tequila - Reposado Cristalino", label: "💎 Reposado Cristalino (68)" },
         { value: "Tequila - Añejo Tradicional", label: "🪵 Añejo Tradicional (54)" }
       ],
       "Mezcal": [
-        { value: "Todos_Macro", label: "🌵 Todos los Tipos de Mezcal (119)" },
-        { value: "Mezcal - Silvestre", label: "🌿 Silvestre: Tobalá / Cupreata / Cuishe (47)" },
+        { value: "Todos_Macro", label: "🌵 Todos los Tipos de Mezcal (225)" },
+        { value: "Mezcal - Espadín Joven", label: "🔥 Espadín Joven (124)" },
+        { value: "Mezcal - Silvestre", label: "🌿 Silvestre: Tobalá / Cupreata / Cuishe (46)" },
         { value: "Mezcal - Reposado", label: "🪵 Reposado en Madera (32)" },
-        { value: "Mezcal - Espadín Joven", label: "🔥 Espadín Joven (17)" },
         { value: "Mezcal - Reposado Cristalino", label: "💎 Reposado Cristalino (13)" },
         { value: "Mezcal - Añejo", label: "🥃 Añejo de Barrica (10)" }
       ],
       "Whisky": [
-        { value: "Whisky - Blended Scotch", label: "🥃 Blended Scotch (168)" }
+        { value: "Whisky - Blended Scotch", label: "🥃 Blended Scotch (166)" }
       ],
       "Licor de Whisky": [
         { value: "Licor de Whisky - Honey", label: "🍯 Licor de Whisky con Miel / Honey (12)" }
       ],
       "Vino": [
-        { value: "Vino - Tinto Clericot", label: "🍷 Vino Tinto para Clericot y Mesa (145)" }
+        { value: "Vino - Tinto Clericot", label: "🍷 Vino Tinto para Clericot y Mesa (147)" }
       ]
     };
 
