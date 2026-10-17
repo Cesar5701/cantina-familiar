@@ -76,7 +76,7 @@ El flujo completo del proyecto consta de 3 fases desacopladas y observables:
        ↓ (HTTP con reintentos exponenciales y jitter en http_utils.py)
 [2. Consolidación] Clasificación estricta NOM, validación de esquema y cross-tienda
        ↓ (Escritura atómica en io_utils.py y logging estructurado)
-[3. Dashboard BI] Generación reactiva de data/dashboard_bi.html e index.html
+[3. Dashboard BI] Generación reactiva de index.html (autocontenido y publicado en GitHub Pages)
 ```
 
 ### 1. Ejecutar el Pipeline Completo

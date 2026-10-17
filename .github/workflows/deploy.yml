@@ -49,13 +49,18 @@ jobs:
       - name: Ejecutar pruebas unitarias y cobertura
         run: pytest -v --cov=src --cov-report=term-missing
 
+      - name: Preparar sitio (solo el dashboard publicado)
+        run: |
+          mkdir -p _site
+          cp index.html _site/index.html
+
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
 
       - name: Subir artefacto para Pages
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: '_site'
 
       - name: Desplegar a GitHub Pages
         id: deployment
