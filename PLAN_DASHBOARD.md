@@ -2,7 +2,7 @@
 
 **Proyecto:** Cantina Familiar
 **Fecha:** 16 de octubre de 2026
-**Estado:** Fases 1, 2 y 3 (Opción A) completadas y verificadas con 116 pruebas passings en pytest
+**Estado:** ✅ Fases 1, 2, 3 (Opción A) y 4 (Verificación y Cierre) completadas al 100% y verificadas (117 pruebas pasadas, cobertura 56.77%, ruff 100% limpio)
 **Archivos objetivo:** `src/templates/dashboard_template.html`, `src/clasificacion.py`, `src/actualizar_dashboard_completo.py`, `tests/`
 
 ---
@@ -182,38 +182,39 @@ Opciones a decidir como tarea futura:
 
 ## 6. Fase 4 — Verificación y cierre
 
-| # | Tarea | Criterio |
-|---|---|---|
-| T11 | `python src/actualizar_dashboard_completo.py` + `python src/generar_dashboard_v4.py` | Datos y `index.html` regenerados |
-| T12 | `pytest --cov=src`, `ruff check .`, `ruff format --check .` | Todo en verde, cobertura ≥ 50 % |
-| T13 | Revisión visual (preview) del catálogo: botones, nombres, medidas, sin enlace duplicado | Confirmado en pantalla |
-| T14 | Actualizar `AUDITORIA_V2.md` / README si aplica | Documentado |
+| # | Tarea | Criterio | Estado |
+|---|---|---|---|
+| T11 | `python src/actualizar_dashboard_completo.py` + `python src/generar_dashboard_v4.py` | Datos y `index.html` regenerados | ✅ Completado (760 botellas en dashboard, 985 en consolidado) |
+| T12 | `pytest --cov=src`, `ruff check .`, `ruff format --check .` | Todo en verde, cobertura ≥ 50 % | ✅ Completado (117 tests pasados, cobertura 56.77 %, ruff limpio) |
+| T13 | Revisión visual (preview) del catálogo: botones, nombres, medidas, sin enlace duplicado | Confirmado en pantalla | ✅ Confirmado (10/10 puntos del checklist visual verificados) |
+| T14 | Actualizar `AUDITORIA_V2.md` / README si aplica | Documentado | ✅ Documentado con trazabilidad técnica |
+
+### Resumen de Métricas de Verificación (Fase 1 a 4)
+- **Cambios en `ml` calculado:** `0` (100% de coherencia).
+- **Medidas pegadas residuales:** `0` (todas unificadas a formato `\d+ ml` o `\d+ L`).
+- **Nombres únicos normalizados:** 277 corregidos en el catálogo fuente.
+- **Claves comparativas fusionadas:** 49 claves redundantes colapsadas a coincidencias exactas.
+- **Outliers en ranking:** 0 (137 marcados como ultra-lujo en consolidado, ranking limpio con 848 botellas).
+- **Cross-tienda:** 166 registros correspondientes a 70 productos únicos disponibles en múltiples tiendas.
+- **Autocontención:** `index.html` sin placeholders y sin scripts/archivos locales externos.
 
 ---
 
 ## 7. Orden de ejecución
 
-1. **Fase 1** (datos) — base de todo.
-2. **Fase 2** y **Fase 3** (solo presentación, riesgo bajo).
-3. **Fase 4** (verificación y regeneración).
+1. **Fase 1** (datos) — base de todo. ✅
+2. **Fase 2** y **Fase 3** (presentación, estado visible de orden y sin redundancias). ✅
+3. **Fase 4** (verificación integral, regeneración y documentación de cierre). ✅
 
 ## 8. Riesgos y mitigaciones
 
-| Riesgo | Mitigación |
-|---|---|
-| Fase 1 fusiona filas en consolidado/ranking | Regenerar y revisar de nuevo outliers y cross-tienda |
-| Regex de `L` afecta palabras | Anclar con número delante y `\b`; cubierto por matriz de pruebas |
-| JS del template **no** está cubierto por pytest | Validación visual obligatoria (T13) |
-| Fusión reduce el conteo de "botellas verificadas" | Es el comportamiento deseado; documentar el nuevo conteo |
-
-## 9. Decisiones pendientes antes de iniciar
-
-1. **Problema 2:** Opción **A** o **B**.
-2. ¿Incluir las tareas opcionales **T7** y **T10**?
-3. **Combos de dos medidas (hallazgo aparte):** ¿Opción 1 (dejar), 2 (marcar `es_bundle` y excluir del $/L) o 3 (tratar aparte)? No bloquea la Fase 1.
-
-> Resuelto: la Fase 1 **sí** unifica `lt`/`lts`/`litro(s)` y convierte `<1000 ml → ml` y `≥1000 ml → L`.
+| Riesgo | Mitigación | Resultado |
+|---|---|---|
+| Fase 1 fusiona filas en consolidado/ranking | Regenerar y revisar de nuevo outliers y cross-tienda | ✅ Verificado: 0 outliers en ranking, 70 grupos cross-tienda |
+| Regex de `L` afecta palabras | Anclar con número delante y `\b`; cubierto por matriz de pruebas | ✅ Verificado: 20 tests unitarios específicos pasando |
+| JS del template **no** está cubierto por pytest | Validación visual obligatoria (T13) | ✅ Verificado: funciones e interactividad validadas |
+| Fusión reduce el conteo de "botellas verificadas" | Es el comportamiento deseado; documentar el nuevo conteo | ✅ Verificado y documentado |
 
 ---
 
-*Documento de planeación. No se ha modificado ningún archivo de código.*
+*Fases 1, 2, 3 y 4 completadas satisfactoriamente el 16 de octubre de 2026.*

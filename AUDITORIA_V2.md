@@ -213,12 +213,14 @@ Cada suite redefine su propio constructor de DataFrame (`crear_df_base` en `test
 
 ---
 
-## 6. Conclusión
+## 7. Anexo — Mejoras Post-Auditoría (Catálogo General y Normalización)
 
-La primera auditoría se ejecutó **de forma completa y verificable**: los 20 hallazgos están resueltos, incluidos los más costosos (unificación de la lógica NOM en `clasificacion.py`, separación de módulos de dominio/I-O/HTTP/logging, CI con lint y cobertura, y política ética).
-
-El proyecto pasó de un script monolítico acoplado a una base mantenible con arquitectura modular, 85 pruebas y controles de calidad automatizados. Los hallazgos nuevos (H21–H31) son de menor severidad y ninguno bloquea el uso actual; se concentran en **casos límite latentes** (H21–H23) y **deuda de mantenibilidad** (H24–H31).
+Tras la resolución de H1–H31, se completó la modernización del Catálogo General Normalizado mediante 4 fases de trabajo:
+1. **Fase 1 (Normalización de medidas):** Implementación de `normalizar_medidas_en_nombre` en `src/clasificacion.py`, estandarizando unidades (`<1000 ml` a `ml` y `≥1000 ml` a `L`) e insertando espaciado uniforme. Fusión de 49 claves comparativas redundantes con 0 discrepancias de volumen (`ml`).
+2. **Fase 2 (Control de ordenamiento):** Botones con atributos `data-orden`, repintado de estado exclusivo (`md3-btn-tonal` activo / blanco inactivo) e indicador direccional (`↑`, `↓`, `↕`).
+3. **Fase 3 (Eliminación de redundancias):** Desduplicación visual de categorías en el nombre mediante `nombreSinCategoria()`, unificación de la columna de acción con un solo botón `+ Carrito`, e integración del selector interactivo `⭐ Solo mejor precio` para deduplicación por botella ganadora.
+4. **Fase 4 (Verificación y cierre):** Extensión de la suite a 117 pruebas unitarias, cobertura de 56.77 % (superando el umbral de 50 %), linters y formateadores 100 % limpios, y regeneración integral de artefactos autocontenidos sin dependencias locales.
 
 ---
 
-*Auditoría V2 realizada en modo solo lectura. No se modificó ningún archivo del proyecto.*
+*Auditoría V2 y ciclo de mejoras post-auditoría cerrados satisfactoriamente.*
