@@ -22,6 +22,8 @@ data/debug_page.html
 Thumbs.db
 .vscode/
 .idea/
+.~lock.*
+
 
 # Artefactos generados en runtime (H15)
 index.html

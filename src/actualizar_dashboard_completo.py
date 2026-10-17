@@ -37,6 +37,7 @@ logger = get_logger("actualizador")
 
 from src.clasificacion import (
     CATEGORIAS_COMPARABLES_VALIDAS,
+    LIMITES_PRESUPUESTO_DASHBOARD,
     clasificar_estricto,
     corregir_ml_producto,
     normalizar_medidas_en_nombre,
@@ -146,15 +147,27 @@ def actualizar_todo(archivos_fuente: list[str] | None = None, carpeta_salida: st
     df_ranking = df[~df["es_outlier_lujo"]].sort_values(by=["categoria", "precio_por_litro"]).reset_index(drop=True)
     guardar_csv_atomico(df_ranking, os.path.join(carpeta_salida, "ranking_completo_general.csv"))
 
-    # Filtrar para catálogo relevante de la cantina familiar (descartar botellas ultra-lujo > $2,000)
-    cond = (
-        ((df["categoria"] == "Tequila") & (df["precio_promo"] <= 1950))
-        | ((df["categoria"] == "Mezcal") & (df["precio_promo"] <= 1500))
-        | ((df["categoria"] == "Whisky") & (df["precio_promo"] <= 1750))
-        | ((df["categoria"] == "Licor de Whisky") & (df["precio_promo"] <= 950))
-        | ((df["categoria"] == "Vino") & ((df["precio_por_litro"] <= 350) | (df["precio_promo"] <= 260)))
-    )
-    df_dash = df[cond].copy()
+    # Filtrar para catálogo relevante de la cantina familiar según límites centralizados (H32)
+    cond_list = []
+    for cat, limits in LIMITES_PRESUPUESTO_DASHBOARD.items():
+        sub_cond = df["categoria"] == cat
+        if "max_precio_promo" in limits and "max_precio_por_litro" in limits:
+            sub_cond = sub_cond & (
+                (df["precio_promo"] <= limits["max_precio_promo"])
+                | (df["precio_por_litro"] <= limits["max_precio_por_litro"])
+            )
+        elif "max_precio_promo" in limits:
+            sub_cond = sub_cond & (df["precio_promo"] <= limits["max_precio_promo"])
+        elif "max_precio_por_litro" in limits:
+            sub_cond = sub_cond & (df["precio_por_litro"] <= limits["max_precio_por_litro"])
+        cond_list.append(sub_cond)
+
+    cond_presupuesto = pd.Series(False, index=df.index)
+    for c in cond_list:
+        cond_presupuesto = cond_presupuesto | c
+
+    # Excluir explícitamente cualquier outlier de lujo además del filtro de presupuesto (H37)
+    df_dash = df[cond_presupuesto & ~df["es_outlier_lujo"]].copy()
     df_dash = df_dash.sort_values(by=["categoria_comparable", "precio_por_litro"]).reset_index(drop=True)
 
     cols = [

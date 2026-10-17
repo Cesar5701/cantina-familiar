@@ -189,6 +189,28 @@ CATEGORIAS_COMPARABLES_VALIDAS = [
     "Vino - Tinto Clericot",
 ]
 
+# ---------------------------------------------------------------------------
+# Umbrales y límites de precio centralizados (H32)
+# ---------------------------------------------------------------------------
+
+# Techos de precio por litro para detectar botellas de ultra-lujo/colección (analizador.py)
+TECHOS_LITRO_OUTLIERS = {
+    "Tequila": 3500.0,
+    "Mezcal": 3000.0,
+    "Whisky": 4000.0,
+    "Vino": 1000.0,
+    "Licor de Whisky": 1600.0,
+}
+
+# Techos de precio por botella y por litro para el catálogo familiar (actualizar_dashboard_completo.py)
+LIMITES_PRESUPUESTO_DASHBOARD = {
+    "Tequila": {"max_precio_promo": 1950.0},
+    "Mezcal": {"max_precio_promo": 1500.0},
+    "Whisky": {"max_precio_promo": 1750.0},
+    "Licor de Whisky": {"max_precio_promo": 950.0},
+    "Vino": {"max_precio_por_litro": 350.0, "max_precio_promo": 260.0},
+}
+
 
 # ---------------------------------------------------------------------------
 # Extracción y corrección de volumen (H2 y H6)

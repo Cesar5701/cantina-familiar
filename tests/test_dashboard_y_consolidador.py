@@ -239,3 +239,78 @@ def test_cascada_categoria_tipo_template():
 
     # Lógica de desactivación defensiva en versus libre
     assert "🔓 Comparativa libre (sin filtro de tipo)" in contenido
+
+
+def test_h32_umbrales_centralizados():
+    """Valida la centralización de techos de ultra-lujo y límites de presupuesto (H32)."""
+    from src.clasificacion import LIMITES_PRESUPUESTO_DASHBOARD, TECHOS_LITRO_OUTLIERS
+
+    categorias_esperadas = {"Tequila", "Mezcal", "Whisky", "Licor de Whisky", "Vino"}
+    assert set(TECHOS_LITRO_OUTLIERS.keys()) == categorias_esperadas
+    assert set(LIMITES_PRESUPUESTO_DASHBOARD.keys()) == categorias_esperadas
+
+    # Validar que todos los valores sean numéricos positivos
+    for cat, techo in TECHOS_LITRO_OUTLIERS.items():
+        assert techo > 0, f"Techo inválido para {cat}"
+
+    for cat, lim in LIMITES_PRESUPUESTO_DASHBOARD.items():
+        assert "max_precio_promo" in lim or "max_precio_por_litro" in lim, f"Faltan límites para {cat}"
+
+
+def test_h37_exclusion_explicita_outliers_dashboard(tmp_path: Path):
+    """Valida que el dashboard excluya explícitamente outliers de lujo aunque cumplan el tope de precio (H37)."""
+    # 3 botellas base a $200 (mediana ppl = $266.67) y una a $1,500 (entra en tope de Tequila <= $1,950, pero ppl=$2000 > 4x mediana)
+    df_lujo_sub_tope = crear_df_base(
+        [
+            {
+                "tienda": "Bodegas Alianza",
+                "producto": "Tequila Dobel Diamante Añejo Cristalino 750 ml",
+                "categoria": "Tequila",
+                "subcategoria": "Añejo Cristalino",
+                "clase": "Añejo Cristalino",
+                "ml": 750,
+                "precio_regular": 250.0,
+                "precio_promo": 200.0,
+            },
+            {
+                "tienda": "Bodegas Alianza",
+                "producto": "Tequila 1800 Cristalino Añejo 750 ml",
+                "categoria": "Tequila",
+                "subcategoria": "Añejo Cristalino",
+                "clase": "Añejo Cristalino",
+                "ml": 750,
+                "precio_regular": 250.0,
+                "precio_promo": 200.0,
+            },
+            {
+                "tienda": "Bodegas Alianza",
+                "producto": "Tequila Herradura Añejo Cristalino 750 ml",
+                "categoria": "Tequila",
+                "subcategoria": "Añejo Cristalino",
+                "clase": "Añejo Cristalino",
+                "ml": 750,
+                "precio_regular": 250.0,
+                "precio_promo": 200.0,
+            },
+            {
+                "tienda": "Bodegas Alianza",
+                "producto": "Tequila Don Julio 70 Añejo Cristalino 750 ml",
+                "categoria": "Tequila",
+                "subcategoria": "Añejo Cristalino",
+                "clase": "Añejo Cristalino",
+                "ml": 750,
+                "precio_regular": 1600.0,
+                "precio_promo": 1500.0,
+            },
+        ]
+    )
+
+    csv_in = tmp_path / "fuente.csv"
+    df_lujo_sub_tope.to_csv(csv_in, index=False)
+
+    records = actualizar_todo(archivos_fuente=[str(csv_in)], carpeta_salida=str(tmp_path))
+    prods_en_dashboard = [r["producto"] for r in records]
+
+    # Don Julio 70 cuesta $1,500 (cumple tope Tequila <= $1,950), pero al ser outlier es excluido explícitamente (H37)
+    assert not any("Don Julio 70" in p for p in prods_en_dashboard)
+    assert any("Dobel Diamante" in p for p in prods_en_dashboard)

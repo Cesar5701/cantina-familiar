@@ -9,6 +9,7 @@ import argparse
 import numpy as np
 import pandas as pd
 
+from src.clasificacion import TECHOS_LITRO_OUTLIERS
 from src.logger import get_logger
 
 logger = get_logger("analizador")
@@ -278,13 +279,7 @@ def marcar_outliers_lujo(df: pd.DataFrame, umbral_multiplicador_mediana: float =
 
     outlier_mask = pd.Series(False, index=df.index)
 
-    limites_ppl = {
-        "Tequila": 3500.0,
-        "Mezcal": 3000.0,
-        "Whisky": 4000.0,
-        "Vino": 1000.0,
-        "Licor de Whisky": 1600.0,
-    }
+    limites_ppl = TECHOS_LITRO_OUTLIERS
     for cat, max_ppl in limites_ppl.items():
         c_mask = (df["categoria"] == cat) & (df["precio_por_litro"] > max_ppl)
         outlier_mask = outlier_mask | c_mask
