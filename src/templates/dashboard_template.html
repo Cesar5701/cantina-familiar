@@ -381,7 +381,7 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
           <!-- 1. Menú de Categoría Principal -->
           <div>
             <label class="block text-xs font-bold text-[#784516] mb-1.5">1. Categoría de Bebida:</label>
@@ -422,27 +422,6 @@
             <input type="text" id="filtro-busqueda" oninput="aplicarFiltros()" placeholder="Ej. Dobel, 1800, Amarás, Red Label..."
                    class="w-full md3-input px-3 py-2">
           </div>
-
-          <!-- 5. Filtros Especiales (Ofertas, Multi-tienda y Paquetes) -->
-          <div>
-            <label class="block text-xs font-bold text-[#574A3D] mb-1.5">5. Filtros Especiales:</label>
-            <div class="flex flex-col gap-1.5">
-              <div class="grid grid-cols-2 gap-1.5">
-                <label class="flex items-center gap-1.5 text-xs text-[#1F1B16] cursor-pointer md3-surface-low hover:bg-[#EFE8DC] px-2 py-1.5 transition-colors rounded-xl border border-[#DFD5C7]" title="Mostrar únicamente botellas con descuento directo">
-                  <input type="checkbox" id="filtro-descuento" onchange="aplicarFiltros()" class="w-3.5 h-3.5 rounded accent-[#784516]">
-                  <span class="font-semibold truncate">🏷️ Ofertas</span>
-                </label>
-                <label class="flex items-center gap-1.5 text-xs text-[#1F1B16] cursor-pointer md3-surface-low hover:bg-[#EFE8DC] px-2 py-1.5 transition-colors rounded-xl border border-[#B7D6C5] bg-[#D3E8DC]/30" title="Mostrar únicamente botellas vendidas en 2 o más tiendas para comparar precios">
-                  <input type="checkbox" id="filtro-cross-tienda" onchange="aplicarFiltros()" class="w-3.5 h-3.5 rounded accent-[#486355]">
-                  <span class="font-semibold truncate text-[#0B2016]">⚡ Multitienda</span>
-                </label>
-              </div>
-              <label class="flex items-center gap-2 text-xs text-[#9B1C1C] cursor-pointer md3-surface-low hover:bg-[#FDE8E8] px-2.5 py-1.5 transition-colors rounded-xl border border-[#F8B4B4] bg-[#FDE8E8]/40" title="Mostrar únicamente paquetes, combos, kits y botellas con obsequios incluidos">
-                <input type="checkbox" id="filtro-paquete" onchange="sincronizarFiltroPaquete(this.checked)" class="w-3.5 h-3.5 rounded accent-[#9B1C1C]">
-                <span class="font-bold truncate">🎁 En paquete / combo</span>
-              </label>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -458,8 +437,13 @@
               <input type="checkbox" id="filtro-mejor-precio" onchange="aplicarFiltros()" checked class="w-4 h-4 rounded accent-[#486355]">
               <span class="font-semibold text-[#0B2016]">⭐ Solo mejor precio</span>
             </label>
+            <label class="flex items-center gap-1.5 text-xs text-[#784516] cursor-pointer px-3 py-1.5 rounded-full bg-white border border-[#DFD5C7] hover:bg-[#EFE8DC] transition-colors select-none min-h-[36px]" title="Mostrar únicamente botellas con descuento directo verificado">
+              <input type="checkbox" id="filtro-descuento" onchange="aplicarFiltros()" class="w-4 h-4 rounded accent-[#784516]">
+              <span class="font-semibold text-[#784516]">🏷️ Solo ofertas</span>
+            </label>
             <label class="flex items-center gap-1.5 text-xs text-[#9B1C1C] cursor-pointer px-3 py-1.5 rounded-full bg-white border border-[#F8B4B4] hover:bg-[#FDE8E8] transition-colors select-none min-h-[36px]" title="Mostrar únicamente botellas en paquete, combos o con obsequios incluidos">
               <input type="checkbox" id="filtro-paquete-pill" onchange="sincronizarFiltroPaquete(this.checked)" class="w-4 h-4 rounded accent-[#9B1C1C]">
+              <input type="checkbox" id="filtro-paquete" class="hidden">
               <span class="font-bold text-[#9B1C1C]">🎁 Solo paquetes y combos</span>
             </label>
             <div class="h-4 w-px bg-[#DFD5C7] hidden sm:block"></div>
@@ -2064,9 +2048,8 @@
       const macroCat = document.getElementById("filtro-macro-categoria").value;
       const subCat = document.getElementById("filtro-categoria").value;
       const tienda = document.getElementById("filtro-tienda").value;
-      const soloDesc = document.getElementById("filtro-descuento").checked;
-      const soloCross = document.getElementById("filtro-cross-tienda") ? document.getElementById("filtro-cross-tienda").checked : false;
-      const chkPaq = document.getElementById("filtro-paquete");
+      const soloDesc = document.getElementById("filtro-descuento") ? document.getElementById("filtro-descuento").checked : false;
+      const chkPaq = document.getElementById("filtro-paquete") || document.getElementById("filtro-paquete-pill");
       const soloPaquete = chkPaq ? chkPaq.checked : false;
       const chkMejor = document.getElementById("filtro-mejor-precio");
       const soloMejor = chkMejor ? chkMejor.checked : true;
@@ -2092,9 +2075,8 @@
         const matchSub = (subCat === 'Todas' || subCat === 'Todos_Macro') || (item.categoria_comparable === subCat);
         const matchTienda = (tienda === 'Todas') || (item.tienda === tienda);
         const matchDesc = !soloDesc || (item.ahorro_verificable > 0);
-        const matchCross = !soloCross || (item.es_comparable_cross_tienda === true);
         const matchPaquete = !soloPaquete || esProductoPaquete(item);
-        return matchBusq && matchMacro && matchSub && matchTienda && matchDesc && matchCross && matchPaquete;
+        return matchBusq && matchMacro && matchSub && matchTienda && matchDesc && matchPaquete;
       });
 
       // Si está en 'Todas las Tiendas' y el filtro está activo, mostrar únicamente la mejor oferta por producto
