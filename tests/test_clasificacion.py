@@ -48,6 +48,8 @@ from src.clasificacion import (
         ("Whisky Buchanan's x 2 750 ml", 1500),
         ("Paquete 2 Tequila Don Julio 70 700 ml", 1400),
         ("Whisky Black & White 6 pack 750 ml", 4500),
+        ("Tequila Centinela Supremo Añejo 750 ml (8 Bot)", 6000),
+        ("Caja de 3 Tequila Herradura Selección Suprema 750 ml", 2250),
         # Miniaturas descartables
         ("4 pachitas de 200 ml Tequila Jimador", 200),
         ("Pack miniatura 50 ml Tequila José Cuervo", 50),

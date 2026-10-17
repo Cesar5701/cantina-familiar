@@ -220,11 +220,13 @@ def extraer_ml(nombre: str, ml_defecto: int = 750) -> int:
     # 2. Detectar multiplicador de paquete (1 a 24 unidades): Pack N, Pack de N, Pack x N, N pack, x N
     # Evitar colisión con ml (ej. "pack 750 ml" no debe tomar 750 como multiplicador)
     mult_pack = 1
-    m_n_pack = re.search(r"\b(\d{1,2})\s*(?:pack|botellas?|piezas?|pzas?)\b", nom_l)
+    m_n_pack = re.search(r"\b(\d{1,2})\s*(?:pack|botellas?|bot|piezas?|pzas?)\b", nom_l)
     if m_n_pack:
         mult_pack = int(m_n_pack.group(1))
     else:
-        m_pack_de = re.search(r"\b(?:pack|paquete)\s*(?:de\s*|x\s*)?(\d{1,2})\b(?!\s*(?:ml|mls|cc|l|lt|litro))", nom_l)
+        m_pack_de = re.search(
+            r"\b(?:pack|paquete|caja)\s*(?:de\s*|x\s*)?(\d{1,2})\b(?!\s*(?:ml|mls|cc|l|lt|litro))", nom_l
+        )
         if m_pack_de:
             mult_pack = int(m_pack_de.group(1))
         else:

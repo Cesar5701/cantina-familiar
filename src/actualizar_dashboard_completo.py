@@ -76,7 +76,7 @@ def actualizar_todo(archivos_fuente: list[str] | None = None, carpeta_salida: st
         df["producto"]
         .str.lower()
         .str.contains(
-            "lemonade|6 latas|4 pachitas|6 pzas|paquete de 3|caja de 6|caja de 12|estuche vacío|crema de|aguamiel|bacanora",
+            "lemonade|6 latas|4 pachitas|6 pzas|paquete de 3|caja de 3|caja de 6|caja de 12|estuche vacío|crema de|aguamiel|bacanora",
             regex=True,
             na=False,
         )
@@ -149,7 +149,7 @@ def actualizar_todo(archivos_fuente: list[str] | None = None, carpeta_salida: st
         ((df["categoria"] == "Tequila") & (df["precio_promo"] <= 1950))
         | ((df["categoria"] == "Mezcal") & (df["precio_promo"] <= 1500))
         | ((df["categoria"] == "Whisky") & (df["precio_promo"] <= 1750))
-        | (df["categoria"] == "Licor de Whisky")
+        | ((df["categoria"] == "Licor de Whisky") & (df["precio_promo"] <= 950))
         | ((df["categoria"] == "Vino") & ((df["precio_por_litro"] <= 350) | (df["precio_promo"] <= 260)))
     )
     df_dash = df[cond].copy()
