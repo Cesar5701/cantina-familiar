@@ -97,7 +97,7 @@ python src/generar_dashboard_v4.py
 ```
 
 ### 2. Ejecutar la Suite de Pruebas Unitarias
-El proyecto cuenta con **119 pruebas automatizadas** que cubren clasificación NOM, normalización de multipacks (`Pack 6`, `Pack x 3`, `(8 Bot)`, etc.), normalización de medidas (`ml` y `L`), métricas por litro, exclusión de nulos y outliers de lujo, arbitraje cross-tienda, validación de esquema, escritura atómica, cliente HTTP con backoff y parseo con mocks:
+El proyecto cuenta con **120 pruebas automatizadas** que cubren clasificación NOM, normalización de multipacks (`Pack 6`, `Pack x 3`, `(8 Bot)`, etc.), normalización de medidas (`ml` y `L`), métricas por litro, exclusión de nulos y outliers de lujo, arbitraje cross-tienda, validación de esquema, selectores interactivos en cascada, escritura atómica, cliente HTTP con backoff y parseo con mocks:
 
 ```bash
 pytest -v
