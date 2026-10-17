@@ -20,6 +20,7 @@ from src.analizador import (
     es_producto_paquete,
     generar_rankings_por_categoria,
     marcar_outliers_lujo,
+    obtener_comparativa_cross_tienda,
 )
 from tests.conftest import crear_df_base
 
@@ -316,26 +317,104 @@ def test_precios_ausentes_excluidos_de_rankings():
 
 
 def test_h21_clave_comparativa_con_ml_float():
-    """Valida que detectar_duplicados maneje ml float, int y string numérico sin corromper la clave (H21)."""
+    """Valida que detectar_duplicados maneje ml float, int y string numérico sin corromper la clave (H21/H35)."""
     df = crear_df_base(
         [
             {"tienda": "Tienda A", "producto": "Tequila Dobel Diamante", "ml": 700.0},
             {"tienda": "Tienda B", "producto": "Tequila Dobel Diamante", "ml": 700},
             {"tienda": "Tienda C", "producto": "Tequila Dobel Diamante", "ml": "700.0"},
             {"tienda": "Tienda D", "producto": "Tequila Dobel Diamante", "ml": np.nan},
+            {"tienda": "Tienda E", "producto": "Whisky Red Label 1 L", "ml": 1000.0},
+            {"tienda": "Tienda F", "producto": "Whisky Red Label 1 L", "ml": "1000.0"},
         ]
     )
     df_dup = detectar_duplicados(df)
 
-    # Las tres primeras deben normalizar exactamente a _700 y agruparse como comparables
-    assert df_dup.loc[0, "clave_comparativa"].endswith("_700")
-    assert df_dup.loc[1, "clave_comparativa"].endswith("_700")
-    assert df_dup.loc[2, "clave_comparativa"].endswith("_700")
-    assert df_dup.loc[0, "clave_comparativa"] == df_dup.loc[1, "clave_comparativa"]
-    assert df_dup.loc[1, "clave_comparativa"] == df_dup.loc[2, "clave_comparativa"]
+    # Las cuatro primeras corresponden al formato estándar y deben unificarse con _std (H35)
+    assert df_dup.loc[0, "clave_comparativa"].endswith("_std")
+    assert df_dup.loc[1, "clave_comparativa"].endswith("_std")
+    assert df_dup.loc[2, "clave_comparativa"].endswith("_std")
+    assert df_dup.loc[3, "clave_comparativa"].endswith("_std")
+    assert (
+        df_dup.loc[0, "clave_comparativa"]
+        == df_dup.loc[1, "clave_comparativa"]
+        == df_dup.loc[2, "clave_comparativa"]
+        == df_dup.loc[3, "clave_comparativa"]
+    )
 
-    # Fila con NaN cae a default 750
-    assert df_dup.loc[3, "clave_comparativa"].endswith("_750")
+    # Formatos no estándar (1000 ml) conservan su valor numérico entero exacto sin decimales corruptos (H21)
+    assert df_dup.loc[4, "clave_comparativa"].endswith("_1000")
+    assert df_dup.loc[5, "clave_comparativa"].endswith("_1000")
+    assert df_dup.loc[4, "clave_comparativa"] == df_dup.loc[5, "clave_comparativa"]
+
+
+def test_h35_comparativa_cross_tienda_700_vs_750ml():
+    """
+    Valida la unificación de botellas estándar (700ml vs 750ml) y el arbitraje por precio por litro (H35):
+    - 700ml y 750ml se unifican bajo la misma clave_comparativa.
+    - Formatos no estándar (1.75 L) permanecen independientes.
+    - La tienda más barata se determina por $/L cuando los volúmenes difieren.
+    """
+    df = crear_df_base(
+        [
+            # Tienda A: Herradura Ultra 700 ml @ $647.56 ($925.09 / L)
+            {
+                "tienda": "Sam's Club",
+                "producto": "Tequila Herradura Ultra Añejo 700 ml",
+                "categoria": "Tequila",
+                "ml": 700,
+                "precio_promo": 647.56,
+            },
+            # Tienda B: Herradura Ultra 750 ml @ $958.00 ($1277.33 / L)
+            {
+                "tienda": "Walmart",
+                "producto": "Tequila Herradura Ultra Añejo 750 ml",
+                "categoria": "Tequila",
+                "ml": 750,
+                "precio_promo": 958.00,
+            },
+            # Tienda C: Herradura Ultra 1.75 L (formato no estándar, no debe mezclarse)
+            {
+                "tienda": "Bodegas Alianza",
+                "producto": "Tequila Herradura Ultra Añejo 1.75 L",
+                "categoria": "Tequila",
+                "ml": 1750,
+                "precio_promo": 1600.00,
+            },
+        ]
+    )
+    df_calc = calcular_metricas(df)
+    df_dup = detectar_duplicados(df_calc)
+
+    # 700 ml y 750 ml unificados en la misma clave comparativa
+    clave_700 = df_dup.loc[0, "clave_comparativa"]
+    clave_750 = df_dup.loc[1, "clave_comparativa"]
+    clave_1750 = df_dup.loc[2, "clave_comparativa"]
+
+    assert clave_700.endswith("_std")
+    assert clave_750.endswith("_std")
+    assert clave_700 == clave_750
+    assert bool(df_dup.loc[0, "es_comparable_cross_tienda"]) is True
+    assert bool(df_dup.loc[1, "es_comparable_cross_tienda"]) is True
+
+    # 1.75 L no debe unirse al grupo estándar
+    assert clave_1750.endswith("_1750")
+    assert clave_1750 != clave_700
+    assert bool(df_dup.loc[2, "es_comparable_cross_tienda"]) is False
+
+    # Comparativa cross-tienda con ranking por $/L
+    df_comp = obtener_comparativa_cross_tienda(df_dup)
+    assert not df_comp.empty
+    assert len(df_comp) == 1
+    res = df_comp.iloc[0]
+
+    assert res["tienda_mas_barata"] == "Sam's Club"
+    assert res["precio_minimo"] == 647.56
+    assert res["tienda_mas_cara"] == "Walmart"
+    assert res["precio_maximo"] == 958.00
+    # Ahorro normalizado: ($1277.33 - $925.09) * 0.70 L = $246.57 aprox
+    assert res["ahorro_maximo"] > 240.0
+    assert res["porcentaje_ahorro_maximo"] > 25.0
 
 
 def test_h25_marcar_outliers_lujo():

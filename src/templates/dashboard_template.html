@@ -1196,31 +1196,36 @@
       const modal = document.getElementById("modal-cross-tienda");
       if (!modal) return;
 
-      document.getElementById("modal-cross-badge-cat").innerText = item.categoria_comparable;
-      document.getElementById("modal-cross-titulo").innerText = `${item.producto} (${item.ml} ml)`;
-      document.getElementById("modal-cross-subtitulo").innerText =
-        `Disponible en ${item.num_tiendas_cross} tiendas · Ahorro máximo entre tiendas: $${item.ahorro_maximo_cross.toFixed(2)} MXN`;
-
       const ofertas = DATOS_COMPLETOS
         .map((p, idx) => ({ p, idx }))
         .filter(x => x.p.clave_comparativa === item.clave_comparativa)
-        .sort((a, b) => a.p.precio_promo - b.p.precio_promo);
+        .sort((a, b) => a.p.precio_por_litro - b.p.precio_por_litro);
 
-      const minPrecio = ofertas[0].p.precio_promo;
-      const maxPrecio = ofertas[ofertas.length - 1].p.precio_promo;
+      const mlsDistintos = [...new Set(ofertas.map(x => x.p.ml))];
+      const formatoStr = mlsDistintos.length > 1 ? `${mlsDistintos.join(" / ")} ml` : `${item.ml} ml`;
+
+      document.getElementById("modal-cross-badge-cat").innerText = item.categoria_comparable;
+      document.getElementById("modal-cross-titulo").innerText = `${item.producto} (${formatoStr})`;
+      document.getElementById("modal-cross-subtitulo").innerText =
+        `Disponible en ${item.num_tiendas_cross} tiendas · Ahorro máximo entre tiendas: $${item.ahorro_maximo_cross.toFixed(2)} MXN`;
+
+      const mejorOferta = ofertas[0].p;
+      const minPorLitro = mejorOferta.precio_por_litro;
       const cont = document.getElementById("modal-cross-contenido");
       let html = "";
 
       ofertas.forEach(({ p, idx }, rank) => {
         const esMinimo = rank === 0;
-        const difVsMin = p.precio_promo - minPrecio;
+        const difVsMin = (p.ml === mejorOferta.ml)
+          ? (p.precio_promo - mejorOferta.precio_promo)
+          : ((p.precio_por_litro - minPorLitro) * (p.ml / 1000.0));
         const badgeTienda = getBadgeTienda(p.tienda, true);
 
         let bannerAhorro = "";
         if (esMinimo) {
-          bannerAhorro = `<span class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] text-[10px] font-bold">🏆 Mejor Precio del Mercado (Ahorras hasta $${(maxPrecio - minPrecio).toFixed(2)})</span>`;
+          bannerAhorro = `<span class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] text-[10px] font-bold">🏆 Mejor Precio del Mercado (Ahorras hasta $${item.ahorro_maximo_cross.toFixed(2)})</span>`;
         } else {
-          bannerAhorro = `<span class="text-[11px] text-[#9B1C1C] font-semibold">+$${difVsMin.toFixed(2)} vs ${ofertas[0].p.tienda}</span>`;
+          bannerAhorro = `<span class="text-[11px] text-[#9B1C1C] font-semibold">+$${difVsMin.toFixed(2)} vs ${mejorOferta.tienda}</span>`;
         }
 
         html += `
@@ -1235,6 +1240,8 @@
                 <span>Precio: <strong class="text-sm font-mono text-[#784516] font-extrabold">$${p.precio_promo.toFixed(2)}</strong></span>
                 <span class="mx-1.5">·</span>
                 <span class="font-mono text-[#486355] font-semibold">$${p.precio_por_litro.toFixed(2)} / L</span>
+                <span class="mx-1.5">·</span>
+                <span class="text-[11px] text-[#786C5E] font-medium">${p.ml} ml</span>
                 ${p.ahorro_verificable > 0 ? `<span class="ml-1 text-[#047857]">(${p.condiciones})</span>` : ''}
               </div>
             </div>
@@ -1290,7 +1297,9 @@
         const prodCorto = g.producto.length > 40 ? g.producto.slice(0, 39) + "…" : g.producto;
         const opt = document.createElement("option");
         opt.value = g.clave;
-        opt.innerText = `${prodCorto} (${g.ml}ml) — Ahorra hasta $${g.ahorro_max.toFixed(2)}`;
+        const mls = [...new Set(g.tiendas.map(t => t.item.ml))];
+        const mlStr = mls.length > 1 ? mls.join("/") + "ml" : `${g.ml}ml`;
+        opt.innerText = `${prodCorto} (${mlStr}) — Ahorra hasta $${g.ahorro_max.toFixed(2)}`;
         sel.appendChild(opt);
       });
     }
@@ -1300,7 +1309,7 @@
       const items = DATOS_COMPLETOS
         .map((item, idx) => ({ item, idx }))
         .filter(x => x.item.clave_comparativa === clave)
-        .sort((a, b) => a.item.precio_promo - b.item.precio_promo);
+        .sort((a, b) => a.item.precio_por_litro - b.item.precio_por_litro);
 
       if (items.length < 2) return;
 

@@ -45,11 +45,13 @@ COLUMNAS_OBLIGATORIAS = [
 
 
 def normalizar_texto_clave(texto: str) -> str:
-    """Normaliza un nombre de producto eliminando acentos, puntuación, stop-words y ordenando tokens para match cross-tienda."""
+    """Normaliza un nombre de producto eliminando acentos, puntuación, especificaciones de volumen, stop-words y ordenando tokens para match cross-tienda."""
     if not texto or pd.isnull(texto):
         return ""
 
     s = unicodedata.normalize("NFKD", str(texto)).encode("ascii", "ignore").decode("utf-8")
+    # H35: Eliminar especificaciones de volumen en el título (ej. 700 ml, 750ml, 1.75 L, 1 L, 750 mililitros)
+    s = re.sub(r"\b\d+(\.\d+)?\s*(ml|l|litros?|mililitros?)\b", " ", s, flags=re.IGNORECASE)
     s = re.sub(r"[^a-zA-Z0-9\s]", " ", s.lower())
     stop_words = {"de", "del", "el", "la", "los", "las", "en", "para"}
     tokens = [t for t in s.split() if t not in stop_words]
@@ -129,7 +131,7 @@ def detectar_duplicados(df: pd.DataFrame) -> pd.DataFrame:
     # 1. Duplicados intra-tienda (compatibilidad total)
     df["es_duplicado"] = df.duplicated(subset=["tienda", "producto", "ml"], keep="first")
 
-    # 2. Clave comparativa cross-tienda (H8 / H21)
+    # 2. Clave comparativa cross-tienda (H8 / H21 / H35)
     claves = []
     for _, row in df.iterrows():
         prod_norm = normalizar_texto_clave(row.get("producto", ""))
@@ -142,7 +144,10 @@ def detectar_duplicados(df: pd.DataFrame) -> pd.DataFrame:
                     ml_val = round(ml_num)
             except (ValueError, TypeError):
                 ml_val = 750
-        claves.append(f"{prod_norm}_{ml_val}")
+
+        # H35: Formato estándar 700ml vs 750ml (650 <= ml <= 800) unificado a 'std'
+        vol_tag = "std" if 650 <= ml_val <= 800 else str(ml_val)
+        claves.append(f"{prod_norm}_{vol_tag}")
     df["clave_comparativa"] = claves
 
     conteo_tiendas = df.groupby("clave_comparativa")["tienda"].nunique()
@@ -154,8 +159,9 @@ def detectar_duplicados(df: pd.DataFrame) -> pd.DataFrame:
 
 def obtener_comparativa_cross_tienda(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Genera tabla de arbitraje de precios para botellas presentes en múltiples tiendas (H8).
-    Calcula tienda más barata, más cara y el ahorro máximo por producto.
+    Genera tabla de arbitraje de precios para botellas presentes en múltiples tiendas (H8 / H35).
+    Calcula tienda más barata, más cara y el ahorro máximo por producto, priorizando
+    precio por litro para formatos estándar unificados (700ml vs 750ml).
     """
     if "clave_comparativa" not in df.columns or "es_comparable_cross_tienda" not in df.columns:
         df = detectar_duplicados(df)
@@ -171,14 +177,24 @@ def obtener_comparativa_cross_tienda(df: pd.DataFrame) -> pd.DataFrame:
         if grupo["tienda"].nunique() < 2:
             continue
 
-        idx_min = grupo["precio_efectivo"].idxmin()
-        idx_max = grupo["precio_efectivo"].idxmax()
+        # H35: Comparar por precio_por_litro para rankear con precisión ofertas con volúmenes ligeramente distintos
+        col_ord = "precio_por_litro" if "precio_por_litro" in grupo.columns else "precio_efectivo"
+        idx_min = grupo[col_ord].idxmin()
+        idx_max = grupo[col_ord].idxmax()
 
         fila_min = grupo.loc[idx_min]
         fila_max = grupo.loc[idx_max]
 
-        ahorro = fila_max["precio_efectivo"] - fila_min["precio_efectivo"]
-        pct_ahorro = (ahorro / fila_max["precio_efectivo"] * 100) if fila_max["precio_efectivo"] > 0 else 0.0
+        if fila_min["ml"] == fila_max["ml"]:
+            ahorro = fila_max["precio_efectivo"] - fila_min["precio_efectivo"]
+            pct_ahorro = (ahorro / fila_max["precio_efectivo"] * 100) if fila_max["precio_efectivo"] > 0 else 0.0
+        else:
+            # H35: Ahorro normalizado al formato de la botella comprada (fila_min)
+            ahorro_por_litro = fila_max["precio_por_litro"] - fila_min["precio_por_litro"]
+            ahorro = ahorro_por_litro * (fila_min["ml"] / 1000.0)
+            pct_ahorro = (
+                (ahorro_por_litro / fila_max["precio_por_litro"] * 100) if fila_max["precio_por_litro"] > 0 else 0.0
+            )
 
         resumen.append(
             {

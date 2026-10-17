@@ -213,26 +213,39 @@ def actualizar_todo(archivos_fuente: list[str] | None = None, carpeta_salida: st
         if c not in df_dash.columns:
             df_dash[c] = ""
 
-    # Precomputar métricas cross-tienda para el frontend (H8)
+    # Precomputar métricas cross-tienda para el frontend (H8 / H35)
     grupos_cross = {}
     for clave, grp in df_dash.groupby("clave_comparativa"):
         tiendas_unicas = grp["tienda"].unique()
         if len(tiendas_unicas) >= 2:
-            idx_min = grp["precio_promo"].idxmin()
-            idx_max = grp["precio_promo"].idxmax()
+            # H35: Determinar tienda más conveniente por precio_por_litro
+            idx_min = grp["precio_por_litro"].idxmin()
+            idx_max = grp["precio_por_litro"].idxmax()
             row_min = grp.loc[idx_min]
             row_max = grp.loc[idx_max]
+
+            if row_min["ml"] == row_max["ml"]:
+                ahorro_max = round(float(row_max["precio_promo"] - row_min["precio_promo"]), 2)
+            else:
+                ahorro_max = round(
+                    float((row_max["precio_por_litro"] - row_min["precio_por_litro"]) * (row_min["ml"] / 1000.0)), 2
+                )
+
             grupos_cross[clave] = {
                 "num_tiendas": len(tiendas_unicas),
                 "tienda_min": row_min["tienda"],
                 "precio_min": round(float(row_min["precio_promo"]), 2),
+                "precio_por_litro_min": round(float(row_min["precio_por_litro"]), 2),
+                "ml_min": row_min["ml"],
                 "tienda_max": row_max["tienda"],
                 "precio_max": round(float(row_max["precio_promo"]), 2),
-                "ahorro_max": round(float(row_max["precio_promo"] - row_min["precio_promo"]), 2),
+                "precio_por_litro_max": round(float(row_max["precio_por_litro"]), 2),
+                "ahorro_max": ahorro_max,
                 "ofertas": [
                     {
                         "tienda": r["tienda"],
                         "producto": r["producto"],
+                        "ml": r["ml"],
                         "precio_promo": round(float(r["precio_promo"]), 2),
                         "precio_por_litro": round(float(r["precio_por_litro"]), 2),
                         "url": r["url"],
@@ -258,21 +271,43 @@ def actualizar_todo(archivos_fuente: list[str] | None = None, carpeta_salida: st
             rec["num_tiendas_cross"] = info["num_tiendas"]
             rec["tienda_mas_barata"] = info["tienda_min"]
             rec["precio_minimo_cross"] = info["precio_min"]
+            rec["precio_por_litro_minimo_cross"] = info["precio_por_litro_min"]
             rec["tienda_mas_cara"] = info["tienda_max"]
             rec["precio_maximo_cross"] = info["precio_max"]
             rec["ahorro_maximo_cross"] = info["ahorro_max"]
+
             p_actual = round(float(row["precio_promo"]), 2)
-            rec["es_precio_mas_bajo"] = bool(p_actual <= info["precio_min"] + 0.01)
-            rec["diferencia_vs_minimo"] = round(p_actual - info["precio_min"], 2)
+            p_litro_actual = round(float(row["precio_por_litro"]), 2)
+            p_litro_min = info["precio_por_litro_min"]
+
+            # H35: El mejor precio se determina por precio por litro (+ margen de 5 centavos para empates)
+            rec["es_precio_mas_bajo"] = bool(p_litro_actual <= p_litro_min + 0.05)
+            if rec["es_precio_mas_bajo"]:
+                rec["diferencia_vs_minimo"] = 0.0
+            else:
+                if row["ml"] == info.get("ml_min", row["ml"]):
+                    dif = p_actual - info["precio_min"]
+                    rec["diferencia_vs_minimo"] = round(
+                        dif if dif > 0 else (p_litro_actual - p_litro_min) * (float(row["ml"]) / 1000.0), 2
+                    )
+                else:
+                    rec["diferencia_vs_minimo"] = round((p_litro_actual - p_litro_min) * (float(row["ml"]) / 1000.0), 2)
+
             rec["ofertas_cross_tienda"] = [
                 {
                     "tienda": of["tienda"],
                     "producto": of["producto"],
+                    "ml": of["ml"],
                     "precio_promo": of["precio_promo"],
                     "precio_por_litro": of["precio_por_litro"],
                     "url": of["url"],
-                    "diferencia": round(p_actual - of["precio_promo"], 2),
-                    "es_mejor_precio": bool(of["precio_promo"] < p_actual - 0.01),
+                    "diferencia": round(
+                        (p_actual - of["precio_promo"])
+                        if row["ml"] == of["ml"]
+                        else (p_litro_actual - of["precio_por_litro"]) * (float(row["ml"]) / 1000.0),
+                        2,
+                    ),
+                    "es_mejor_precio": bool(of["precio_por_litro"] < p_litro_actual - 0.05),
                 }
                 for of in info["ofertas"]
                 if of["tienda"] != row["tienda"]
@@ -283,6 +318,7 @@ def actualizar_todo(archivos_fuente: list[str] | None = None, carpeta_salida: st
             rec["tienda_mas_barata"] = row["tienda"]
             p_actual = round(float(row["precio_promo"]), 2)
             rec["precio_minimo_cross"] = p_actual
+            rec["precio_por_litro_minimo_cross"] = round(float(row.get("precio_por_litro", 0.0)), 2)
             rec["tienda_mas_cara"] = row["tienda"]
             rec["precio_maximo_cross"] = p_actual
             rec["ahorro_maximo_cross"] = 0.0

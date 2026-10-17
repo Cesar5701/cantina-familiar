@@ -362,3 +362,59 @@ def test_filtro_paquete_en_dashboard(tmp_path: Path):
     single_rec = next(r for r in records if "Vasos" not in r["producto"])
     assert combo_rec["es_paquete"] is True
     assert single_rec["es_paquete"] is False
+
+
+def test_h35_dashboard_cross_tienda_700_vs_750ml(tmp_path: Path):
+    """Valida la unificación de 700 vs 750 ml y cálculo de arbitraje en el pipeline del dashboard (H35)."""
+    # 1. Verificar plantilla HTML para modal y versus ordenados por $/L
+    tpl_path = Path("src/templates/dashboard_template.html")
+    assert tpl_path.exists()
+    tpl_content = tpl_path.read_text(encoding="utf-8")
+    assert "sort((a, b) => a.p.precio_por_litro - b.p.precio_por_litro)" in tpl_content
+    assert "sort((a, b) => a.item.precio_por_litro - b.item.precio_por_litro)" in tpl_content
+
+    # 2. Pipeline con botellas 700 ml vs 750 ml
+    df_prueba = crear_df_base(
+        [
+            {
+                "tienda": "Sam's Club",
+                "producto": "Tequila Herradura Ultra Añejo 700 ml",
+                "categoria": "Tequila",
+                "subcategoria": "Añejo Cristalino",
+                "clase": "Añejo Cristalino",
+                "categoria_comparable": "Tequila - Añejo Cristalino",
+                "ml": 700,
+                "precio_regular": 750.0,
+                "precio_promo": 647.56,
+            },
+            {
+                "tienda": "Walmart",
+                "producto": "Tequila Herradura Ultra Añejo 750 ml",
+                "categoria": "Tequila",
+                "subcategoria": "Añejo Cristalino",
+                "clase": "Añejo Cristalino",
+                "categoria_comparable": "Tequila - Añejo Cristaljo" if False else "Tequila - Añejo Cristalino",
+                "ml": 750,
+                "precio_regular": 958.0,
+                "precio_promo": 958.0,
+            },
+        ]
+    )
+    csv_in = tmp_path / "fuente_h35.csv"
+    df_prueba.to_csv(csv_in, index=False)
+    records = actualizar_todo(archivos_fuente=[str(csv_in)], carpeta_salida=str(tmp_path))
+
+    assert len(records) == 2
+    rec_sams = next(r for r in records if r["tienda"] == "Sam's Club")
+    rec_walmart = next(r for r in records if r["tienda"] == "Walmart")
+
+    assert rec_sams["es_comparable_cross_tienda"] is True
+    assert rec_walmart["es_comparable_cross_tienda"] is True
+    assert rec_sams["num_tiendas_cross"] == 2
+    assert rec_walmart["num_tiendas_cross"] == 2
+
+    # Sam's Club tiene menor precio por litro ($925.09 vs $1277.33 / L)
+    assert rec_sams["es_precio_mas_bajo"] is True
+    assert rec_walmart["es_precio_mas_bajo"] is False
+    assert rec_walmart["tienda_mas_barata"] == "Sam's Club"
+    assert rec_walmart["diferencia_vs_minimo"] > 240.0
