@@ -22,21 +22,21 @@ El proyecto pasó de 2,824 → **5,845 líneas** en `src/` y de 14 → **85 prue
 
 ### Resultado de la nueva auditoría
 
-Se identificaron **11 oportunidades de mejora nuevas (H21–H31)**, ninguna crítica. Las más relevantes:
+Se identificaron **11 oportunidades de mejora nuevas (H21–H31)**, todas resueltas y verificadas:
 
-| # | Hallazgo nuevo | Severidad |
-|---|---|---|
-| H21 | `detectar_duplicados` corrompe las claves comparativas si `ml` es `float` | 🟠 Media-Alta |
-| H22 | Validación de rangos es solo reporte: no filtra, y el mensaje está hardcodeado | 🟠 Media-Alta |
-| H23 | Doble criterio de normalización de producto (`prod_key` vs `clave_comparativa`) | 🟠 Media |
-| H24 | Cobertura de pruebas 38 % sin umbral (`fail_under`) | 🟠 Media |
-| H25 | Outliers de ultra-lujo contaminan el CSV consolidado | 🟡 Baja-Media |
-| H26 | Residuo H1: grupo `Mezcal - Silvestre` duplicado en rankings | 🟡 Baja |
-| H27 | Residuo H2: `extraer_precio_texto` duplicada en Selenium | 🟡 Baja |
-| H28 | Constantes de red (User-Agent/headers) duplicadas en 5 sitios | 🟡 Baja |
-| H29 | Monolito `generar_dashboard_v4.py` (2,588 líneas / 137 KB) | 🟡 Baja-Media |
-| H30 | 5 bloques `except Exception: pass` en Selenium | 🟡 Baja |
-| H31 | Sin `conftest.py`: fixtures de prueba duplicadas | 🟡 Baja |
+| # | Hallazgo nuevo | Severidad | Estado |
+|---|---|---|---|
+| H21 | `detectar_duplicados` corrompe las claves comparativas si `ml` es `float` | 🟠 Media-Alta | ✅ Resuelto |
+| H22 | Validación de rangos es solo reporte: no filtra, y el mensaje está hardcodeado | 🟠 Media-Alta | ✅ Resuelto |
+| H23 | Doble criterio de normalización de producto (`prod_key` vs `clave_comparativa`) | 🟠 Media | ✅ Resuelto |
+| H24 | Cobertura de pruebas 38 % sin umbral (`fail_under`) | 🟠 Media | ✅ Resuelto (56 % con `fail_under=50`) |
+| H25 | Outliers de ultra-lujo contaminan el CSV consolidado | 🟡 Baja-Media | ✅ Resuelto (`es_outlier_lujo` y filtro en ranking) |
+| H26 | Residuo H1: grupo `Mezcal - Silvestre` duplicado en rankings | 🟡 Baja | ✅ Resuelto |
+| H27 | Residuo H2: `extraer_precio_texto` duplicada en Selenium | 🟡 Baja | ✅ Resuelto |
+| H28 | Constantes de red (User-Agent/headers) duplicadas en 5 sitios | 🟡 Baja | ✅ Resuelto |
+| H29 | Monolito `generar_dashboard_v4.py` (2,588 líneas / 137 KB) | 🟡 Baja-Media | ✅ Resuelto (plantilla extraída a `templates/`) |
+| H30 | 5 bloques `except Exception: pass` en Selenium | 🟡 Baja | ✅ Resuelto |
+| H31 | Sin `conftest.py`: fixtures de prueba duplicadas | 🟡 Baja | ✅ Resuelto (`tests/conftest.py`) |
 
 ---
 

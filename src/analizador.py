@@ -261,14 +261,61 @@ def calcular_metricas(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def generar_rankings_por_categoria(df: pd.DataFrame) -> dict[str, pd.DataFrame]:
+def marcar_outliers_lujo(df: pd.DataFrame, umbral_multiplicador_mediana: float = 5.0) -> pd.DataFrame:
+    """
+    Identifica botellas de colección o ultra-lujo que distorsionan análisis estadísticos (H25).
+    Marca la columna booleana 'es_outlier_lujo'.
+    Un producto se clasifica como outlier de ultra-lujo si:
+    1. Su precio por litro supera `umbral_multiplicador_mediana` veces la mediana de su categoría.
+    2. Su precio por litro supera techos de consumo familiar (ej. > 3,500 MXN/L en Tequila/Whisky,
+       > 3,000 MXN/L en Mezcal, > 1,000 MXN/L en Vino de mesa).
+    3. Su precio unitario es exorbitante (> 5,000 MXN) y su precio por litro supera 2,500 MXN/L.
+    """
+    df = df.copy()
+    if "precio_por_litro" not in df.columns or "precio_promo" not in df.columns:
+        df["es_outlier_lujo"] = False
+        return df
+
+    outlier_mask = pd.Series(False, index=df.index)
+
+    limites_ppl = {
+        "Tequila": 3500.0,
+        "Mezcal": 3000.0,
+        "Whisky": 4000.0,
+        "Vino": 1000.0,
+        "Licor de Whisky": 1600.0,
+    }
+    for cat, max_ppl in limites_ppl.items():
+        c_mask = (df["categoria"] == cat) & (df["precio_por_litro"] > max_ppl)
+        outlier_mask = outlier_mask | c_mask
+
+    if "categoria" in df.columns:
+        for cat, sub in df.groupby("categoria"):
+            med = sub["precio_por_litro"].median()
+            if pd.notnull(med) and med > 0:
+                mask_med = (df["categoria"] == cat) & (df["precio_por_litro"] > (med * umbral_multiplicador_mediana))
+                outlier_mask = outlier_mask | mask_med
+
+    outlier_mask = outlier_mask | ((df["precio_promo"] > 5000.0) & (df["precio_por_litro"] > 2500.0))
+    df["es_outlier_lujo"] = outlier_mask
+    return df
+
+
+def generar_rankings_por_categoria(df: pd.DataFrame, excluir_outliers: bool = True) -> dict[str, pd.DataFrame]:
     """
     Genera rankings ordenados por precio_por_litro dentro de cada subcategoría comparable
     respetando estrictamente la Regla de Rigor 6 (no mezclar categorías no equivalentes).
     """
     # Filtrar solo registros no duplicados y con precio por litro válido y positivo
     no_duplicados = (~df["es_duplicado"]) if "es_duplicado" in df.columns else True
-    validos = df[no_duplicados & (pd.notnull(df["precio_por_litro"])) & (df["precio_por_litro"] > 0)].copy()
+    sin_outliers = (
+        (~df["es_outlier_lujo"])
+        if (excluir_outliers and "es_outlier_lujo" in df.columns)
+        else pd.Series(True, index=df.index)
+    )
+    validos = df[
+        no_duplicados & sin_outliers & (pd.notnull(df["precio_por_litro"])) & (df["precio_por_litro"] > 0)
+    ].copy()
 
     # Definición de grupos comparables estrictos
     grupos = {

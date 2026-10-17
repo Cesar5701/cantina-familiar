@@ -25,6 +25,7 @@ if RAIZ_PROYECTO not in sys.path:
 from src.analizador import (
     calcular_metricas,
     detectar_duplicados,
+    marcar_outliers_lujo,
     normalizar_texto_clave,
     validar_esquema_y_rangos,
 )
@@ -37,14 +38,15 @@ logger = get_logger("actualizador")
 from src.clasificacion import clasificar_estricto, corregir_ml_producto
 
 
-def actualizar_todo():
-    archivos_fuente = [
-        "data/scraped_alianza_completo.csv",
-        "data/scraped_sams.csv",
-        "data/scraped_walmart.csv",
-        "data/scraped_chedraui.csv",
-        "data/scraped_soriana.csv",
-    ]
+def actualizar_todo(archivos_fuente: list[str] | None = None, carpeta_salida: str = "data") -> list[dict]:
+    if archivos_fuente is None:
+        archivos_fuente = [
+            "data/scraped_alianza_completo.csv",
+            "data/scraped_sams.csv",
+            "data/scraped_walmart.csv",
+            "data/scraped_chedraui.csv",
+            "data/scraped_soriana.csv",
+        ]
 
     dfs = []
     for ruta in archivos_fuente:
@@ -52,6 +54,10 @@ def actualizar_todo():
             df_part = pd.read_csv(ruta)
             logger.info(f"Cargado {ruta}: {len(df_part)} filas")
             dfs.append(df_part)
+
+    if not dfs:
+        logger.warning("No se encontraron archivos fuente para consolidar.")
+        return []
 
     df = pd.concat(dfs, ignore_index=True)
 
@@ -119,9 +125,17 @@ def actualizar_todo():
     # Filtrar activamente registros inválidos para que no contaminen rankings ni dashboard
     df = df[df["datos_validos"]].copy().reset_index(drop=True)
 
-    # Guardar archivos consolidados de forma atómica (H10)
-    guardar_csv_atomico(df, "data/catalogo_completo_consolidado.csv")
-    guardar_csv_atomico(df, "data/ranking_completo_general.csv")
+    # Identificar y marcar outliers de ultra-lujo (H25)
+    df = marcar_outliers_lujo(df)
+    n_outliers = int(df["es_outlier_lujo"].sum())
+    logger.info(f"Detección de ultra-lujo: {n_outliers} botellas marcadas como outliers fuera de alcance familiar")
+
+    # Guardar catálogo completo con trazabilidad de outliers (H10 / H25)
+    guardar_csv_atomico(df, os.path.join(carpeta_salida, "catalogo_completo_consolidado.csv"))
+
+    # Guardar ranking general limpio de outliers para comparativas fiables (H25)
+    df_ranking = df[~df["es_outlier_lujo"]].sort_values(by=["categoria", "precio_por_litro"]).reset_index(drop=True)
+    guardar_csv_atomico(df_ranking, os.path.join(carpeta_salida, "ranking_completo_general.csv"))
 
     # Filtrar para catálogo relevante de la cantina familiar (descartar botellas ultra-lujo > $2,000)
     cond = (
@@ -235,7 +249,7 @@ def actualizar_todo():
 
         records.append(rec)
 
-    guardar_json_atomico(records, "data/dashboard_data.json")
+    guardar_json_atomico(records, os.path.join(carpeta_salida, "dashboard_data.json"))
 
     logger.info(f"Total registros guardados en dashboard_data.json: {len(records)}")
     logger.info(f"Productos comparables entre 2 o más tiendas: {len(grupos_cross)} etiquetas")
@@ -245,6 +259,8 @@ def actualizar_todo():
     logger.info("Distribución por Categoría Comparable:")
     for cat, cnt in df_dash["categoria_comparable"].value_counts().items():
         logger.info(f"  - {cat}: {cnt}")
+
+    return records
 
 
 if __name__ == "__main__":

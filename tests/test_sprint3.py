@@ -240,3 +240,50 @@ def test_parseo_mock_sfcc_soriana():
     sales_el = tile.select_one(".sales .cart-price")
     precio_promo = limpiar_precio(sales_el.get_text(strip=True))
     assert precio_promo == 780.0
+
+
+def test_consultar_api_alianza_con_mock():
+    """Valida la consulta y estructuración de datos de Bodegas Alianza con mock (H11 / H24)."""
+    from src.scraper_alianza import consultar_api_alianza
+
+    mock_vtex_item = [
+        {
+            "productName": "Tequila Dobel Diamante 750 ml",
+            "brand": "Maestro Dobel",
+            "link": "https://alianza.com/dobel-diamante",
+            "items": [
+                {
+                    "sellers": [
+                        {
+                            "commertialOffer": {
+                                "Price": 650.0,
+                                "ListPrice": 800.0,
+                                "AvailableQuantity": 5,
+                            }
+                        }
+                    ]
+                }
+            ],
+        }
+    ]
+
+    with patch("src.scraper_alianza.descargar_json_con_reintentos", return_value=mock_vtex_item):
+        prods = consultar_api_alianza("tequila")
+        assert len(prods) == 1
+        p = prods[0]
+        assert p["producto"] == "Tequila Dobel Diamante 750 ml"
+        assert p["precio_promo"] == 650.0
+        assert p["precio_regular"] == 800.0
+        assert p["disponibilidad"] == "disponible"
+        assert p["ml"] == 750
+
+
+def test_consultar_endpoint_paginado_con_mock():
+    """Valida la paginación y manejo de fin de catálogo en scraper_catalogo_completo (H11 / H24)."""
+    from src.scraper_catalogo_completo import consultar_endpoint_paginado
+
+    mock_page = [{"productName": f"Producto {i}"} for i in range(10)]  # Menos de 50 items -> corta paginación
+
+    with patch("src.scraper_catalogo_completo.descargar_json_con_reintentos", return_value=mock_page):
+        items = consultar_endpoint_paginado("whisky", max_paginas=3)
+        assert len(items) == 10  # Corta tras la primera página por ser < 50

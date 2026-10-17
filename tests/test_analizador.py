@@ -18,6 +18,7 @@ from src.analizador import (
     calcular_metricas,
     detectar_duplicados,
     generar_rankings_por_categoria,
+    marcar_outliers_lujo,
 )
 from tests.conftest import crear_df_base
 
@@ -331,3 +332,51 @@ def test_h21_clave_comparativa_con_ml_float():
 
     # Fila con NaN cae a default 750
     assert df_dup.loc[3, "clave_comparativa"].endswith("_750")
+
+
+def test_h25_marcar_outliers_lujo():
+    """Valida la detección y marcaje de botellas de ultra-lujo y colección (H25)."""
+    df = crear_df_base(
+        [
+            # Botella habitual accesible
+            {
+                "producto": "Tequila 1800 Cristalino 700 ml",
+                "categoria": "Tequila",
+                "precio_promo": 750.0,
+                "ml": 700,
+            },
+            # Botella magnum bulk (económica por litro, no es outlier)
+            {
+                "producto": "Tequila Dobel Diamante 3 L",
+                "categoria": "Tequila",
+                "precio_promo": 3200.0,
+                "ml": 3000,
+            },
+            # Botella ultra-lujo (> 3500 $/L)
+            {
+                "producto": "Tequila Don Julio 1942 750 ml",
+                "categoria": "Tequila",
+                "precio_promo": 3500.0,
+                "ml": 750,
+            },
+            # Botella de colección extrema
+            {
+                "producto": "Whisky Royal Salute 51 Años 700 ml",
+                "categoria": "Whisky",
+                "precio_promo": 690000.0,
+                "ml": 700,
+            },
+        ]
+    )
+    df = calcular_metricas(df)
+    df = marcar_outliers_lujo(df)
+
+    assert not df.loc[0, "es_outlier_lujo"]  # 1800 Cristalino accesible
+    assert not df.loc[1, "es_outlier_lujo"]  # Dobel 3L no es outlier
+    assert df.loc[2, "es_outlier_lujo"]  # Don Julio 1942
+    assert df.loc[3, "es_outlier_lujo"]  # Royal Salute 51 años
+
+    # Validar que generar_rankings_por_categoria los excluya por defecto
+    rankings = generar_rankings_por_categoria(df, excluir_outliers=True)
+    for _cat, sub in rankings.items():
+        assert "Whisky Royal Salute 51 Años 700 ml" not in sub["producto"].values
