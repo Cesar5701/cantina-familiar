@@ -377,7 +377,7 @@
             </p>
           </div>
           <div class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] font-mono text-xs self-start sm:self-auto px-3 py-1" id="contador-filtrados">
-            760 botellas verificadas (5 tiendas)
+            775 botellas verificadas (5 tiendas)
           </div>
         </div>
 
@@ -386,19 +386,20 @@
           <div>
             <label class="block text-xs font-bold text-[#784516] mb-1.5">1. Categoría de Bebida:</label>
             <select id="filtro-macro-categoria" onchange="actualizarSubtiposCatalogo()" class="w-full md3-input px-3 py-2 font-semibold">
-              <option value="Todas" selected>🍾 Todas las Bebidas (760)</option>
+              <option value="Todas" selected>🍾 Todas las Bebidas (775)</option>
               <option value="Tequila">🥃 Tequila (210)</option>
-              <option value="Mezcal">🌵 Mezcal (225)</option>
-              <option value="Whisky">🥃 Whisky Escocés (166)</option>
-              <option value="Licor de Whisky">🍯 Licor Whisky Honey (12)</option>
-              <option value="Vino">🍷 Vino Tinto (147)</option>
+              <option value="Mezcal">🌵 Mezcal (226)</option>
+              <option value="Whisky">🥃 Whisky Escocés (175)</option>
+              <option value="Licor de Whisky">🍯 Licor Whisky Honey (9)</option>
+              <option value="Vino">🍷 Vino Tinto (155)</option>
             </select>
           </div>
 
-          <!-- 2. Menú de Tipo de Bebida / Subcategoría -->
+          <!-- 2. Menú de Tipo de Bebida / Subcategoría (Desactivado hasta seleccionar categoría) -->
           <div>
-            <label class="block text-xs font-bold text-[#486355] mb-1.5">2. Tipo de Bebida:</label>
-            <select id="filtro-categoria" onchange="aplicarFiltros()" class="w-full md3-input px-3 py-2 font-medium">
+            <label id="label-filtro-categoria" class="block text-xs font-bold text-[#8A7B6B] mb-1.5 transition-colors">2. Tipo de Bebida:</label>
+            <select id="filtro-categoria" onchange="aplicarFiltros()" disabled class="w-full md3-input px-3 py-2 font-medium opacity-60 bg-[#EFE8DC]/50 cursor-not-allowed transition-all">
+              <option value="Todas" selected>🔒 Selecciona primero una categoría...</option>
             </select>
           </div>
 
@@ -408,9 +409,9 @@
             <select id="filtro-tienda" onchange="aplicarFiltros()" class="w-full md3-input px-3 py-2">
               <option value="Todas">🏬 Todas las Tiendas (5)</option>
               <option value="Bodegas Alianza">🟠 Bodegas Alianza (380)</option>
-              <option value="Chedraui">🟧 Chedraui (114)</option>
+              <option value="Chedraui">🟧 Chedraui (133)</option>
               <option value="Soriana">🔴 Soriana (112)</option>
-              <option value="Walmart">🩵 Walmart (86)</option>
+              <option value="Walmart">🩵 Walmart (82)</option>
               <option value="Sam's Club">🔵 Sam's Club (68)</option>
             </select>
           </div>
@@ -1027,20 +1028,6 @@
 
     // DEFINICIÓN JERÁRQUICA DE CATEGORÍA -> SUBTIPOS
     const SUBTIPOS_POR_MACRO = {
-      "Todas": [
-        { value: "Todas", label: "🌐 Todos los Tipos (760)" },
-        { value: "Tequila - Añejo Cristalino", label: "🥃 Tequila · Añejo Cristalino (88)" },
-        { value: "Tequila - Reposado Cristalino", label: "🥃 Tequila · Reposado Cristalino (68)" },
-        { value: "Tequila - Añejo Tradicional", label: "🥃 Tequila · Añejo Tradicional (54)" },
-        { value: "Mezcal - Espadín Joven", label: "🌵 Mezcal · Espadín Joven (124)" },
-        { value: "Mezcal - Silvestre", label: "🌵 Mezcal · Silvestre (46)" },
-        { value: "Mezcal - Reposado", label: "🌵 Mezcal · Reposado (32)" },
-        { value: "Mezcal - Reposado Cristalino", label: "🌵 Mezcal · Reposado Cristalino (13)" },
-        { value: "Mezcal - Añejo", label: "🌵 Mezcal · Añejo (10)" },
-        { value: "Whisky - Blended Scotch", label: "🥃 Whisky · Blended Scotch (166)" },
-        { value: "Licor de Whisky - Honey", label: "🍯 Licor Whisky · Honey (12)" },
-        { value: "Vino - Tinto Clericot", label: "🍷 Vino · Tinto Clericot (147)" }
-      ],
       "Tequila": [
         { value: "Todos_Macro", label: "🥃 Todos los Tipos de Tequila (210)" },
         { value: "Tequila - Añejo Cristalino", label: "✨ Añejo Cristalino (88)" },
@@ -1048,21 +1035,21 @@
         { value: "Tequila - Añejo Tradicional", label: "🪵 Añejo Tradicional (54)" }
       ],
       "Mezcal": [
-        { value: "Todos_Macro", label: "🌵 Todos los Tipos de Mezcal (225)" },
+        { value: "Todos_Macro", label: "🌵 Todos los Tipos de Mezcal (226)" },
         { value: "Mezcal - Espadín Joven", label: "🔥 Espadín Joven (124)" },
         { value: "Mezcal - Silvestre", label: "🌿 Silvestre: Tobalá / Cupreata / Cuishe (46)" },
-        { value: "Mezcal - Reposado", label: "🪵 Reposado en Madera (32)" },
+        { value: "Mezcal - Reposado", label: "🪵 Reposado en Madera (34)" },
         { value: "Mezcal - Reposado Cristalino", label: "💎 Reposado Cristalino (13)" },
-        { value: "Mezcal - Añejo", label: "🥃 Añejo de Barrica (10)" }
+        { value: "Mezcal - Añejo", label: "🥃 Añejo de Barrica (9)" }
       ],
       "Whisky": [
-        { value: "Whisky - Blended Scotch", label: "🥃 Blended Scotch (166)" }
+        { value: "Whisky - Blended Scotch", label: "🥃 Blended Scotch (175)" }
       ],
       "Licor de Whisky": [
-        { value: "Licor de Whisky - Honey", label: "🍯 Licor de Whisky con Miel / Honey (12)" }
+        { value: "Licor de Whisky - Honey", label: "🍯 Licor de Whisky con Miel / Honey (9)" }
       ],
       "Vino": [
-        { value: "Vino - Tinto Clericot", label: "🍷 Vino Tinto para Clericot y Mesa (147)" }
+        { value: "Vino - Tinto Clericot", label: "🍷 Vino Tinto para Clericot y Mesa (155)" }
       ]
     };
 
@@ -1375,16 +1362,36 @@
     function actualizarSubtiposCatalogo() {
       const macro = document.getElementById("filtro-macro-categoria").value;
       const selectSub = document.getElementById("filtro-categoria");
-      const opciones = SUBTIPOS_POR_MACRO[macro] || SUBTIPOS_POR_MACRO["Todas"];
+      const labelSub = document.getElementById("label-filtro-categoria");
 
-      selectSub.innerHTML = "";
-      opciones.forEach((op, i) => {
-        const opt = document.createElement("option");
-        opt.value = op.value;
-        opt.innerText = op.label;
-        if (i === 0) opt.selected = true;
-        selectSub.appendChild(opt);
-      });
+      if (macro === "Todas") {
+        selectSub.disabled = true;
+        selectSub.classList.add("opacity-60", "bg-[#EFE8DC]/50", "cursor-not-allowed");
+        selectSub.classList.remove("cursor-pointer", "bg-white");
+        selectSub.innerHTML = '<option value="Todas" selected>🔒 Selecciona primero una categoría...</option>';
+        if (labelSub) {
+          labelSub.classList.remove("text-[#486355]");
+          labelSub.classList.add("text-[#8A7B6B]");
+        }
+      } else {
+        selectSub.disabled = false;
+        selectSub.classList.remove("opacity-60", "bg-[#EFE8DC]/50", "cursor-not-allowed");
+        selectSub.classList.add("cursor-pointer", "bg-white");
+        if (labelSub) {
+          labelSub.classList.remove("text-[#8A7B6B]");
+          labelSub.classList.add("text-[#486355]");
+        }
+
+        const opciones = SUBTIPOS_POR_MACRO[macro] || [];
+        selectSub.innerHTML = "";
+        opciones.forEach((op, i) => {
+          const opt = document.createElement("option");
+          opt.value = op.value;
+          opt.innerText = op.label;
+          if (i === 0) opt.selected = true;
+          selectSub.appendChild(opt);
+        });
+      }
 
       aplicarFiltros();
     }
@@ -1395,11 +1402,17 @@
 
       selectSub.innerHTML = "";
       if (macro === "Todas") {
+        selectSub.disabled = true;
+        selectSub.classList.add("opacity-60", "bg-[#EFE8DC]/50", "cursor-not-allowed");
+        selectSub.classList.remove("cursor-pointer", "bg-white");
         const optLibre = document.createElement("option");
         optLibre.value = "Todas";
-        optLibre.innerText = "🔓 Comparar cualquier bebida del catálogo";
+        optLibre.innerText = "🔓 Comparativa libre (sin filtro de tipo)";
         selectSub.appendChild(optLibre);
       } else {
+        selectSub.disabled = false;
+        selectSub.classList.remove("opacity-60", "bg-[#EFE8DC]/50", "cursor-not-allowed");
+        selectSub.classList.add("cursor-pointer", "bg-white");
         const opciones = (SUBTIPOS_POR_MACRO[macro] || []).filter(o => o.value !== "Todos_Macro");
         opciones.forEach((op, i) => {
           const opt = document.createElement("option");

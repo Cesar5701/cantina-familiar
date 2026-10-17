@@ -217,3 +217,25 @@ def test_toggle_solo_mejor_precio_template():
     assert 'if (tienda === "Todas" && soloMejor)' in contenido
     assert "if (!item.es_precio_mas_bajo) return false;" in contenido
     assert "clavesVistas.has(k)" in contenido
+
+
+def test_cascada_categoria_tipo_template():
+    """Valida que el selector de tipo de bebida inicie desactivado y dependa de la categoría seleccionada."""
+    tpl_path = Path("src/templates/dashboard_template.html")
+    assert tpl_path.exists()
+    contenido = tpl_path.read_text(encoding="utf-8")
+
+    # Selector de tipo de bebida inicia desactivado con placeholder explicativo
+    assert 'id="filtro-categoria" onchange="aplicarFiltros()" disabled' in contenido
+    assert 'id="label-filtro-categoria"' in contenido
+    assert "🔒 Selecciona primero una categoría..." in contenido
+
+    # Lógica de activación reactiva en actualizarSubtiposCatalogo
+    assert 'if (macro === "Todas") {' in contenido
+    assert "selectSub.disabled = true;" in contenido
+    assert "selectSub.disabled = false;" in contenido
+    assert 'selectSub.classList.add("opacity-60", "bg-[#EFE8DC]/50", "cursor-not-allowed");' in contenido
+    assert 'selectSub.classList.add("cursor-pointer", "bg-white");' in contenido
+
+    # Lógica de desactivación defensiva en versus libre
+    assert "🔓 Comparativa libre (sin filtro de tipo)" in contenido
