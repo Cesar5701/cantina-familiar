@@ -207,6 +207,7 @@ def actualizar_todo(archivos_fuente: list[str] | None = None, carpeta_salida: st
         "url",
         "especie_agave",
         "condiciones",
+        "es_paquete",
     ]
     for c in cols:
         if c not in df_dash.columns:
@@ -247,6 +248,7 @@ def actualizar_todo(archivos_fuente: list[str] | None = None, carpeta_salida: st
             val = row.get(c, "")
             rec[c] = "" if pd.isna(val) else val
 
+        rec["es_paquete"] = bool(row.get("es_paquete", False))
         clave = row.get("clave_comparativa", "")
         rec["clave_comparativa"] = clave
 

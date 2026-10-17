@@ -5,6 +5,9 @@ y generar rankings estrictamente separados por categorías comparables.
 """
 
 import argparse
+import re
+import unicodedata
+from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
@@ -45,8 +48,6 @@ def normalizar_texto_clave(texto: str) -> str:
     """Normaliza un nombre de producto eliminando acentos, puntuación, stop-words y ordenando tokens para match cross-tienda."""
     if not texto or pd.isnull(texto):
         return ""
-    import re
-    import unicodedata
 
     s = unicodedata.normalize("NFKD", str(texto)).encode("ascii", "ignore").decode("utf-8")
     s = re.sub(r"[^a-zA-Z0-9\s]", " ", s.lower())
@@ -229,6 +230,50 @@ def calcular_costo_efectivo(row: pd.Series) -> float:
     return np.nan
 
 
+def es_producto_paquete(row_o_nombre: Any, condiciones: Optional[str] = None) -> bool:
+    """
+    Identifica si un producto es un paquete, combo promocional, kit o edición con obsequio.
+    """
+    if isinstance(row_o_nombre, str):
+        nom = row_o_nombre.lower()
+        cond = (condiciones or "").lower()
+    elif hasattr(row_o_nombre, "get"):
+        nom = str(row_o_nombre.get("producto", "")).lower()
+        cond = str(row_o_nombre.get("condiciones", "")).lower()
+    else:
+        nom = str(row_o_nombre["producto"]).lower()
+        cond = str(row_o_nombre.get("condiciones", "")).lower()
+
+    if "🎁" in cond or "obsequio" in cond or "combo" in cond or "kit" in cond:
+        return True
+
+    # Palabras clave de paquetes y combos en el nombre
+    patron = (
+        r"\b(?:pack|paquete|combo|kit|caja|set)\b"
+        r"|\b\d+\s*pzas?\b"
+        r"|\bx\s*\d+\b"
+        r"|\b\d+\s*botellas?\b"
+        r"|\bcon\s+(?:vaso|copa|termo|shaker|tumbler|caballito|sal|kit)\b"
+    )
+    if re.search(patron, nom):
+        return True
+
+    # Detección de complementos en el nombre con '+' o 'c/'
+    if " + " in nom or " c/" in nom or " con " in nom:
+        if re.search(
+            r"\+\s*(?:\d+|vaso|copa|termo|sal|bot|agua|refresco|chivas|jack|absolut|woodford|mason|shaker|tumbler)",
+            nom,
+        ):
+            return True
+        if re.search(
+            r"c\/\s*(?:\d+|bot|vaso|copa|bal[oó]n|caballito|termo|porta|kit|escurridor|concentrado|tamborin|sangria|tinto|vino|ultra|reposado|joven|pechuga)",
+            nom,
+        ):
+            return True
+
+    return False
+
+
 def calcular_metricas(df: pd.DataFrame) -> pd.DataFrame:
     """
     Calcula:
@@ -236,6 +281,7 @@ def calcular_metricas(df: pd.DataFrame) -> pd.DataFrame:
     - precio_por_litro: precio_efectivo / (ml / 1000)
     - ahorro_verificable: precio_regular - precio_efectivo
     - porcentaje_ahorro: (ahorro / precio_regular) * 100
+    - es_paquete: si es paquete, combo, kit o edición con obsequio
     """
     df["precio_efectivo"] = df.apply(calcular_costo_efectivo, axis=1)
 
@@ -258,6 +304,8 @@ def calcular_metricas(df: pd.DataFrame) -> pd.DataFrame:
         ((df["ahorro_verificable"] / df["precio_regular"]) * 100.0).round(1),
         0.0,
     )
+
+    df["es_paquete"] = df.apply(es_producto_paquete, axis=1)
 
     return df
 

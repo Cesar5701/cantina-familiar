@@ -423,16 +423,25 @@
                    class="w-full md3-input px-3 py-2">
           </div>
 
-          <!-- 5. Casillas Solo Ofertas y Multi-tienda -->
-          <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-end">
-            <label class="flex items-center gap-2 text-xs text-[#1F1B16] cursor-pointer md3-surface-low hover:bg-[#EFE8DC] px-2.5 py-2 w-full transition-colors min-h-[44px] sm:min-h-[40px] rounded-xl border border-[#DFD5C7]" title="Mostrar únicamente botellas con descuento directo">
-              <input type="checkbox" id="filtro-descuento" onchange="aplicarFiltros()" class="w-4 h-4 rounded accent-[#784516]">
-              <span class="font-semibold truncate">🏷️ En oferta</span>
-            </label>
-            <label class="flex items-center gap-2 text-xs text-[#1F1B16] cursor-pointer md3-surface-low hover:bg-[#EFE8DC] px-2.5 py-2 w-full transition-colors min-h-[44px] sm:min-h-[40px] rounded-xl border border-[#B7D6C5] bg-[#D3E8DC]/30" title="Mostrar únicamente botellas vendidas en 2 o más tiendas para comparar precios">
-              <input type="checkbox" id="filtro-cross-tienda" onchange="aplicarFiltros()" class="w-4 h-4 rounded accent-[#486355]">
-              <span class="font-semibold truncate text-[#0B2016]">⚡ Multi-tienda</span>
-            </label>
+          <!-- 5. Filtros Especiales (Ofertas, Multi-tienda y Paquetes) -->
+          <div>
+            <label class="block text-xs font-bold text-[#574A3D] mb-1.5">5. Filtros Especiales:</label>
+            <div class="flex flex-col gap-1.5">
+              <div class="grid grid-cols-2 gap-1.5">
+                <label class="flex items-center gap-1.5 text-xs text-[#1F1B16] cursor-pointer md3-surface-low hover:bg-[#EFE8DC] px-2 py-1.5 transition-colors rounded-xl border border-[#DFD5C7]" title="Mostrar únicamente botellas con descuento directo">
+                  <input type="checkbox" id="filtro-descuento" onchange="aplicarFiltros()" class="w-3.5 h-3.5 rounded accent-[#784516]">
+                  <span class="font-semibold truncate">🏷️ Ofertas</span>
+                </label>
+                <label class="flex items-center gap-1.5 text-xs text-[#1F1B16] cursor-pointer md3-surface-low hover:bg-[#EFE8DC] px-2 py-1.5 transition-colors rounded-xl border border-[#B7D6C5] bg-[#D3E8DC]/30" title="Mostrar únicamente botellas vendidas en 2 o más tiendas para comparar precios">
+                  <input type="checkbox" id="filtro-cross-tienda" onchange="aplicarFiltros()" class="w-3.5 h-3.5 rounded accent-[#486355]">
+                  <span class="font-semibold truncate text-[#0B2016]">⚡ Multitienda</span>
+                </label>
+              </div>
+              <label class="flex items-center gap-2 text-xs text-[#9B1C1C] cursor-pointer md3-surface-low hover:bg-[#FDE8E8] px-2.5 py-1.5 transition-colors rounded-xl border border-[#F8B4B4] bg-[#FDE8E8]/40" title="Mostrar únicamente paquetes, combos, kits y botellas con obsequios incluidos">
+                <input type="checkbox" id="filtro-paquete" onchange="sincronizarFiltroPaquete(this.checked)" class="w-3.5 h-3.5 rounded accent-[#9B1C1C]">
+                <span class="font-bold truncate">🎁 En paquete / combo</span>
+              </label>
+            </div>
           </div>
         </div>
       </div>
@@ -448,6 +457,10 @@
             <label class="flex items-center gap-1.5 text-xs text-[#1F1B16] cursor-pointer px-3 py-1.5 rounded-full bg-white border border-[#D6C8B8] hover:bg-[#EFE8DC] transition-colors select-none min-h-[36px]" title="Mostrar únicamente la opción más barata por cada producto (oculta ofertas repetidas de tiendas más caras)">
               <input type="checkbox" id="filtro-mejor-precio" onchange="aplicarFiltros()" checked class="w-4 h-4 rounded accent-[#486355]">
               <span class="font-semibold text-[#0B2016]">⭐ Solo mejor precio</span>
+            </label>
+            <label class="flex items-center gap-1.5 text-xs text-[#9B1C1C] cursor-pointer px-3 py-1.5 rounded-full bg-white border border-[#F8B4B4] hover:bg-[#FDE8E8] transition-colors select-none min-h-[36px]" title="Mostrar únicamente botellas en paquete, combos o con obsequios incluidos">
+              <input type="checkbox" id="filtro-paquete-pill" onchange="sincronizarFiltroPaquete(this.checked)" class="w-4 h-4 rounded accent-[#9B1C1C]">
+              <span class="font-bold text-[#9B1C1C]">🎁 Solo paquetes y combos</span>
             </label>
             <div class="h-4 w-px bg-[#DFD5C7] hidden sm:block"></div>
             <span class="text-[#574A3D] font-medium">Ordenar:</span>
@@ -2014,6 +2027,29 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    function sincronizarFiltroPaquete(estado) {
+      const chk1 = document.getElementById("filtro-paquete");
+      const chk2 = document.getElementById("filtro-paquete-pill");
+      if (chk1) chk1.checked = estado;
+      if (chk2) chk2.checked = estado;
+      aplicarFiltros();
+    }
+
+    function esProductoPaquete(item) {
+      if (!item) return false;
+      if (item.es_paquete !== undefined && typeof item.es_paquete === "boolean") return item.es_paquete;
+      const nom = (item.producto || "").toLowerCase();
+      const cond = (item.condiciones || "").toLowerCase();
+      if (cond.includes("🎁") || cond.includes("obsequio") || cond.includes("combo") || cond.includes("kit")) return true;
+      const patron = /\b(pack|paquete|combo|kit|caja|set)\b|\b\d+\s*pzas?\b|\bx\s*\d+\b|\b\d+\s*botellas?\b|\bcon\s+(vaso|copa|termo|shaker|tumbler|caballito|sal|kit)\b/i;
+      if (patron.test(nom)) return true;
+      if (nom.includes(" + ") || nom.includes(" c/") || nom.includes(" con ")) {
+        if (/\+\s*(\d+|vaso|copa|termo|sal|bot|agua|refresco|chivas|jack|absolut|woodford|mason|shaker|tumbler)/i.test(nom)) return true;
+        if (/c\/\s*(\d+|bot|vaso|copa|bal[oó]n|caballito|termo|porta|kit|escurridor|concentrado|tamborin|sangria|tinto|vino|ultra|reposado|joven|pechuga)/i.test(nom)) return true;
+      }
+      return false;
+    }
+
     function aplicarFiltros() {
       const busq = document.getElementById("filtro-busqueda").value.toLowerCase();
       const macroCat = document.getElementById("filtro-macro-categoria").value;
@@ -2021,6 +2057,8 @@
       const tienda = document.getElementById("filtro-tienda").value;
       const soloDesc = document.getElementById("filtro-descuento").checked;
       const soloCross = document.getElementById("filtro-cross-tienda") ? document.getElementById("filtro-cross-tienda").checked : false;
+      const chkPaq = document.getElementById("filtro-paquete");
+      const soloPaquete = chkPaq ? chkPaq.checked : false;
       const chkMejor = document.getElementById("filtro-mejor-precio");
       const soloMejor = chkMejor ? chkMejor.checked : true;
 
@@ -2046,7 +2084,8 @@
         const matchTienda = (tienda === 'Todas') || (item.tienda === tienda);
         const matchDesc = !soloDesc || (item.ahorro_verificable > 0);
         const matchCross = !soloCross || (item.es_comparable_cross_tienda === true);
-        return matchBusq && matchMacro && matchSub && matchTienda && matchDesc && matchCross;
+        const matchPaquete = !soloPaquete || esProductoPaquete(item);
+        return matchBusq && matchMacro && matchSub && matchTienda && matchDesc && matchCross && matchPaquete;
       });
 
       // Si está en 'Todas las Tiendas' y el filtro está activo, mostrar únicamente la mejor oferta por producto
@@ -2172,6 +2211,20 @@
           }
         }
 
+        let paqueteBadge = "";
+        if (esProductoPaquete(item)) {
+          const textoPaq = (item.condiciones && item.condiciones.includes("🎁"))
+            ? item.condiciones
+            : "🎁 Paquete / Combo";
+          paqueteBadge = `
+            <div class="mt-1">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FDE8E8] text-[#9B1C1C] border border-[#F8B4B4]" title="Presentación en paquete o con obsequios incluidos">
+                <span>${textoPaq}</span>
+              </span>
+            </div>
+          `;
+        }
+
         tr.innerHTML = `
           <td class="p-3.5 font-medium text-[#1F1B16]">
             <a href="${item.url}" target="_blank" rel="noopener noreferrer"
@@ -2183,6 +2236,7 @@
             <div class="text-xs text-[#574A3D] flex items-center gap-1.5 mt-0.5 sm:hidden">
               <span>· ${item.ml} ml</span>
             </div>
+            ${paqueteBadge}
             ${crossBadge}
           </td>
           <td class="p-3.5 text-xs hidden sm:table-cell">

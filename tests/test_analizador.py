@@ -17,6 +17,7 @@ from src.analizador import (
     auditar_datos_faltantes,
     calcular_metricas,
     detectar_duplicados,
+    es_producto_paquete,
     generar_rankings_por_categoria,
     marcar_outliers_lujo,
 )
@@ -383,3 +384,49 @@ def test_h25_marcar_outliers_lujo():
     rankings = generar_rankings_por_categoria(df, excluir_outliers=True)
     for _cat, sub in rankings.items():
         assert "Whisky Royal Salute 51 Años 700 ml" not in sub["producto"].values
+
+
+def test_es_producto_paquete():
+    """Valida la detección precisa de botellas en paquete, combos promocionales o con obsequios."""
+    paquetes = [
+        (
+            "Mezcal 400 Conejos Joven 100% Cosecha Salvaje 700 ml + 2 Vasos + Sal",
+            "🎁 Edición con obsequio (2 Vasos + Sal)",
+        ),
+        ("Pack Whisky Jack Daniels Honey 700 ml + 2 Jack Daniels 200 ml", "Precio regular"),
+        ("Tequila Patrón Cristalino Añejo 700 ml Pack de 2", "Rebaja en línea"),
+        ("Whisky Johnnie Walker Black 750 ml + Termo", "🎁 Edición con obsequio (Termo)"),
+        ("Mezcal Mitre Artesanal Joven 750 ml kit mezcalero", "Precio regular"),
+        ("Mezcal Aluchín Joven 100% 750 ml C/4 Caballitos", "Precio regular"),
+        ("Whisky Chivas Regal 12 Años 750 ml + Absolut Vodka 200 ml", "Oferta en línea"),
+        ("Vino Tinto Cuatro Soles 2 pzas de 750 ml c/u", "Precio socio"),
+    ]
+    for nom, cond in paquetes:
+        assert es_producto_paquete(nom, cond) is True, f"Debería detectarse como paquete/combo: {nom}"
+
+    individuales = [
+        ("Whisky Passport Honey 700 ml", "Precio regular"),
+        ("Tequila Maestro Dobel Diamante 700 ml", "Descuento directo"),
+        ("Mezcal 400 Conejos Joven 100% Cosecha Salvaje 700 ml", "Precio regular"),
+        ("Vino Tinto Concha y Toro Reservado Cabernet Sauvignon 750 ml", "Precio regular"),
+    ]
+    for nom, cond in individuales:
+        assert es_producto_paquete(nom, cond) is False, f"NO debería detectarse como paquete: {nom}"
+
+
+def test_calcular_metricas_columna_es_paquete():
+    """Valida que calcular_metricas asigne la columna booleana es_paquete."""
+    df = crear_df_base(
+        [
+            {
+                "producto": "Mezcal 400 Conejos 700 ml + 2 Vasos + Sal",
+                "condiciones": "🎁 Edición con obsequio",
+                "precio_promo": 849.0,
+            },
+            {"producto": "Mezcal 400 Conejos 700 ml", "condiciones": "Precio regular", "precio_promo": 849.0},
+        ]
+    )
+    df = calcular_metricas(df)
+    assert "es_paquete" in df.columns
+    assert bool(df.loc[0, "es_paquete"]) is True
+    assert bool(df.loc[1, "es_paquete"]) is False

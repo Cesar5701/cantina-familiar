@@ -314,3 +314,51 @@ def test_h37_exclusion_explicita_outliers_dashboard(tmp_path: Path):
     # Don Julio 70 cuesta $1,500 (cumple tope Tequila <= $1,950), pero al ser outlier es excluido explícitamente (H37)
     assert not any("Don Julio 70" in p for p in prods_en_dashboard)
     assert any("Dobel Diamante" in p for p in prods_en_dashboard)
+
+
+def test_filtro_paquete_en_dashboard(tmp_path: Path):
+    """Valida que los registros conserven es_paquete y que la plantilla contenga el filtro interactivo."""
+    # 1. Verificar presencia de controles en la plantilla HTML
+    tpl_path = Path("src/templates/dashboard_template.html")
+    assert tpl_path.exists()
+    tpl_content = tpl_path.read_text(encoding="utf-8")
+    assert 'id="filtro-paquete"' in tpl_content
+    assert 'id="filtro-paquete-pill"' in tpl_content
+    assert "sincronizarFiltroPaquete" in tpl_content
+    assert "esProductoPaquete" in tpl_content
+
+    # 2. Verificar que actualizar_todo exporte es_paquete como booleano
+    df_prueba = crear_df_base(
+        [
+            {
+                "tienda": "Bodegas Alianza",
+                "producto": "Mezcal 400 Conejos Joven 100% Cosecha Salvaje 700 ml + 2 Vasos + Sal",
+                "categoria": "Mezcal",
+                "subcategoria": "Silvestre",
+                "clase": "Joven Silvestre",
+                "ml": 700,
+                "precio_regular": 849.0,
+                "precio_promo": 849.0,
+                "condiciones": "🎁 Edición con obsequio (2 Vasos + Sal)",
+            },
+            {
+                "tienda": "Bodegas Alianza",
+                "producto": "Mezcal 400 Conejos Joven 100% Cosecha Salvaje 700 ml",
+                "categoria": "Mezcal",
+                "subcategoria": "Silvestre",
+                "clase": "Joven Silvestre",
+                "ml": 700,
+                "precio_regular": 849.0,
+                "precio_promo": 849.0,
+                "condiciones": "Precio regular catálogo",
+            },
+        ]
+    )
+    csv_in = tmp_path / "fuente_paquetes.csv"
+    df_prueba.to_csv(csv_in, index=False)
+    records = actualizar_todo(archivos_fuente=[str(csv_in)], carpeta_salida=str(tmp_path))
+
+    combo_rec = next(r for r in records if "Vasos" in r["producto"])
+    single_rec = next(r for r in records if "Vasos" not in r["producto"])
+    assert combo_rec["es_paquete"] is True
+    assert single_rec["es_paquete"] is False
