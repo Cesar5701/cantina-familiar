@@ -302,34 +302,34 @@
       </div>
 
       <!-- CONTROLES GLOBALES EN BLANCO AL INICIAR -->
-      <div class="grid grid-cols-2 sm:flex sm:flex-nowrap items-center gap-3 sm:gap-4 md3-surface-tonal p-3.5 sm:p-4 w-full lg:w-auto">
-        <div class="flex-1 sm:flex-initial">
-          <label for="input-presupuesto-global" class="block text-[11px] font-bold text-[#784516] uppercase tracking-wider">
+      <div class="grid grid-cols-2 sm:flex sm:flex-nowrap items-end gap-3 sm:gap-4 md3-surface-tonal p-3.5 sm:p-4 w-full lg:w-auto rounded-2xl">
+        <div class="flex-1 sm:flex-initial min-w-0">
+          <label for="input-presupuesto-global" class="h-8 flex items-end pb-1 text-[11px] font-bold text-[#784516] uppercase tracking-wider leading-tight">
             Presupuesto ($ MXN)
           </label>
-          <div class="flex items-center gap-1.5 mt-1">
-            <span class="text-sm font-bold text-[#784516] font-mono">$</span>
+          <div class="relative flex items-center w-full">
+            <span class="absolute left-3 text-sm font-bold text-[#784516] font-mono pointer-events-none select-none">$</span>
             <input type="number" id="input-presupuesto-global" value="" min="0" max="200000" step="100"
                    placeholder="Ej. 8500"
                    oninput="actualizarParametrosGlobales()"
-                   class="w-full sm:w-32 md3-input px-3 py-1.5 font-mono font-bold text-[#1F1B16]">
+                   class="w-full sm:w-36 md3-input pl-7 pr-3 py-2 font-mono font-bold text-[#1F1B16] text-sm h-11">
           </div>
         </div>
 
-        <div class="h-10 w-px bg-[#D6C8B8] hidden sm:block"></div>
+        <div class="h-10 w-px bg-[#D6C8B8] hidden sm:block mb-0.5"></div>
 
-        <div class="flex-1 sm:flex-initial">
-          <label for="input-cooperadores-global" class="block text-[11px] font-bold text-[#486355] uppercase tracking-wider">
+        <div class="flex-1 sm:flex-initial min-w-0">
+          <label for="input-cooperadores-global" class="h-8 flex items-end pb-1 text-[11px] font-bold text-[#486355] uppercase tracking-wider leading-tight">
             Personas (N)
           </label>
-          <div class="flex items-center gap-1.5 mt-1">
+          <div class="relative flex items-center w-full">
             <input type="number" id="input-cooperadores-global" value="" min="1" max="200" step="1"
                    placeholder="Ej. 14"
                    oninput="actualizarParametrosGlobales()"
-                   class="w-full sm:w-24 md3-input px-3 py-1.5 font-mono font-bold text-[#1F1B16] text-center">
-            <span class="text-xs text-[#574A3D] hidden sm:inline">pers.</span>
+                   class="w-full sm:w-28 md3-input px-3 py-2 font-mono font-bold text-[#1F1B16] text-center text-sm h-11">
           </div>
         </div>
+      </div>
     </header>
 
     <!-- BANNER MULTITIENDA DE VIGENCIAS Y AUDITORÍA DE PROMOCIONES -->
