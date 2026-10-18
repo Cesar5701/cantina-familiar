@@ -38,8 +38,8 @@ Cantina Familiar/
 ├── tests/
 │   ├── __init__.py
 │   ├── conftest.py                 # Fixtures y generadores de DataFrames sintéticos
-│   ├── test_analizador.py          # Pruebas de métricas, rankings, cross-tienda y filtro de presupuesto (38 pruebas)
-│   ├── test_clasificacion.py       # Pruebas de clasificación NOM, extracción de volumen y sincronización (90 pruebas)
+│   ├── test_analizador.py          # Pruebas de métricas, rankings, cross-tienda y filtro de presupuesto (43 pruebas)
+│   ├── test_clasificacion.py       # Pruebas de clasificación NOM, extracción de volumen y sincronización (79 pruebas)
 │   ├── test_dashboard_smoke.py     # Smoke tests de estructura de index.html y carga de dependencias (4 pruebas)
 │   ├── test_dashboard_y_consolidador.py # Pruebas del generador y consolidador maestro (15 pruebas)
 │   ├── test_scraper_selenium.py    # Pruebas del scraper asistido Selenium y detección de retos (19 pruebas)

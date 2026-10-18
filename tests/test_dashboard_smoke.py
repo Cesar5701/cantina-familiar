@@ -89,6 +89,11 @@ def test_dashboard_smoke_renderizado_completo():
     headers_orden = soup.select("[data-orden-header]")
     assert len(headers_orden) >= 2
 
+    # 8. Modal de Comparativa Cross-Tienda (H8 / H44 / Mobile)
+    assert soup.find(id="modal-cross-tienda") is not None
+    assert soup.find(id="modal-cross-titulo") is not None
+    assert soup.find(id="modal-cross-contenido") is not None
+
 
 def test_dashboard_smoke_datos_json_embebidos():
     """Valida que los datos JSON embebidos sean válidos y estructurados correctamente (H44)."""
@@ -125,6 +130,8 @@ def test_dashboard_smoke_funciones_javascript_criticas():
         "function actualizarVersus",
         "function renderizarTabla",
         "function nombreSinCategoria",
+        "function toggleModalCrossTienda",
+        "function cerrarModalCrossTienda",
     ]
 
     for fn in funciones_esperadas:
