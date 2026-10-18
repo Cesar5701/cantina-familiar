@@ -22,25 +22,68 @@ Cantina Familiar/
 │   └── cantina_familiar.log        # Registro estructurado rotativo (H19)
 ├── src/
 │   ├── __init__.py
-│   ├── clasificacion.py            # Módulo unificado de reglas NOM-006 / NOM-070, volumen, precios y sincronización (H1, H2, H6, H41)
+│   ├── clasificacion/              # Paquete de reglas NOM-006 / NOM-070, volumen, precios y sincronización
+│   │   ├── __init__.py
+│   │   ├── constantes.py           # Vocabularios normativos y umbrales centralizados (H32)
+│   │   ├── volumen_y_precios.py    # Extracción de ml/L, multipacks y parseo de precios (H2, H6)
+│   │   ├── reglas_nom.py           # Clasificación estricta NOM-006 / NOM-070 y especies de agave
+│   │   └── filtros_y_catalogo.py   # Exclusión de mercancía y sincronización de catálogo (H41)
+│   ├── analizador/                 # Paquete de análisis en pandas, arbitraje y rankings
+│   │   ├── __init__.py
+│   │   ├── __main__.py
+│   │   ├── normalizacion.py        # Reglas declarativas de normalización y detección de paquetes (H38)
+│   │   ├── esquema_y_auditoria.py  # Validación de esquema, rangos y datos faltantes (H9)
+│   │   ├── metricas_y_outliers.py  # Cálculo vectorial $/L, outliers de lujo y filtro de presupuesto
+│   │   ├── cross_tienda.py         # Deduplicación y arbitraje cross-tienda (H8, H35, H40)
+│   │   └── rankings_y_cli.py       # Rankings por categoría comparable y CLI ad-hoc
+│   ├── scraper_multitienda/        # Paquete de adquisición multitienda (Sam's, Walmart, Chedraui, Soriana)
+│   │   ├── __init__.py
+│   │   ├── __main__.py
+│   │   ├── normalizador.py         # Normalización y filtrado estricto multitienda
+│   │   ├── chedraui.py             # Scraper API VTEX Chedraui
+│   │   ├── walmart_sams.py         # Scraper SSR __NEXT_DATA__ Sam's Club y Walmart
+│   │   ├── soriana.py              # Scraper SFCC Soriana
+│   │   └── cli.py                  # Orquestador de extracción por lote
+│   ├── scraper_selenium/           # Paquete de scraping SPA asistido (Human-in-the-Loop)
+│   │   ├── __init__.py
+│   │   ├── __main__.py
+│   │   ├── driver_y_waf.py         # Inicialización Chrome/Firefox y detección de retos WAF/CAPTCHA
+│   │   ├── parsers_dom.py          # Extracción híbrida JSON-LD, __NEXT_DATA__ y tarjetas DOM
+│   │   └── navegador_cli.py        # Navegación secuencial con hidratación y CLI
+│   ├── scraper_catalogo_completo/  # Paquete de extracción exhaustiva paginada para Bodegas Alianza
+│   │   ├── __init__.py
+│   │   ├── __main__.py
+│   │   ├── clasificador_alianza.py # Clasificación de ítems VTEX Alianza
+│   │   └── cliente_vtex.py         # Cliente paginado y orquestador
+│   ├── scraper_alianza.py          # Scraper API pública VTEX de Bodegas Alianza por término
 │   ├── http_utils.py               # Cliente HTTP resiliente con reintentos exponenciales y jitter (H20)
 │   ├── io_utils.py                 # Guardado atómico de CSV/JSON y métricas de scraping (H10)
 │   ├── logger.py                   # Sistema centralizado de logging con consola y archivo rotativo (H19)
-│   ├── scraper_alianza.py          # Scraper API pública VTEX de Bodegas Alianza por término
-│   ├── scraper_catalogo_completo.py# Scraper exhaustivo paginado para Bodegas Alianza
-│   ├── scraper_multitienda.py      # Scraper multitienda (Sam's Club, Walmart, Chedraui, Soriana)
-│   ├── scraper_selenium.py         # Scraper SPA asistido (Human-in-the-Loop para retos WAF)
-│   ├── analizador.py               # Motor de análisis en pandas (auditoría, métricas, rankings, cross-tienda y filtros H41)
 │   ├── actualizar_dashboard_completo.py # Pipeline de consolidación, validación de esquema y orquestador (H41)
-│   ├── generar_dashboard_v4.py     # Generador de dashboard BI (Material 3 Expressive)
-│   └── templates/
-│       └── dashboard_template.html # Plantilla HTML+CSS+JS reactiva del dashboard
+│   ├── generar_dashboard_v4.py     # Ensamblador y generador del dashboard BI (Material 3 Expressive)
+│   └── templates/                  # Arquitectura frontend modular (ensamblada en index.html)
+│       ├── dashboard_template.html # Layout maestro con directivas @include
+│       ├── css/
+│       │   └── styles.css          # Variables de diseño Material 3, componentes y animaciones
+│       ├── partials/               # Vistas modulares HTML por sección y pestaña
+│       │   ├── header_y_nav.html
+│       │   ├── tab_rankings.html
+│       │   ├── tab_versus.html
+│       │   ├── tab_carrito.html
+│       │   ├── tab_matriz.html
+│       │   └── footer_y_modales.html
+│       └── js/                     # Módulos JavaScript desacoplados por responsabilidad
+│           ├── 01_estado_y_utilidades.js
+│           ├── 02_modales_y_subtipos.js
+│           ├── 03_carrito_y_canastas.js
+│           ├── 04_navegacion_y_catalogo.js
+│           └── 05_versus_y_arranque.js
 ├── tests/
 │   ├── __init__.py
 │   ├── conftest.py                 # Fixtures y generadores de DataFrames sintéticos
 │   ├── test_analizador.py          # Pruebas de métricas, rankings, cross-tienda y CLI ad-hoc (45 pruebas)
 │   ├── test_clasificacion.py       # Pruebas de clasificación NOM, extracción de volumen y sincronización (79 pruebas)
-│   ├── test_dashboard_smoke.py     # Smoke tests de estructura de index.html, accesibilidad y dependencias (5 pruebas)
+│   ├── test_dashboard_smoke.py     # Smoke tests de estructura de index.html, módulos y accesibilidad (6 pruebas)
 │   ├── test_dashboard_y_consolidador.py # Pruebas del generador y consolidador maestro (16 pruebas)
 │   ├── test_scraper_selenium.py    # Pruebas del scraper asistido Selenium y detección de retos (19 pruebas)
 │   ├── test_scrapers_adquisicion.py# Pruebas de scrapers de adquisición y normalización multi-tienda (10 pruebas)
@@ -50,7 +93,7 @@ Cantina Familiar/
 ├── requirements.txt                # Dependencias base de producción con cotas fijadas
 ├── requirements-dev.txt            # Dependencias de desarrollo y testing (pytest, ruff)
 ├── requirements.lock               # Lockfile determinista con dependencias exactas y hashes (H48)
-├── index.html                      # Dashboard interactivo desplegado para GitHub Pages
+├── index.html                      # Dashboard interactivo autocontenido desplegado para GitHub Pages
 └── README.md                       # Documentación y guía de ejecución
 ```
 
@@ -93,7 +136,7 @@ El flujo completo del proyecto consta de 3 fases desacopladas y observables:
        ↓ (HTTP con reintentos exponenciales y jitter en http_utils.py)
 [2. Consolidación] Clasificación estricta NOM, validación de esquema y cross-tienda
        ↓ (Escritura atómica en io_utils.py y logging estructurado)
-[3. Dashboard BI] Generación reactiva de index.html (autocontenido y publicado en GitHub Pages)
+[3. Dashboard BI] Ensamblado modular y generación reactiva de index.html (publicado en GitHub Pages)
 ```
 
 ### 1. Ejecutar el Pipeline Completo
@@ -105,13 +148,13 @@ El proyecto expone comandos de consola estándar mediante `[project.scripts]` (H
 cantina-consolidar
 # (o alternativamente: python src/actualizar_dashboard_completo.py)
 
-# Paso B: Generar y sincronizar el Dashboard interactivo web
+# Paso B: Ensamblar plantillas modulares y sincronizar el Dashboard interactivo web
 cantina-dashboard
 # (o alternativamente: python src/generar_dashboard_v4.py)
 
 # Paso C: Auditoría ad-hoc y reporte de rankings en terminal para cualquier archivo CSV
 cantina-analizar --entrada data/bebidas_verificadas.csv --salida data/reporte_ranking.csv
-# (o alternativamente: python src/analizador.py --entrada <ruta_csv>)
+# (o alternativamente: python -m src.analizador --entrada <ruta_csv>)
 ```
 
 > **Diferencia entre comandos:**
@@ -119,7 +162,7 @@ cantina-analizar --entrada data/bebidas_verificadas.csv --salida data/reporte_ra
 > - `cantina-analizar` es una herramienta CLI de inspección ad-hoc para evaluar cualquier dataset tabular de forma independiente: audita datos faltantes y duplicados, calcula métricas unitarias e imprime una tabla de rankings por categoría directamente en la terminal.
 
 ### 2. Ejecutar la Suite de Pruebas Unitarias
-El proyecto cuenta con **198 pruebas automatizadas** organizadas en 8 módulos con una cobertura superior al **82%** (`tests/`), que cubren clasificación NOM, normalización de multipacks (`Pack 6`, `Pack x 3`, `(8 Bot)`, etc.), normalización de medidas (`ml` y `L`), métricas por litro, exclusión explícita de outliers de lujo, umbrales centralizados de presupuesto, arbitraje cross-tienda, validación de esquema, selectores interactivos en cascada, escritura atómica, cliente HTTP con backoff, parseo con mocks, entry points CLI, accesibilidad WCAG y persistencia de estado:
+El proyecto cuenta con **199 pruebas automatizadas** organizadas en 8 módulos con una cobertura superior al **83%** (`tests/`), que cubren clasificación NOM, normalización de multipacks (`Pack 6`, `Pack x 3`, `(8 Bot)`, etc.), normalización de medidas (`ml` y `L`), métricas por litro, exclusión explícita de outliers de lujo, umbrales centralizados de presupuesto, arbitraje cross-tienda, validación de esquema, selectores interactivos en cascada, escritura atómica, cliente HTTP con backoff, parseo con mocks, entry points CLI, arquitectura modular de plantillas, accesibilidad WCAG y persistencia de estado:
 
 ```bash
 pytest
@@ -130,19 +173,20 @@ pytest
 - **Scraper Multitienda por Lote (Sam's Club, Walmart, Chedraui, Soriana):**
   Motor de adquisición bajo demanda que consulta APIs y SSR de las 4 cadenas comerciales para actualizar los CSVs fuente de entrada:
   ```bash
-  python src/scraper_multitienda.py
+  python -m src.scraper_multitienda
   ```
   *(Genera `data/scraped_chedraui.csv`, `data/scraped_sams.csv`, `data/scraped_walmart.csv` y `data/scraped_soriana.csv`).*
 
-- **Bodegas Alianza (API VTEX oficial con reintentos y logging):**
+- **Bodegas Alianza (Catálogo exhaustivo o búsqueda por términos):**
   ```bash
+  python -m src.scraper_catalogo_completo
   python src/scraper_alianza.py --terminos "1800" "Herradura" "Amarás" "Red Label" "Jack Daniel" --salida data/scraped_alianza.csv
   ```
 
 - **Scraper Asistido con Selenium (Sam's Club / SPAs):**
   Abre un navegador real (Chrome por defecto, o `--navegador firefox`) para permitir que el JavaScript hidrate precios y existencias en modo Human-in-the-Loop:
   ```bash
-  python src/scraper_selenium.py --urls "https://www.sams.com.mx" --tienda "Sam's Club" --salida data/scraped_selenium.csv
+  python -m src.scraper_selenium --urls "https://www.sams.com.mx" --tienda "Sam's Club" --salida data/scraped_selenium.csv
   ```
   *(Para ejecutar en modo sin cabeza usar la bandera `--headless`).*
 
