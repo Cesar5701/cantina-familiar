@@ -714,13 +714,6 @@
             </div>
 
             <div id="lista-botellas-tequila" class="space-y-2.5"></div>
-
-            <div class="pt-2 border-t border-[#DFD5C7] flex flex-col sm:flex-row gap-2 min-w-0 w-full items-stretch sm:items-center">
-              <select id="select-agregar-tequila" class="flex-1 min-w-0 w-full max-w-full md3-input px-3 py-2 text-xs truncate" style="min-width: 0; max-width: 100%;"></select>
-              <button onclick="agregarBotellaDesdeSelect('Tequila')" class="sm:flex-shrink-0 px-5 py-2 md3-btn-filled text-xs cursor-pointer whitespace-nowrap">
-                + Añadir Tequila
-              </button>
-            </div>
           </div>
 
           <!-- 2. CATEGORÍA: MEZCALES -->
@@ -742,13 +735,6 @@
             </div>
 
             <div id="lista-botellas-mezcal" class="space-y-2.5"></div>
-
-            <div class="pt-2 border-t border-[#DFD5C7] flex flex-col sm:flex-row gap-2 min-w-0 w-full items-stretch sm:items-center">
-              <select id="select-agregar-mezcal" class="flex-1 min-w-0 w-full max-w-full md3-input px-3 py-2 text-xs truncate" style="min-width: 0; max-width: 100%;"></select>
-              <button onclick="agregarBotellaDesdeSelect('Mezcal')" class="sm:flex-shrink-0 px-5 py-2 md3-btn-filled text-xs cursor-pointer whitespace-nowrap">
-                + Añadir Mezcal
-              </button>
-            </div>
           </div>
 
           <!-- 3. CATEGORÍA: WHISKIES -->
@@ -770,13 +756,6 @@
             </div>
 
             <div id="lista-botellas-whisky" class="space-y-2.5"></div>
-
-            <div class="pt-2 border-t border-[#DFD5C7] flex flex-col sm:flex-row gap-2 min-w-0 w-full items-stretch sm:items-center">
-              <select id="select-agregar-whisky" class="flex-1 min-w-0 w-full max-w-full md3-input px-3 py-2 text-xs truncate" style="min-width: 0; max-width: 100%;"></select>
-              <button onclick="agregarBotellaDesdeSelect('Whisky')" class="sm:flex-shrink-0 px-5 py-2 md3-btn-filled text-xs cursor-pointer whitespace-nowrap">
-                + Añadir Whisky
-              </button>
-            </div>
           </div>
 
           <!-- 4. CATEGORÍA: LICOR HONEY -->
@@ -798,13 +777,6 @@
             </div>
 
             <div id="lista-botellas-honey" class="space-y-2.5"></div>
-
-            <div class="pt-2 border-t border-[#DFD5C7] flex flex-col sm:flex-row gap-2 min-w-0 w-full items-stretch sm:items-center">
-              <select id="select-agregar-honey" class="flex-1 min-w-0 w-full max-w-full md3-input px-3 py-2 text-xs truncate" style="min-width: 0; max-width: 100%;"></select>
-              <button onclick="agregarBotellaDesdeSelect('Honey')" class="sm:flex-shrink-0 px-5 py-2 md3-btn-filled text-xs cursor-pointer whitespace-nowrap">
-                + Añadir Honey
-              </button>
-            </div>
           </div>
 
           <!-- 5. CATEGORÍA: VINOS PARA CLERICOT -->
@@ -826,13 +798,6 @@
             </div>
 
             <div id="lista-botellas-vino" class="space-y-2.5"></div>
-
-            <div class="pt-2 border-t border-[#DFD5C7] flex flex-col sm:flex-row gap-2 min-w-0 w-full items-stretch sm:items-center">
-              <select id="select-agregar-vino" class="flex-1 min-w-0 w-full max-w-full md3-input px-3 py-2 text-xs truncate" style="min-width: 0; max-width: 100%;"></select>
-              <button onclick="agregarBotellaDesdeSelect('Vino')" class="sm:flex-shrink-0 px-5 py-2 md3-btn-filled text-xs cursor-pointer whitespace-nowrap">
-                + Añadir Vino
-              </button>
-            </div>
           </div>
 
         </div>
@@ -1214,7 +1179,6 @@
       actualizarSubtiposCatalogo();
       actualizarSubtiposVersus();
       inicializarSelectorCrossTiendaVersus();
-      poblarSelectoresAgregarPorCategoria();
       renderizarCanastasDinamicas();
       renderizarConstructorCanasta();
       actualizarEstadoOrden();
@@ -1490,41 +1454,6 @@
       filtrarSelectoresVersusPorCategoria();
     }
 
-    function poblarSelectoresAgregarPorCategoria() {
-      const cats = ['Tequila', 'Mezcal', 'Whisky', 'Honey', 'Vino'];
-      cats.forEach(macro => {
-        const select = document.getElementById(`select-agregar-${macro.toLowerCase()}`);
-        if (!select) return;
-        select.innerHTML = `<option value="">-- Seleccionar botella de ${macro} para agregar --</option>`;
-
-        const prods = DATOS_COMPLETOS
-          .map((p, idx) => ({ ...p, originalIndex: idx }))
-          .filter(p => getMacroCategoria(p) === macro)
-          .sort((a, b) => a.precio_por_litro - b.precio_por_litro);
-
-        prods.forEach(p => {
-          const opt = document.createElement("option");
-          opt.value = p.originalIndex;
-          const tipoCorto = p.categoria_comparable.split(" - ")[1] || p.categoria_comparable;
-          // Acortar nombres excesivamente largos (> 46 caracteres) para evitar desfase visual en listas nativas
-          const nombreLimpio = p.producto.length > 46 ? p.producto.slice(0, 45).trim() + "…" : p.producto;
-          opt.innerText = `[${tipoCorto}] ${nombreLimpio} (${p.ml}ml · ${p.tienda}) — $${p.precio_promo.toFixed(2)} [$${p.precio_por_litro.toFixed(2)}/L]`;
-          opt.title = `${p.producto} (${p.ml}ml · ${p.tienda}) — $${p.precio_promo.toFixed(2)}`;
-          select.appendChild(opt);
-        });
-      });
-    }
-
-    function agregarBotellaDesdeSelect(macro) {
-      const select = document.getElementById(`select-agregar-${macro.toLowerCase()}`);
-      const idx = parseInt(select.value);
-      if (isNaN(idx) || idx < 0) return;
-
-      modificarCantidad(idx, 1);
-      mostrarToast(`🍾 Agregado: ${DATOS_COMPLETOS[idx].producto}`);
-      select.value = "";
-    }
-
     function agregarDesdeTabla(idx) {
       modificarCantidad(idx, 1);
       mostrarToast(`🍾 Añadido al carrito: ${DATOS_COMPLETOS[idx].producto}`);
@@ -1796,9 +1725,14 @@
 
         const items = itemsPorMacro[macro];
         if (items.length === 0) {
+          const catNombre = macro === "Honey" ? "Licor de Whisky Honey" : macro;
+          const catFiltro = macro === "Honey" ? "Licor de Whisky" : macro;
           cont.innerHTML = `
-            <div class="p-4 text-center text-xs text-[#574A3D] md3-surface-low border-dashed">
-              Sin botellas de ${macro} seleccionadas. Añade una desde el selector inferior o usa el Armador Dinámico.
+            <div class="p-4 text-center text-xs text-[#574A3D] md3-surface-low border-dashed rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
+              <span>Sin botellas de ${catNombre} agregadas al carrito.</span>
+              <button type="button" onclick="cambiarTab('tab-rankings'); document.getElementById('filtro-macro-categoria').value='${catFiltro}'; actualizarSubtiposCatalogo();" class="px-3.5 py-1.5 md3-btn-tonal text-xs font-semibold cursor-pointer inline-flex items-center gap-1.5 transition-all">
+                <span>Añadir desde Catálogo</span> <span>→</span>
+              </button>
             </div>
           `;
         } else {
