@@ -12,7 +12,7 @@ from typing import Any, NamedTuple, Optional
 import numpy as np
 import pandas as pd
 
-from src.clasificacion import TECHOS_LITRO_OUTLIERS, extraer_ml
+from src.clasificacion import LIMITES_PRESUPUESTO_DASHBOARD, TECHOS_LITRO_OUTLIERS, extraer_ml
 from src.logger import get_logger
 
 logger = get_logger("analizador")
@@ -653,6 +653,45 @@ def imprimir_resumen_rankings(rankings: dict[str, pd.DataFrame]):
         sub = df_cat[cols].copy()
         sub.columns = ["Producto", "Tienda", "ml", "Precio ($)", "$/Litro", "% Ahorro", "Confianza"]
         logger.info("\n" + sub.to_string(index=True))
+
+
+def filtrar_catalogo_dashboard(
+    df: pd.DataFrame, limites_presupuesto: dict[str, dict[str, float]] | None = None
+) -> pd.DataFrame:
+    """
+    Filtra el catálogo consolidado aplicando los límites de presupuesto por categoría
+    y excluyendo explícitamente cualquier outlier de lujo (H32, H37, H41).
+    Ordena el resultado por categoría comparable y precio por litro.
+    """
+    if df.empty:
+        return df.copy()
+
+    limites = limites_presupuesto if limites_presupuesto is not None else LIMITES_PRESUPUESTO_DASHBOARD
+
+    cond_list = []
+    for cat, limits in limites.items():
+        sub_cond = df["categoria"] == cat
+        if "max_precio_promo" in limits and "max_precio_por_litro" in limits:
+            sub_cond = sub_cond & (
+                (df["precio_promo"] <= limits["max_precio_promo"])
+                | (df["precio_por_litro"] <= limits["max_precio_por_litro"])
+            )
+        elif "max_precio_promo" in limits:
+            sub_cond = sub_cond & (df["precio_promo"] <= limits["max_precio_promo"])
+        elif "max_precio_por_litro" in limits:
+            sub_cond = sub_cond & (df["precio_por_litro"] <= limits["max_precio_por_litro"])
+        cond_list.append(sub_cond)
+
+    cond_presupuesto = pd.Series(False, index=df.index)
+    for c in cond_list:
+        cond_presupuesto = cond_presupuesto | c
+
+    mask_outlier = df["es_outlier_lujo"] if "es_outlier_lujo" in df.columns else pd.Series(False, index=df.index)
+
+    df_dash = df[cond_presupuesto & ~mask_outlier].copy()
+    if "categoria_comparable" in df_dash.columns and "precio_por_litro" in df_dash.columns:
+        df_dash = df_dash.sort_values(by=["categoria_comparable", "precio_por_litro"]).reset_index(drop=True)
+    return df_dash
 
 
 def procesar_archivo(ruta_entrada: str, ruta_salida: str | None = None) -> pd.DataFrame:

@@ -69,7 +69,7 @@ El módulo `src/scraper_selenium.py` incluye mecanismos para interactuar con apl
 > Cualquier método que modifique banderas del navegador (`navigator.webdriver`, `--disable-blink-features=AutomationControlled`) o que requiera resolver desafíos CAPTCHA se considera **estrictamente de contingencia asistida por humanos (Human-in-the-Loop)** y **no oficial**.
 
 - **No desatendido:** Este módulo no debe configurarse en cron jobs desatendidos ni ejecutarse de manera periódica sin supervisión activa.
-- **Términos de Servicio (ToS):** Ciertas tiendas en línea restringen la extracción masiva automatizada en sus términos y condiciones. Si una tienda bloquea explícitamente el acceso o activa retos de seguridad, el operador debe suspender la extracción para dicho comercio y registrar la cotización de forma manual en `data/plantilla_bebidas.csv`.
+- **Términos de Servicio (ToS):** Ciertas tiendas en línea restringen la extracción masiva automatizada en sus términos y condiciones. Si una tienda bloquea explícitamente el acceso o activa retos de seguridad, el operador debe suspender la extracción para dicho comercio y registrar la cotización de forma manual en `data/bebidas_verificadas.csv`.
 - **Cero evasión de paywalls o autenticación:** No se accede a áreas privadas ni se violan credenciales de acceso restringido.
 
 ---

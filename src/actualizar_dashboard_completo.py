@@ -27,25 +27,21 @@ from src.analizador import (
     calcular_metricas,
     detectar_duplicados,
     enriquecer_registros_cross_tienda,
+    filtrar_catalogo_dashboard,
     marcar_outliers_lujo,
     normalizar_texto_clave,
     validar_esquema_y_rangos,
+)
+from src.clasificacion import (
+    LIMITES_PRESUPUESTO_DASHBOARD,
+    corregir_ml_producto,
+    normalizar_medidas_en_nombre,
+    sincronizar_clasificacion_catalogo,
 )
 from src.io_utils import guardar_csv_atomico, guardar_json_atomico
 from src.logger import get_logger
 
 logger = get_logger("actualizador")
-
-
-from src.clasificacion import (
-    CATEGORIAS_COMPARABLES_VALIDAS,
-    LIMITES_PRESUPUESTO_DASHBOARD,
-    clasificar_agave_mezcal,
-    clasificar_estricto,
-    corregir_ml_producto,
-    generar_etiqueta_condicion,
-    normalizar_medidas_en_nombre,
-)
 
 
 def actualizar_todo(archivos_fuente: list[str] | None = None, carpeta_salida: str = "data") -> list[dict]:
@@ -89,46 +85,8 @@ def actualizar_todo(archivos_fuente: list[str] | None = None, carpeta_salida: st
     )
     df = df[~mask_excluir].copy()
 
-    # Clasificación estricta NOM
-    resultados = df.apply(clasificar_estricto, axis=1)
-    df["categoria_comparable"] = [r[0] for r in resultados]
-    df["subcategoria"] = [r[1] for r in resultados]
-    df["clase"] = [r[2] for r in resultados]
-
-    # Sincronizar columna categoria consistente con categoria_comparable
-    df.loc[df["categoria_comparable"] == "Licor de Whisky - Honey", "categoria"] = "Licor de Whisky"
-    df.loc[df["categoria_comparable"] == "Whisky - Blended Scotch", "categoria"] = "Whisky"
-    df.loc[df["categoria_comparable"] == "Vino - Tinto Clericot", "categoria"] = "Vino"
-    df.loc[df["categoria_comparable"].str.startswith("Tequila"), "categoria"] = "Tequila"
-    df.loc[df["categoria_comparable"].str.startswith("Mezcal"), "categoria"] = "Mezcal"
-
-    # Sincronizar especie_agave para Mezcales usando clasificar_agave_mezcal
-    mask_mezcal = df["categoria"] == "Mezcal"
-    if mask_mezcal.any():
-        df.loc[mask_mezcal, "especie_agave"] = df.loc[mask_mezcal, "producto"].apply(clasificar_agave_mezcal)
-
-    # Eliminar Tequilas que sean Reposado Tradicional, Blanco/Plata u Otros (solo conservar categorías válidas del alcance familiar)
-    categorias_excluidas = {"Tequila - Reposado Tradicional", "Tequila - Blanco / Plata", "Tequila - Otros"}
-    categorias_permitidas = set(CATEGORIAS_COMPARABLES_VALIDAS) - categorias_excluidas
-    df = df[df["categoria_comparable"].isin(categorias_permitidas)].copy()
-
-    # En Licor de Whisky - Honey, asegurar que sea realmente Honey
-    mask_honey_invalido = (df["categoria_comparable"] == "Licor de Whisky - Honey") & (
-        ~df["producto"].str.lower().str.contains("honey|miel", regex=True, na=False)
-    )
-    df = df[~mask_honey_invalido].copy()
-
-    # Enriquecer condiciones con etiqueta de obsequio si incluye regalos o cristalería
-    for idx, row in df.iterrows():
-        nom_l = str(row["producto"]).lower()
-        if any(k in nom_l for k in ["vaso", "copa", "sal", "termo", "kit"]):
-            cond_actual = str(row.get("condiciones", ""))
-            if "🎁" not in cond_actual:
-                nueva_cond = generar_etiqueta_condicion(
-                    str(row["producto"]), float(row["precio_regular"]), float(row["precio_promo"])
-                )
-                if "🎁" in nueva_cond:
-                    df.at[idx, "condiciones"] = nueva_cond
+    # Clasificación estricta NOM y sincronización del catálogo familiar (H41)
+    df = sincronizar_clasificacion_catalogo(df)
 
     # Deduplicar por (tienda, producto normalizado, ml) usando normalizar_texto_clave (H23)
     df["prod_key"] = df["producto"].apply(normalizar_texto_clave)
@@ -168,28 +126,8 @@ def actualizar_todo(archivos_fuente: list[str] | None = None, carpeta_salida: st
     df_ranking = df[~df["es_outlier_lujo"]].sort_values(by=["categoria", "precio_por_litro"]).reset_index(drop=True)
     guardar_csv_atomico(df_ranking, os.path.join(carpeta_salida, "ranking_completo_general.csv"))
 
-    # Filtrar para catálogo relevante de la cantina familiar según límites centralizados (H32)
-    cond_list = []
-    for cat, limits in LIMITES_PRESUPUESTO_DASHBOARD.items():
-        sub_cond = df["categoria"] == cat
-        if "max_precio_promo" in limits and "max_precio_por_litro" in limits:
-            sub_cond = sub_cond & (
-                (df["precio_promo"] <= limits["max_precio_promo"])
-                | (df["precio_por_litro"] <= limits["max_precio_por_litro"])
-            )
-        elif "max_precio_promo" in limits:
-            sub_cond = sub_cond & (df["precio_promo"] <= limits["max_precio_promo"])
-        elif "max_precio_por_litro" in limits:
-            sub_cond = sub_cond & (df["precio_por_litro"] <= limits["max_precio_por_litro"])
-        cond_list.append(sub_cond)
-
-    cond_presupuesto = pd.Series(False, index=df.index)
-    for c in cond_list:
-        cond_presupuesto = cond_presupuesto | c
-
-    # Excluir explícitamente cualquier outlier de lujo además del filtro de presupuesto (H37)
-    df_dash = df[cond_presupuesto & ~df["es_outlier_lujo"]].copy()
-    df_dash = df_dash.sort_values(by=["categoria_comparable", "precio_por_litro"]).reset_index(drop=True)
+    # Filtrar para catálogo relevante de la cantina familiar según límites centralizados (H32, H37, H41)
+    df_dash = filtrar_catalogo_dashboard(df, LIMITES_PRESUPUESTO_DASHBOARD)
 
     cols = [
         "tienda",
@@ -233,5 +171,10 @@ def actualizar_todo(archivos_fuente: list[str] | None = None, carpeta_salida: st
     return records
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """Entry point CLI para consolidar catálogos (H50)."""
     actualizar_todo()
+
+
+if __name__ == "__main__":
+    main()

@@ -324,3 +324,29 @@ def test_h45_h46_h48_higiene_dependencias_y_empaquetado():
     lock_content = lock_file.read_text(encoding="utf-8")
     assert "pandas==" in lock_content
     assert "pytest==" in lock_content
+
+
+def test_h50_entry_points_y_limpieza_plantilla():
+    """Valida la eliminación de plantilla_bebidas.csv y la definición de scripts CLI (H50)."""
+    import importlib
+    from pathlib import Path
+
+    # 1. data/plantilla_bebidas.csv no debe existir
+    assert not Path("data/plantilla_bebidas.csv").exists()
+
+    # 2. pyproject.toml debe declarar [project.scripts]
+    pyproject = Path("pyproject.toml").read_text(encoding="utf-8")
+    assert "[project.scripts]" in pyproject
+    assert 'cantina-consolidar = "src.actualizar_dashboard_completo:main"' in pyproject
+    assert 'cantina-dashboard = "src.generar_dashboard_v4:main"' in pyproject
+    assert 'cantina-analizar = "src.analizador:main"' in pyproject
+
+    # 3. Validar que las funciones referenciadas sean importables y ejecutables
+    mod_act = importlib.import_module("src.actualizar_dashboard_completo")
+    assert callable(mod_act.main)
+
+    mod_dash = importlib.import_module("src.generar_dashboard_v4")
+    assert callable(mod_dash.main)
+
+    mod_ana = importlib.import_module("src.analizador")
+    assert callable(mod_ana.main)

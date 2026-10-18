@@ -92,5 +92,10 @@ def generar_dashboard(
     return html_final
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """Entry point CLI para regenerar el dashboard HTML (H50)."""
     generar_dashboard()
+
+
+if __name__ == "__main__":
+    main()

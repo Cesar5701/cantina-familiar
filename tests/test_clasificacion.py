@@ -7,6 +7,7 @@ Cubre:
 - Clasificación botánica de agaves para mezcal.
 """
 
+import pandas as pd
 import pytest
 
 from src.clasificacion import (
@@ -385,3 +386,74 @@ def test_generar_etiqueta_condicion():
     # Botella normal con descuento
     cond4 = generar_etiqueta_condicion("Mezcal 400 Conejos Joven 100% Cosecha Salvaje 700 ml", 900.0, 849.0)
     assert cond4 == "Descuento directo Aniversario Web"
+
+
+def test_sincronizar_clasificacion_catalogo():
+    from src.clasificacion import sincronizar_clasificacion_catalogo
+
+    # Caso borde: vacío o None
+    assert sincronizar_clasificacion_catalogo(None) is None
+    df_vacio = pd.DataFrame()
+    assert sincronizar_clasificacion_catalogo(df_vacio).empty
+
+    # Catálogo sintético con casos mixtos
+    data = [
+        # 1. Mezcal silvestre con vaso de obsequio
+        {
+            "producto": "Mezcal Amarás Cupreata 750 ml con vaso",
+            "categoria": "Mezcal",
+            "precio_regular": 750.0,
+            "precio_promo": 650.0,
+        },
+        # 2. Licor de Whisky Honey legítimo
+        {
+            "producto": "Jack Daniel's Tennessee Honey 700 ml",
+            "categoria": "Whisky",
+            "precio_regular": 550.0,
+            "precio_promo": 480.0,
+        },
+        # 3. Tequila Blanco (debe ser excluido del alcance familiar)
+        {
+            "producto": "Tequila Don Ramón Plata 750 ml",
+            "categoria": "Tequila",
+            "precio_regular": 320.0,
+            "precio_promo": 300.0,
+        },
+        # 4. Tequila Añejo Cristalino (debe mantenerse)
+        {
+            "producto": "Tequila 1800 Cristalino Añejo 700 ml",
+            "categoria": "Tequila",
+            "precio_regular": 850.0,
+            "precio_promo": 720.0,
+        },
+        # 5. Whisky Blended Scotch
+        {
+            "producto": "Whisky Black & White 700 ml",
+            "categoria": "Whisky",
+            "precio_regular": 250.0,
+            "precio_promo": 210.0,
+        },
+    ]
+    df = pd.DataFrame(data)
+    df_res = sincronizar_clasificacion_catalogo(df)
+
+    # 1. El tequila blanco debe haberse descartado
+    assert not any("Don Ramón Plata" in p for p in df_res["producto"])
+    assert any("1800 Cristalino" in p for p in df_res["producto"])
+
+    # 2. Mezcal debe tener especie_agave = Cupreata y etiqueta de obsequio
+    row_mezcal = df_res[df_res["producto"].str.contains("Amarás")].iloc[0]
+    assert row_mezcal["categoria"] == "Mezcal"
+    assert row_mezcal["categoria_comparable"] == "Mezcal - Silvestre"
+    assert "Cupreata" in row_mezcal["especie_agave"]
+    assert "🎁" in str(row_mezcal["condiciones"])
+
+    # 3. Jack Daniel's Honey debe quedar en categoria = 'Licor de Whisky'
+    row_honey = df_res[df_res["producto"].str.contains("Jack Daniel")].iloc[0]
+    assert row_honey["categoria"] == "Licor de Whisky"
+    assert row_honey["categoria_comparable"] == "Licor de Whisky - Honey"
+
+    # 4. Black & White debe ser Whisky Blended Scotch
+    row_whisky = df_res[df_res["producto"].str.contains("Black & White")].iloc[0]
+    assert row_whisky["categoria"] == "Whisky"
+    assert row_whisky["categoria_comparable"] == "Whisky - Blended Scotch"

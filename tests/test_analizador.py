@@ -11,6 +11,7 @@ Verifica:
 """
 
 import numpy as np
+import pandas as pd
 import pytest
 
 from src.analizador import (
@@ -267,7 +268,7 @@ def test_distincion_categorias_mezcal_reposado_anejo_silvestres():
 
 # 8. Prueba de clasificación estricta: Don Ramón Plata (Blanco) vs Reposado vs Cristalinos
 def test_clasificacion_estricta_don_ramon_y_blancos():
-    from src.actualizar_dashboard_completo import clasificar_estricto
+    from src.clasificacion import clasificar_estricto
 
     # Don Ramón Plata Punta Diamante NUNCA debe ser Añejo ni Cristalino, sino Blanco / Plata (0 meses)
     cat_d, sub_d, cla_d = clasificar_estricto(
@@ -788,3 +789,67 @@ def test_h40_consistencia_obtener_comparativa_y_calcular_grupos():
     assert fila["tienda_mas_cara"] == info["tienda_max"]
     assert fila["precio_maximo"] == info["precio_max"]
     assert fila["ahorro_maximo"] == info["ahorro_max"]
+
+
+def test_filtrar_catalogo_dashboard():
+    """Valida el filtrado de presupuesto, exclusión de outliers de lujo y ordenamiento (H32, H37, H41)."""
+    from src.analizador import filtrar_catalogo_dashboard
+
+    # Caso borde: vacío
+    assert filtrar_catalogo_dashboard(pd.DataFrame()).empty
+
+    df = pd.DataFrame(
+        [
+            # Tequila dentro de presupuesto ($720 promo, 960 $/L)
+            {
+                "producto": "Tequila 1800 Cristalino 750 ml",
+                "categoria": "Tequila",
+                "categoria_comparable": "Tequila - Añejo Cristalino",
+                "precio_promo": 720.0,
+                "precio_por_litro": 960.0,
+                "es_outlier_lujo": False,
+            },
+            # Tequila que excede el presupuesto (> 1950 promo)
+            {
+                "producto": "Tequila Reserva Especial 750 ml",
+                "categoria": "Tequila",
+                "categoria_comparable": "Tequila - Añejo Cristalino",
+                "precio_promo": 2500.0,
+                "precio_por_litro": 3333.0,
+                "es_outlier_lujo": False,
+            },
+            # Mezcal dentro de límites numéricos pero marcado como outlier de lujo (debe excluirse explícitamente H37)
+            {
+                "producto": "Mezcal Raro Edición Oro 750 ml",
+                "categoria": "Mezcal",
+                "categoria_comparable": "Mezcal - Silvestre (Cupreata, Tobalá, etc.)",
+                "precio_promo": 1100.0,
+                "precio_por_litro": 1466.0,
+                "es_outlier_lujo": True,
+            },
+            # Mezcal válido dentro de límites
+            {
+                "producto": "Mezcal Amarás Cupreata 750 ml",
+                "categoria": "Mezcal",
+                "categoria_comparable": "Mezcal - Silvestre (Cupreata, Tobalá, etc.)",
+                "precio_promo": 650.0,
+                "precio_por_litro": 866.6,
+                "es_outlier_lujo": False,
+            },
+        ]
+    )
+
+    df_filtrado = filtrar_catalogo_dashboard(df)
+
+    # Debe contener exactamente 2 botellas: Tequila 1800 y Mezcal Amarás
+    assert len(df_filtrado) == 2
+    prods = set(df_filtrado["producto"])
+    assert "Tequila 1800 Cristalino 750 ml" in prods
+    assert "Mezcal Amarás Cupreata 750 ml" in prods
+    assert "Tequila Reserva Especial 750 ml" not in prods
+    assert "Mezcal Raro Edición Oro 750 ml" not in prods
+
+    # Prueba con límites custom
+    limites_custom = {"Tequila": {"max_precio_promo": 500.0}}
+    df_custom = filtrar_catalogo_dashboard(df, limites_presupuesto=limites_custom)
+    assert len(df_custom) == 0  # 720.0 > 500.0
