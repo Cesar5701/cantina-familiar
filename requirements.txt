@@ -1,6 +1,5 @@
-# Dependencias principales del proyecto Cantina Familiar
+# Dependencias principales de producción (Cantina Familiar)
 numpy>=1.26.0,<3.0.0
 pandas>=2.0.0,<4.0.0
 beautifulsoup4>=4.12.0,<5.0.0
 selenium>=4.20.0,<5.0.0
-pytest>=8.0.0,<10.0.0

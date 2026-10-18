@@ -287,3 +287,40 @@ def test_consultar_endpoint_paginado_con_mock():
     with patch("src.scraper_catalogo_completo.descargar_json_con_reintentos", return_value=mock_page):
         items = consultar_endpoint_paginado("whisky", max_paginas=3)
         assert len(items) == 10  # Corta tras la primera página por ser < 50
+
+
+def test_h45_h46_h48_higiene_dependencias_y_empaquetado():
+    """Valida la consistencia de cotas, separación de desarrollo y existencia de lockfile (H45-H48)."""
+    # H45: requirements.txt no debe tener dependencias de desarrollo
+    req_prod = Path("requirements.txt").read_text(encoding="utf-8")
+    assert "pytest" not in req_prod
+    assert "ruff" not in req_prod
+
+    # requirements-dev.txt debe incluir requirements.txt y dev tools
+    req_dev = Path("requirements-dev.txt").read_text(encoding="utf-8")
+    assert "-r requirements.txt" in req_dev
+    assert "pytest>=" in req_dev
+    assert "ruff>=" in req_dev
+
+    # H46: pyproject.toml y requirements.txt deben tener cotas consistentes
+    pyproject = Path("pyproject.toml").read_text(encoding="utf-8")
+    for dep in [
+        "numpy>=1.26.0,<3.0.0",
+        "pandas>=2.0.0,<4.0.0",
+        "beautifulsoup4>=4.12.0,<5.0.0",
+        "selenium>=4.20.0,<5.0.0",
+    ]:
+        assert dep in req_prod
+        assert dep in pyproject
+
+    # H47: deploy.yml debe usar un solo comando unificado de instalación
+    deploy_yml = Path(".github/workflows/deploy.yml").read_text(encoding="utf-8")
+    assert 'pip install -e ".[dev]"' in deploy_yml
+    assert "pip install -r requirements.txt" not in deploy_yml
+
+    # H48: requirements.lock debe existir y contener versiones fijadas
+    lock_file = Path("requirements.lock")
+    assert lock_file.exists()
+    lock_content = lock_file.read_text(encoding="utf-8")
+    assert "pandas==" in lock_content
+    assert "pytest==" in lock_content

@@ -1,0 +1,32 @@
+# Lockfile generado para reproducibilidad exacta del entorno (H48)
+# Generado con pip freeze excluyendo paquete local en desarrollo
+attrs==26.1.0
+beautifulsoup4==4.15.0
+certifi==2026.7.22
+coverage==7.16.2
+h11==0.16.0
+idna==3.20
+iniconfig==2.3.1
+numpy==2.5.4
+outcome==1.3.0.post0
+packaging==26.3
+pandas==3.0.6
+pluggy==1.7.0
+Pygments==2.21.0
+PySocks==1.7.1
+pytest==9.1.1
+pytest-cov==7.1.0
+python-dateutil==2.9.0.post0
+ruff==0.17.1
+selenium==4.51.0
+setuptools==84.0.0
+six==1.17.0
+sniffio==1.3.1
+sortedcontainers==2.4.0
+soupsieve==3.0.3
+trio==0.34.0
+trio-websocket==0.12.2
+typing_extensions==4.16.0
+urllib3==2.8.0
+websocket-client==1.9.2
+wsproto==1.3.2
