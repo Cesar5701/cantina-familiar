@@ -447,33 +447,6 @@ def enriquecer_registros_cross_tienda(
     return records
 
 
-def calcular_costo_efectivo(row: pd.Series) -> float:
-    """
-    Calcula el costo efectivo unitario distinguiendo:
-    - Promoción multiunidad (ej. 3x2 o paquete N piezas).
-    - Descuento directo unitario.
-    - Precio regular.
-    """
-    unidades = row.get("unidades_promo", 1)
-    precio_total = row.get("precio_total_promo", np.nan)
-    precio_promo = row.get("precio_promo", np.nan)
-    precio_regular = row.get("precio_regular", np.nan)
-
-    # Caso multiunidad: unidades > 1 y precio_total válido
-    if pd.notnull(unidades) and unidades > 1 and pd.notnull(precio_total) and precio_total > 0:
-        return float(precio_total) / float(unidades)
-
-    # Caso unitario promocional
-    if pd.notnull(precio_promo) and precio_promo > 0:
-        return float(precio_promo)
-
-    # Caso regular
-    if pd.notnull(precio_regular) and precio_regular > 0:
-        return float(precio_regular)
-
-    return np.nan
-
-
 def es_producto_paquete(row_o_nombre: Any, condiciones: Optional[str] = None) -> bool:
     """
     Identifica si un producto es un paquete, combo promocional, kit o edición con obsequio.
@@ -527,7 +500,36 @@ def calcular_metricas(df: pd.DataFrame) -> pd.DataFrame:
     - porcentaje_ahorro: (ahorro / precio_regular) * 100
     - es_paquete: si es paquete, combo, kit o edición con obsequio
     """
-    df["precio_efectivo"] = df.apply(calcular_costo_efectivo, axis=1)
+    p_promo = (
+        pd.to_numeric(df["precio_promo"], errors="coerce")
+        if "precio_promo" in df.columns
+        else pd.Series(np.nan, index=df.index)
+    )
+    p_reg = (
+        pd.to_numeric(df["precio_regular"], errors="coerce")
+        if "precio_regular" in df.columns
+        else pd.Series(np.nan, index=df.index)
+    )
+    u_promo = (
+        pd.to_numeric(df["unidades_promo"], errors="coerce").fillna(1)
+        if "unidades_promo" in df.columns
+        else pd.Series(1, index=df.index)
+    )
+    p_tot = (
+        pd.to_numeric(df["precio_total_promo"], errors="coerce")
+        if "precio_total_promo" in df.columns
+        else pd.Series(np.nan, index=df.index)
+    )
+
+    cond_multi = (u_promo > 1) & (p_tot > 0)
+    cond_promo = p_promo > 0
+    cond_reg = p_reg > 0
+
+    df["precio_efectivo"] = np.select(
+        [cond_multi, cond_promo, cond_reg],
+        [p_tot / u_promo, p_promo, p_reg],
+        default=np.nan,
+    )
 
     # Validación de ml > 0 para evitar división por cero
     df["ml"] = pd.to_numeric(df["ml"], errors="coerce").fillna(750)
