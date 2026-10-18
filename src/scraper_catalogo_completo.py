@@ -72,26 +72,30 @@ def consultar_endpoint_paginado(
     return items
 
 
-def procesar_catalogo_completo() -> list[dict]:
+def procesar_catalogo_completo(
+    terminos_busqueda: list[str] | None = None,
+    max_paginas: int = 5,
+) -> list[dict]:
     """Descarga y clasifica todos los productos sin sesgo de marca."""
-    terminos_busqueda = [
-        "tequila",
-        "tequila cristalino",
-        "tequila anejo",
-        "mezcal",
-        "mezcal joven",
-        "mezcal espadin",
-        "mezcal reposado",
-        "mezcal anejo",
-        "mezcal tobala",
-        "mezcal cupreata",
-        "whisky",
-        "whisky blended",
-        "jack daniels honey",
-        "vino tinto",
-        "vino california",
-        "vino reservado",
-    ]
+    if terminos_busqueda is None:
+        terminos_busqueda = [
+            "tequila",
+            "tequila cristalino",
+            "tequila anejo",
+            "mezcal",
+            "mezcal joven",
+            "mezcal espadin",
+            "mezcal reposado",
+            "mezcal anejo",
+            "mezcal tobala",
+            "mezcal cupreata",
+            "whisky",
+            "whisky blended",
+            "jack daniels honey",
+            "vino tinto",
+            "vino california",
+            "vino reservado",
+        ]
 
     productos_crudos = []
     ids_vistos = set()
@@ -99,7 +103,7 @@ def procesar_catalogo_completo() -> list[dict]:
     logger.info("Iniciando extracción exhaustiva del catálogo de Bodegas Alianza...")
     for t in terminos_busqueda:
         logger.info(f"  -> Consultando: '{t}'...")
-        lote = consultar_endpoint_paginado(t, max_paginas=5)
+        lote = consultar_endpoint_paginado(t, max_paginas=max_paginas)
         nuevos = 0
         for p in lote:
             pid = p.get("productId") or p.get("linkText")

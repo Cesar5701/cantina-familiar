@@ -305,34 +305,35 @@ def evaluar_y_normalizar_producto(
 # ==============================================================================
 # 1. SCRAPER CHEDRAUI (API VTEX OFICIAL)
 # ==============================================================================
-def scrapear_chedraui() -> list[dict]:
+def scrapear_chedraui(terminos: list[str] | None = None) -> list[dict]:
     logger.info("=" * 60)
     logger.info("1. SCRAPEANDO CHEDRAUI (API VTEX chedraui.com.mx)")
     logger.info("=" * 60)
-    terminos = [
-        "tequila cristalino",
-        "tequila anejo",
-        "tequila 1800",
-        "tequila herradura",
-        "tequila don julio",
-        "tequila maestro dobel",
-        "tequila centenario",
-        "tequila don ramon",
-        "mezcal",
-        "mezcal 400 conejos",
-        "mezcal amaras",
-        "mezcal montelobos",
-        "whisky",
-        "johnnie walker",
-        "black & white",
-        "ballantines",
-        "william lawsons",
-        "jack daniels honey",
-        "vino tinto",
-        "vino california",
-        "carlo rossi",
-        "concha y toro",
-    ]
+    if terminos is None:
+        terminos = [
+            "tequila cristalino",
+            "tequila anejo",
+            "tequila 1800",
+            "tequila herradura",
+            "tequila don julio",
+            "tequila maestro dobel",
+            "tequila centenario",
+            "tequila don ramon",
+            "mezcal",
+            "mezcal 400 conejos",
+            "mezcal amaras",
+            "mezcal montelobos",
+            "whisky",
+            "johnnie walker",
+            "black & white",
+            "ballantines",
+            "william lawsons",
+            "jack daniels honey",
+            "vino tinto",
+            "vino california",
+            "carlo rossi",
+            "concha y toro",
+        ]
     fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M")
     ids_vistos = set()
     resultados = []
@@ -516,36 +517,37 @@ def scrapear_nextjs_walmart_platform(tienda: str, base_domain: str, terminos: li
 # ==============================================================================
 # 3. SCRAPER SORIANA (HTML SALESFORCE COMMERCE CLOUD)
 # ==============================================================================
-def scrapear_soriana() -> list[dict]:
+def scrapear_soriana(terminos: list[str] | None = None) -> list[dict]:
     logger.info("=" * 60)
     logger.info("SCRAPEANDO SORIANA (soriana.com SFCC Catalog)")
     logger.info("=" * 60)
-    terminos = [
-        "tequila cristalino",
-        "tequila anejo",
-        "tequila 1800",
-        "tequila herradura",
-        "tequila don julio",
-        "tequila maestro dobel",
-        "tequila centenario",
-        "mezcal 400 conejos",
-        "mezcal amaras",
-        "mezcal montelobos",
-        "mezcal reposado",
-        "mezcal anejo",
-        "whisky johnnie walker",
-        "whisky buchanans",
-        "whisky chivas",
-        "whisky black & white",
-        "whisky ballantines",
-        "whisky william lawsons",
-        "jack daniels honey",
-        "vino tinto california",
-        "vino tinto carlo rossi",
-        "vino tinto reservado",
-        "vino tinto cuatro soles",
-        "vino tinto lambrusco",
-    ]
+    if terminos is None:
+        terminos = [
+            "tequila cristalino",
+            "tequila anejo",
+            "tequila 1800",
+            "tequila herradura",
+            "tequila don julio",
+            "tequila maestro dobel",
+            "tequila centenario",
+            "mezcal 400 conejos",
+            "mezcal amaras",
+            "mezcal montelobos",
+            "mezcal reposado",
+            "mezcal anejo",
+            "whisky johnnie walker",
+            "whisky buchanans",
+            "whisky chivas",
+            "whisky black & white",
+            "whisky ballantines",
+            "whisky william lawsons",
+            "jack daniels honey",
+            "vino tinto california",
+            "vino tinto carlo rossi",
+            "vino tinto reservado",
+            "vino tinto cuatro soles",
+            "vino tinto lambrusco",
+        ]
     fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M")
     pids_vistos = set()
     resultados = []
