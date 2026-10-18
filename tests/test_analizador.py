@@ -14,9 +14,14 @@ import numpy as np
 import pytest
 
 from src.analizador import (
+    REGLAS_NORMALIZACION_CLAVE,
+    STOP_WORDS_CLAVE,
+    ReglaNormalizacion,
     auditar_datos_faltantes,
+    calcular_grupos_cross_tienda,
     calcular_metricas,
     detectar_duplicados,
+    enriquecer_registros_cross_tienda,
     es_producto_paquete,
     generar_rankings_por_categoria,
     marcar_outliers_lujo,
@@ -620,3 +625,166 @@ def test_calcular_metricas_columna_es_paquete():
     assert "es_paquete" in df.columns
     assert bool(df.loc[0, "es_paquete"]) is True
     assert bool(df.loc[1, "es_paquete"]) is False
+
+
+# ---------------------------------------------------------------------------
+# Pruebas H38: Tabla Declarativa de Normalización de Claves
+# ---------------------------------------------------------------------------
+
+
+def test_h38_tabla_declarativa_estructura():
+    """Valida la estructura de tipos y contenido mínimo de la tabla declarativa (H38)."""
+    assert isinstance(REGLAS_NORMALIZACION_CLAVE, tuple)
+    assert len(REGLAS_NORMALIZACION_CLAVE) >= 15
+    for regla in REGLAS_NORMALIZACION_CLAVE:
+        assert isinstance(regla, ReglaNormalizacion)
+        assert hasattr(regla.patron, "sub")
+        assert isinstance(regla.reemplazo, str)
+        assert isinstance(regla.nombre, str)
+        assert len(regla.nombre) > 0
+
+    assert isinstance(STOP_WORDS_CLAVE, frozenset)
+    assert "de" in STOP_WORDS_CLAVE
+    assert "licor" in STOP_WORDS_CLAVE
+
+
+@pytest.mark.parametrize(
+    "nombre_regla,texto_entrada,texto_esperado",
+    [
+        ("unificar_posesivos", "Jack Daniel's & Buchanan’s", "Jack Daniels & Buchanans"),
+        ("eliminar_volumen", "Tequila 750 ml y 1.75 L", "Tequila   y  "),
+        ("variantes_whisky", "Whiskey y wisky", "whisky y whisky"),
+        ("licor_de_whisky", "Licor de Whisky Passport", "whisky Passport"),
+        ("prefijo_licor", "licor de agave", "  agave"),
+        ("descriptor_regional", "Jack Daniels Tennessee Honey", "Jack Daniels   Honey"),
+        ("abreviatura_reposado", "Mezcal Zignum Rep.", "Mezcal Zignum reposado"),
+        ("pureza_agave", "Tequila 100% puro de agave azul", "Tequila  "),
+        ("descriptores_envase", "Mezcal artesanal en botella", "Mezcal   en  "),
+        ("blended_scotch", "Whisky blended scotch fino", "Whisky   fino"),
+        ("descriptor_scotch", "Whisky scotch clásico", "Whisky   clásico"),
+        ("marca_mcharrison", "Whisky Mc Harrison 700", "Whisky mcharrison 700"),
+        ("patron_cristalino", "Patron Cristalino", "patron anejo cristalino"),
+        ("dobel_diamante", "Dobel Diamante Cristalino", "dobel diamante"),
+        ("marcas_reposado_cristalino", "Mayorazgo Cristalino", "Mayorazgo reposado cristalino"),
+    ],
+)
+def test_h38_reglas_declarativas_individuales(nombre_regla, texto_entrada, texto_esperado):
+    """Valida la aplicación aislada de cada regla declarativa de la tabla (H38)."""
+    regla = next((r for r in REGLAS_NORMALIZACION_CLAVE if r.nombre == nombre_regla), None)
+    assert regla is not None, f"Regla '{nombre_regla}' no encontrada en REGLAS_NORMALIZACION_CLAVE"
+    resultado = regla.patron.sub(regla.reemplazo, texto_entrada)
+    assert resultado == texto_esperado
+
+
+# ---------------------------------------------------------------------------
+# Pruebas H40: Lógica Unificada Cross-Tienda
+# ---------------------------------------------------------------------------
+
+
+def test_h40_calcular_grupos_cross_tienda():
+    """Valida que calcular_grupos_cross_tienda genere la estructura correcta de arbitraje (H40)."""
+    df = crear_df_base(
+        [
+            {
+                "tienda": "Bodegas Alianza",
+                "producto": "Don Julio 70 700 ml",
+                "ml": 700,
+                "precio_promo": 780.0,
+                "url": "https://alianza.com",
+            },
+            {
+                "tienda": "Walmart",
+                "producto": "Don Julio 70 700 ml",
+                "ml": 700,
+                "precio_promo": 950.0,
+                "url": "https://walmart.com",
+            },
+            {
+                "tienda": "Soriana",
+                "producto": "Don Julio 70 700 ml",
+                "ml": 700,
+                "precio_promo": 850.0,
+                "url": "https://soriana.com",
+            },
+            {
+                "tienda": "Chedraui",
+                "producto": "Tequila Único 750 ml",
+                "ml": 750,
+                "precio_promo": 400.0,
+                "url": "https://chedraui.com",
+            },
+        ]
+    )
+    grupos = calcular_grupos_cross_tienda(df)
+    assert len(grupos) == 1
+    clave = list(grupos.keys())[0]
+    info = grupos[clave]
+
+    assert info["num_tiendas"] == 3
+    assert info["tienda_min"] == "Bodegas Alianza"
+    assert info["precio_min"] == 780.0
+    assert info["tienda_max"] == "Walmart"
+    assert info["precio_max"] == 950.0
+    assert info["ahorro_max"] == 170.0
+    assert len(info["ofertas"]) == 3
+    assert info["tiendas_disponibles"] == ["Bodegas Alianza", "Soriana", "Walmart"]
+
+
+def test_h40_enriquecer_registros_cross_tienda():
+    """Valida que enriquecer_registros_cross_tienda genere los campos requeridos para el frontend (H40)."""
+    df = crear_df_base(
+        [
+            {
+                "tienda": "Bodegas Alianza",
+                "producto": "Don Julio 70 700 ml",
+                "ml": 700,
+                "precio_promo": 780.0,
+                "url": "https://alianza.com",
+            },
+            {
+                "tienda": "Walmart",
+                "producto": "Don Julio 70 700 ml",
+                "ml": 700,
+                "precio_promo": 950.0,
+                "url": "https://walmart.com",
+            },
+        ]
+    )
+    records = enriquecer_registros_cross_tienda(df)
+    assert len(records) == 2
+
+    rec_min = next(r for r in records if r["tienda"] == "Bodegas Alianza")
+    assert rec_min["es_comparable_cross_tienda"] is True
+    assert rec_min["es_precio_mas_bajo"] is True
+    assert rec_min["diferencia_vs_minimo"] == 0.0
+    assert rec_min["ahorro_maximo_cross"] == 170.0
+    assert len(rec_min["ofertas_cross_tienda"]) == 1
+    assert rec_min["ofertas_cross_tienda"][0]["tienda"] == "Walmart"
+
+    rec_max = next(r for r in records if r["tienda"] == "Walmart")
+    assert rec_max["es_comparable_cross_tienda"] is True
+    assert rec_max["es_precio_mas_bajo"] is False
+    assert rec_max["diferencia_vs_minimo"] == 170.0
+
+
+def test_h40_consistencia_obtener_comparativa_y_calcular_grupos():
+    """Valida que obtener_comparativa_cross_tienda y calcular_grupos_cross_tienda sean 100% consistentes."""
+    df = crear_df_base(
+        [
+            {"tienda": "Bodegas Alianza", "producto": "Don Julio 70 700 ml", "ml": 700, "precio_promo": 780.0},
+            {"tienda": "Walmart", "producto": "Don Julio 70 700 ml", "ml": 700, "precio_promo": 950.0},
+        ]
+    )
+    grupos = calcular_grupos_cross_tienda(df)
+    df_comp = obtener_comparativa_cross_tienda(df)
+
+    assert len(grupos) == len(df_comp) == 1
+    fila = df_comp.iloc[0]
+    clave = fila["clave_comparativa"]
+    info = grupos[clave]
+
+    assert fila["tienda_mas_barata"] == info["tienda_min"]
+    assert fila["precio_minimo"] == info["precio_min"]
+    assert fila["tienda_mas_cara"] == info["tienda_max"]
+    assert fila["precio_maximo"] == info["precio_max"]
+    assert fila["ahorro_maximo"] == info["ahorro_max"]

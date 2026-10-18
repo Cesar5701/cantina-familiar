@@ -7,7 +7,7 @@ y generar rankings estrictamente separados por categorías comparables.
 import argparse
 import re
 import unicodedata
-from typing import Any, Optional
+from typing import Any, NamedTuple, Optional
 
 import numpy as np
 import pandas as pd
@@ -44,8 +44,69 @@ COLUMNAS_OBLIGATORIAS = [
 ]
 
 
+class ReglaNormalizacion(NamedTuple):
+    """Estructura declarativa para reglas de normalización textual (H38)."""
+
+    patron: re.Pattern
+    reemplazo: str
+    nombre: str
+
+
+# =====================================================================
+# TABLA DECLARATIVA DE NORMALIZACIÓN DE PRODUCTOS Y ETIQUETAS (H38)
+# =====================================================================
+REGLAS_NORMALIZACION_CLAVE: tuple[ReglaNormalizacion, ...] = (
+    # 1. Unificar posesivos ingleses eliminando apóstrofes (Daniel's / Daniel’s -> Daniels, Buchanan's -> Buchanans)
+    ReglaNormalizacion(re.compile(r"['’`]"), "", "unificar_posesivos"),
+    # 2. Eliminar especificaciones de volumen en el título (ej. 700 ml, 750ml, 1.75 L, 1 L, 750 mililitros)
+    ReglaNormalizacion(
+        re.compile(r"\b\d+(\.\d+)?\s*(ml|l|litros?|mililitros?)\b", re.IGNORECASE),
+        " ",
+        "eliminar_volumen",
+    ),
+    # 3. Unificar variantes ortográficas de bebidas (whiskey/wisky -> whisky, licor de whisky -> whisky)
+    ReglaNormalizacion(re.compile(r"\b(whiskey|wisky)\b", re.IGNORECASE), "whisky", "variantes_whisky"),
+    ReglaNormalizacion(re.compile(r"\blicor\s+de\s+whisky\b", re.IGNORECASE), "whisky", "licor_de_whisky"),
+    ReglaNormalizacion(re.compile(r"\blicor\s+de\b", re.IGNORECASE), " ", "prefijo_licor"),
+    # 4. Omitir descriptores regionales/opcionales en marcas reconocidas (ej. Tennessee en Jack Daniel's)
+    ReglaNormalizacion(re.compile(r"\btennessee\b", re.IGNORECASE), " ", "descriptor_regional"),
+    # 5. Abreviaturas de reposado frecuentes en retail (Rep -> reposado)
+    ReglaNormalizacion(re.compile(r"\brep\.?(?!\w)", re.IGNORECASE), "reposado", "abreviatura_reposado"),
+    # 6. Descriptores de pureza de agave / artesanales / envase genérico en Tequila y Mezcal
+    ReglaNormalizacion(
+        re.compile(r"\b100%?\s*(puro\s+de\s+|de\s+)?(agave(\s+azul)?)?\b", re.IGNORECASE),
+        " ",
+        "pureza_agave",
+    ),
+    ReglaNormalizacion(re.compile(r"\b(artesanal|botella)\b", re.IGNORECASE), " ", "descriptores_envase"),
+    # 7. Descriptores genéricos de Scotch en Whisky
+    ReglaNormalizacion(re.compile(r"\bblended\s+scotch\b", re.IGNORECASE), " ", "blended_scotch"),
+    ReglaNormalizacion(re.compile(r"\bscotch\b", re.IGNORECASE), " ", "descriptor_scotch"),
+    # 8. Espaciado en marcas conocidas (Mc Harrison -> Mcharrison)
+    ReglaNormalizacion(re.compile(r"\bmc\s+harrison\b", re.IGNORECASE), "mcharrison", "marca_mcharrison"),
+    # 9. Normalización de Cristalinos de clase única en Tequila y Mezcal
+    ReglaNormalizacion(
+        re.compile(r"\bpatron\s+cristalino\b", re.IGNORECASE),
+        "patron anejo cristalino",
+        "patron_cristalino",
+    ),
+    ReglaNormalizacion(
+        re.compile(r"\bdobel\s+diamante\s+cristalino\b", re.IGNORECASE),
+        "dobel diamante",
+        "dobel_diamante",
+    ),
+    ReglaNormalizacion(
+        re.compile(r"\b(mayorazgo|ollitas|viuda\s+de\s+romero|contraluz)\s+cristalino\b", re.IGNORECASE),
+        r"\1 reposado cristalino",
+        "marcas_reposado_cristalino",
+    ),
+)
+
+STOP_WORDS_CLAVE: frozenset[str] = frozenset({"de", "del", "el", "la", "los", "las", "en", "para", "licor", "100"})
+
+
 def normalizar_texto_clave(texto: str) -> str:
-    """Normaliza un nombre de producto eliminando acentos, puntuación, stop-words, prefijos legales/genéricos y unificando el volumen estándar (650-800 ml) para match cross-tienda (H8 / H35). Preserva el tamaño canónico para formatos no estándar (<650 o >800 ml)."""
+    """Normaliza un nombre de producto aplicando la tabla declarativa REGLAS_NORMALIZACION_CLAVE (H38), eliminando acentos, stop-words y unificando el volumen estándar (650-800 ml) para match cross-tienda (H8 / H35). Preserva el tamaño canónico para formatos no estándar (<650 o >800 ml)."""
     if not texto or pd.isnull(texto):
         return ""
 
@@ -54,39 +115,13 @@ def normalizar_texto_clave(texto: str) -> str:
     ml = extraer_ml(s_orig, ml_defecto=750)
 
     s = unicodedata.normalize("NFKD", s_orig).encode("ascii", "ignore").decode("utf-8")
-    # 1. Unificar posesivos ingleses eliminando apóstrofes antes de limpiar puntuación (Daniel's / Daniel’s -> Daniels, Buchanan's -> Buchanans)
-    s = re.sub(r"['’`]", "", s)
-    # 2. Eliminar especificaciones de volumen en el título (ej. 700 ml, 750ml, 1.75 L, 1 L, 750 mililitros)
-    s = re.sub(r"\b\d+(\.\d+)?\s*(ml|l|litros?|mililitros?)\b", " ", s, flags=re.IGNORECASE)
-    # 3. Unificar variantes ortográficas de bebidas (whiskey/wisky -> whisky, licor de whisky -> whisky)
-    s = re.sub(r"\b(whiskey|wisky)\b", "whisky", s, flags=re.IGNORECASE)
-    s = re.sub(r"\blicor\s+de\s+whisky\b", "whisky", s, flags=re.IGNORECASE)
-    s = re.sub(r"\blicor\s+de\b", " ", s, flags=re.IGNORECASE)
-    # 4. Omitir descriptores regionales/opcionales en marcas reconocidas (ej. Tennessee en Jack Daniel's)
-    s = re.sub(r"\btennessee\b", " ", s, flags=re.IGNORECASE)
-    # 5. Abreviaturas de reposado frecuentes en retail (Rep -> reposado)
-    s = re.sub(r"\brep\.?\b", "reposado", s, flags=re.IGNORECASE)
-    # 6. Descriptores de pureza de agave / artesanales / envase genérico en Tequila y Mezcal
-    s = re.sub(r"\b100%?\s*(puro\s+de\s+|de\s+)?(agave(\s+azul)?)?\b", " ", s, flags=re.IGNORECASE)
-    s = re.sub(r"\b(artesanal|botella)\b", " ", s, flags=re.IGNORECASE)
-    # 7. Descriptores genéricos de Scotch en Whisky
-    s = re.sub(r"\bblended\s+scotch\b", " ", s, flags=re.IGNORECASE)
-    s = re.sub(r"\bscotch\b", " ", s, flags=re.IGNORECASE)
-    # 8. Espaciado en marcas conocidas (Mc Harrison -> Mcharrison)
-    s = re.sub(r"\bmc\s+harrison\b", "mcharrison", s, flags=re.IGNORECASE)
-    # 9. Normalización de Cristalinos de clase única en Tequila y Mezcal
-    s = re.sub(r"\bpatron\s+cristalino\b", "patron anejo cristalino", s, flags=re.IGNORECASE)
-    s = re.sub(r"\bdobel\s+diamante\s+cristalino\b", "dobel diamante", s, flags=re.IGNORECASE)
-    s = re.sub(
-        r"\b(mayorazgo|ollitas|viuda\s+de\s+romero|contraluz)\s+cristalino\b",
-        r"\1 reposado cristalino",
-        s,
-        flags=re.IGNORECASE,
-    )
+
+    # Aplicar tabla declarativa de transformaciones por regex compiladas (H38)
+    for regla in REGLAS_NORMALIZACION_CLAVE:
+        s = regla.patron.sub(regla.reemplazo, s)
 
     s = re.sub(r"[^a-zA-Z0-9\s]", " ", s.lower())
-    stop_words = {"de", "del", "el", "la", "los", "las", "en", "para", "licor", "100"}
-    tokens = [t for t in s.split() if t not in stop_words]
+    tokens = [t for t in s.split() if t not in STOP_WORDS_CLAVE]
 
     # Blindaje H35: botellas no estándar (<650 ml o >800 ml) conservan su tamaño canónico
     if ml and (ml < 650 or ml > 800):
@@ -194,66 +229,222 @@ def detectar_duplicados(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def obtener_comparativa_cross_tienda(df: pd.DataFrame) -> pd.DataFrame:
+def calcular_grupos_cross_tienda(df: pd.DataFrame) -> dict[str, dict]:
     """
-    Genera tabla de arbitraje de precios para botellas presentes en múltiples tiendas (H8 / H35).
-    Calcula tienda más barata, más cara y el ahorro máximo por producto, priorizando
-    precio por litro para formatos estándar unificados (700ml vs 750ml).
+    Precomputa métricas de arbitraje cross-tienda para botellas presentes en 2 o más tiendas (H8 / H35 / H40).
+    Devuelve un diccionario clave_comparativa -> datos agregados de arbitraje (tienda_min, tienda_max, ahorro_max, ofertas).
     """
     if "clave_comparativa" not in df.columns or "es_comparable_cross_tienda" not in df.columns:
         df = detectar_duplicados(df)
-    if "precio_efectivo" not in df.columns:
+    if "precio_por_litro" not in df.columns or "precio_efectivo" not in df.columns:
         df = calcular_metricas(df)
 
-    comparables = df[df["es_comparable_cross_tienda"] & (df["precio_efectivo"] > 0)].copy()
+    comparables = df[df["es_comparable_cross_tienda"]].copy()
     if comparables.empty:
-        return pd.DataFrame()
+        return {}
 
-    resumen = []
-    for clave, grupo in comparables.groupby("clave_comparativa"):
-        if grupo["tienda"].nunique() < 2:
+    grupos_cross = {}
+    for clave, grp in comparables.groupby("clave_comparativa"):
+        tiendas_unicas = grp["tienda"].unique()
+        if len(tiendas_unicas) < 2:
             continue
 
-        # H35: Comparar por precio_por_litro para rankear con precisión ofertas con volúmenes ligeramente distintos
-        col_ord = "precio_por_litro" if "precio_por_litro" in grupo.columns else "precio_efectivo"
-        idx_min = grupo[col_ord].idxmin()
-        idx_max = grupo[col_ord].idxmax()
+        col_ord = "precio_por_litro" if "precio_por_litro" in grp.columns else "precio_efectivo"
+        grp_valid = grp[grp[col_ord] > 0]
+        if grp_valid["tienda"].nunique() < 2:
+            continue
 
-        fila_min = grupo.loc[idx_min]
-        fila_max = grupo.loc[idx_max]
+        idx_min = grp_valid[col_ord].idxmin()
+        idx_max = grp_valid[col_ord].idxmax()
+        row_min = grp_valid.loc[idx_min]
+        row_max = grp_valid.loc[idx_max]
 
-        if fila_min["ml"] == fila_max["ml"]:
-            ahorro = fila_max["precio_efectivo"] - fila_min["precio_efectivo"]
-            pct_ahorro = (ahorro / fila_max["precio_efectivo"] * 100) if fila_max["precio_efectivo"] > 0 else 0.0
-        else:
-            # H35: Ahorro normalizado al formato de la botella comprada (fila_min)
-            ahorro_por_litro = fila_max["precio_por_litro"] - fila_min["precio_por_litro"]
-            ahorro = ahorro_por_litro * (fila_min["ml"] / 1000.0)
-            pct_ahorro = (
-                (ahorro_por_litro / fila_max["precio_por_litro"] * 100) if fila_max["precio_por_litro"] > 0 else 0.0
-            )
-
-        resumen.append(
-            {
-                "clave_comparativa": clave,
-                "producto": fila_min["producto"],
-                "categoria": fila_min["categoria"],
-                "subcategoria": fila_min.get("subcategoria", ""),
-                "ml": fila_min["ml"],
-                "tiendas_disponibles": sorted(grupo["tienda"].unique().tolist()),
-                "tienda_mas_barata": fila_min["tienda"],
-                "precio_minimo": round(float(fila_min["precio_efectivo"]), 2),
-                "tienda_mas_cara": fila_max["tienda"],
-                "precio_maximo": round(float(fila_max["precio_efectivo"]), 2),
-                "ahorro_maximo": round(float(ahorro), 2),
-                "porcentaje_ahorro_maximo": round(float(pct_ahorro), 1),
-            }
+        # Determinar columna de precio base (precio_promo para consolidador o precio_efectivo para analizador)
+        col_precio = (
+            "precio_promo" if ("precio_promo" in row_min and pd.notnull(row_min["precio_promo"])) else "precio_efectivo"
         )
+
+        p_min = float(row_min[col_precio])
+        p_max = float(row_max[col_precio])
+        ppl_min = float(row_min["precio_por_litro"]) if "precio_por_litro" in row_min else p_min
+        ppl_max = float(row_max["precio_por_litro"]) if "precio_por_litro" in row_max else p_max
+
+        if row_min["ml"] == row_max["ml"]:
+            ahorro_max = round(p_max - p_min, 2)
+            pct_ahorro = round((ahorro_max / p_max * 100) if p_max > 0 else 0.0, 1)
+        else:
+            ahorro_por_litro = ppl_max - ppl_min
+            ahorro_max = round(ahorro_por_litro * (float(row_min["ml"]) / 1000.0), 2)
+            pct_ahorro = round((ahorro_por_litro / ppl_max * 100) if ppl_max > 0 else 0.0, 1)
+
+        ofertas = [
+            {
+                "tienda": r["tienda"],
+                "producto": r["producto"],
+                "ml": r["ml"],
+                "precio_promo": round(float(r[col_precio]), 2),
+                "precio_por_litro": (
+                    round(float(r["precio_por_litro"]), 2)
+                    if "precio_por_litro" in r
+                    else round(float(r[col_precio]), 2)
+                ),
+                "url": r.get("url", ""),
+            }
+            for _, r in grp_valid.iterrows()
+        ]
+
+        grupos_cross[clave] = {
+            "num_tiendas": len(tiendas_unicas),
+            "tiendas_disponibles": sorted(tiendas_unicas.tolist()),
+            "producto": row_min["producto"],
+            "categoria": row_min.get("categoria", ""),
+            "subcategoria": row_min.get("subcategoria", ""),
+            "tienda_min": row_min["tienda"],
+            "precio_min": round(p_min, 2),
+            "precio_por_litro_min": round(ppl_min, 2),
+            "ml_min": row_min["ml"],
+            "tienda_max": row_max["tienda"],
+            "precio_max": round(p_max, 2),
+            "precio_por_litro_max": round(ppl_max, 2),
+            "ahorro_max": ahorro_max,
+            "porcentaje_ahorro_max": pct_ahorro,
+            "ofertas": ofertas,
+        }
+
+    return grupos_cross
+
+
+def obtener_comparativa_cross_tienda(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Genera tabla de arbitraje de precios para botellas presentes en múltiples tiendas (H8 / H35 / H40).
+    Calcula tienda más barata, más cara y el ahorro máximo por producto, priorizando
+    precio por litro para formatos estándar unificados (700ml vs 750ml).
+    Unifica la lógica de cálculo cross-tienda consumiendo calcular_grupos_cross_tienda().
+    """
+    grupos_cross = calcular_grupos_cross_tienda(df)
+    if not grupos_cross:
+        return pd.DataFrame()
+
+    resumen = [
+        {
+            "clave_comparativa": clave,
+            "producto": info["producto"],
+            "categoria": info["categoria"],
+            "subcategoria": info.get("subcategoria", ""),
+            "ml": info["ml_min"],
+            "tiendas_disponibles": info["tiendas_disponibles"],
+            "tienda_mas_barata": info["tienda_min"],
+            "precio_minimo": info["precio_min"],
+            "tienda_mas_cara": info["tienda_max"],
+            "precio_maximo": info["precio_max"],
+            "ahorro_maximo": info["ahorro_max"],
+            "porcentaje_ahorro_maximo": info["porcentaje_ahorro_max"],
+        }
+        for clave, info in grupos_cross.items()
+    ]
 
     df_comp = pd.DataFrame(resumen)
     if not df_comp.empty:
         df_comp = df_comp.sort_values(by="ahorro_maximo", ascending=False).reset_index(drop=True)
     return df_comp
+
+
+def enriquecer_registros_cross_tienda(
+    df: pd.DataFrame,
+    grupos_cross: Optional[dict[str, dict]] = None,
+    cols: Optional[list[str]] = None,
+) -> list[dict]:
+    """
+    Enriquece cada registro de un DataFrame con las métricas cross-tienda (H8 / H35 / H40)
+    para el dashboard interactivo y la exportación JSON.
+    """
+    if "clave_comparativa" not in df.columns or "es_comparable_cross_tienda" not in df.columns:
+        df = detectar_duplicados(df)
+    if "precio_por_litro" not in df.columns or "precio_efectivo" not in df.columns:
+        df = calcular_metricas(df)
+
+    if grupos_cross is None:
+        grupos_cross = calcular_grupos_cross_tienda(df)
+
+    records = []
+    for _, row in df.iterrows():
+        rec = {}
+        if cols:
+            for c in cols:
+                val = row.get(c, "")
+                rec[c] = "" if pd.isna(val) else val
+        else:
+            rec = {k: ("" if pd.isna(v) else v) for k, v in row.items()}
+
+        rec["es_paquete"] = bool(row.get("es_paquete", False))
+        clave = row.get("clave_comparativa", "")
+        rec["clave_comparativa"] = clave
+
+        col_p = "precio_promo" if ("precio_promo" in row and pd.notnull(row["precio_promo"])) else "precio_efectivo"
+        p_actual = round(float(row.get(col_p, 0.0)), 2)
+        p_litro_actual = round(float(row.get("precio_por_litro", 0.0)), 2)
+
+        if clave in grupos_cross:
+            info = grupos_cross[clave]
+            rec["es_comparable_cross_tienda"] = True
+            rec["num_tiendas_cross"] = info["num_tiendas"]
+            rec["tienda_mas_barata"] = info["tienda_min"]
+            rec["precio_minimo_cross"] = info["precio_min"]
+            rec["precio_por_litro_minimo_cross"] = info["precio_por_litro_min"]
+            rec["tienda_mas_cara"] = info["tienda_max"]
+            rec["precio_maximo_cross"] = info["precio_max"]
+            rec["ahorro_maximo_cross"] = info["ahorro_max"]
+
+            p_litro_min = info["precio_por_litro_min"]
+
+            # H35: El mejor precio se determina por precio por litro (+ margen de 5 centavos para empates)
+            rec["es_precio_mas_bajo"] = bool(p_litro_actual <= p_litro_min + 0.05)
+            if rec["es_precio_mas_bajo"]:
+                rec["diferencia_vs_minimo"] = 0.0
+            else:
+                if row["ml"] == info.get("ml_min", row["ml"]):
+                    dif = p_actual - info["precio_min"]
+                    rec["diferencia_vs_minimo"] = round(
+                        dif if dif > 0 else (p_litro_actual - p_litro_min) * (float(row["ml"]) / 1000.0), 2
+                    )
+                else:
+                    rec["diferencia_vs_minimo"] = round((p_litro_actual - p_litro_min) * (float(row["ml"]) / 1000.0), 2)
+
+            rec["ofertas_cross_tienda"] = [
+                {
+                    "tienda": of["tienda"],
+                    "producto": of["producto"],
+                    "ml": of["ml"],
+                    "precio_promo": of["precio_promo"],
+                    "precio_por_litro": of["precio_por_litro"],
+                    "url": of["url"],
+                    "diferencia": round(
+                        (p_actual - of["precio_promo"])
+                        if row["ml"] == of["ml"]
+                        else (p_litro_actual - of["precio_por_litro"]) * (float(row["ml"]) / 1000.0),
+                        2,
+                    ),
+                    "es_mejor_precio": bool(of["precio_por_litro"] < p_litro_actual - 0.05),
+                }
+                for of in info["ofertas"]
+                if of["tienda"] != row["tienda"]
+            ]
+        else:
+            rec["es_comparable_cross_tienda"] = False
+            rec["num_tiendas_cross"] = 1
+            rec["tienda_mas_barata"] = row["tienda"]
+            rec["precio_minimo_cross"] = p_actual
+            rec["precio_por_litro_minimo_cross"] = p_litro_actual
+            rec["tienda_mas_cara"] = row["tienda"]
+            rec["precio_maximo_cross"] = p_actual
+            rec["ahorro_maximo_cross"] = 0.0
+            rec["es_precio_mas_bajo"] = True
+            rec["diferencia_vs_minimo"] = 0.0
+            rec["ofertas_cross_tienda"] = []
+
+        records.append(rec)
+
+    return records
 
 
 def calcular_costo_efectivo(row: pd.Series) -> float:
