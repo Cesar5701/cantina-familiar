@@ -3,6 +3,7 @@ Suite de pruebas unitarias para el generador del dashboard (H29)
 y el consolidador integral de datos (H24 / H25).
 """
 
+import re
 from pathlib import Path
 
 import pytest
@@ -448,3 +449,36 @@ def test_h33_sin_except_exception_genericos():
                     violaciones.append(f"{py_file}:{nodo.lineno} (except Exception:)")
 
     assert len(violaciones) == 0, f"Se detectaron manejadores genéricos prohibidos (H33): {violaciones}"
+
+
+def test_h51_pestana_activa_persistente_en_hash():
+    """Valida que la pestaña activa se persista en el fragmento de la URL y se restaure al recargar (H51)."""
+    tpl_path = Path("src/templates/dashboard_template.html")
+    assert tpl_path.exists()
+    contenido = tpl_path.read_text(encoding="utf-8")
+
+    # Catálogo de pestañas válidas (mismas que las pestañas del nav desktop y móvil)
+    assert 'const PESTANAS_VALIDAS = ["tab-rankings", "tab-versus", "tab-carrito", "tab-matriz"];' in contenido
+    assert 'id="tab-rankings"' in contenido
+    assert 'id="tab-versus"' in contenido
+    assert 'id="tab-carrito"' in contenido
+    assert 'id="tab-matriz"' in contenido
+
+    # Helpers de conversión id<->hash
+    assert "function hashDesdeTab(idTab)" in contenido
+    assert "function idTabDesdeHash()" in contenido
+    assert "function escribirHashEnURL(hash)" in contenido
+
+    # Escritura sin recargar y sin manchar el historial (desde cambiarTab)
+    assert "escribirHashEnURL(hashDesdeTab(idTab));" in contenido
+    assert 'history.replaceState(null, "", hash);' in contenido
+    # Debe ser replaceState y NO una asignación a location.hash (que provocaría salto nativo de scroll)
+    assert re.search(r"location\.hash\s*=(?!=)", contenido) is None
+
+    # Restauración al cargar la página
+    assert "const tabInicial = idTabDesdeHash();" in contenido
+    assert "if (tabInicial) cambiarTab(tabInicial);" in contenido
+
+    # Sincronía si el usuario edita el fragmento o abre un enlace compartido
+    assert 'window.addEventListener("hashchange", () => {' in contenido
+    assert "if (id) cambiarTab(id);" in contenido

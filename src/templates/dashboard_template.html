@@ -1182,6 +1182,10 @@
       renderizarCanastasDinamicas();
       renderizarConstructorCanasta();
       actualizarEstadoOrden();
+
+      // H51: al cargar, abrir la pestaña indicada en la URL; si no hay, la principal.
+      const tabInicial = idTabDesdeHash();
+      if (tabInicial) cambiarTab(tabInicial);
     });
 
     // =========================================================================
@@ -1979,6 +1983,32 @@
       });
     }
 
+    // PESTAÑA ACTIVA EN EL HASH (H51): la recarga conserva la pestaña elegida
+    // y un enlace con fragmento (#versus, #carrito, #matriz, #rankings) abre directo en ella.
+    const PESTANAS_VALIDAS = ["tab-rankings", "tab-versus", "tab-carrito", "tab-matriz"];
+
+    function hashDesdeTab(idTab) {
+      return "#" + idTab.replace(/^tab-/, "");
+    }
+
+    function escribirHashEnURL(hash) {
+      if (!window.history || !history.replaceState) return;
+      if (location.hash === hash) return;
+      try {
+        history.replaceState(null, "", hash);
+      } catch (_) {
+        // Entornos restringidos (p. ej. file://): la pestaña sigue operativa,
+        // solo no se persiste en la URL.
+      }
+    }
+
+    function idTabDesdeHash() {
+      const bruto = decodeURIComponent(String(location.hash || "").replace(/^#/, "")).trim().toLowerCase();
+      if (!bruto) return null;
+      const id = "tab-" + bruto.replace(/^tab-/, "");
+      return PESTANAS_VALIDAS.includes(id) ? id : null;
+    }
+
     // CAMBIAR PESTAÑA (SINCRONIZA BARRA DESKTOP MD3 Y TAB BAR MÓVIL APPLE HIG)
     function cambiarTab(idTab) {
       document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
@@ -2009,8 +2039,18 @@
       if (idTab === 'tab-rankings') {
         renderizarGraficoTop10();
       }
+
+      // H51: dejar la pestaña activa en la URL sin recargar y sin manchar el historial.
+      escribirHashEnURL(hashDesdeTab(idTab));
+
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+
+    // Restaurar pestaña si el usuario edita el fragmento o abre un enlace compartido.
+    window.addEventListener("hashchange", () => {
+      const id = idTabDesdeHash();
+      if (id) cambiarTab(id);
+    });
 
     function sincronizarFiltroPaquete(estado) {
       const chk1 = document.getElementById("filtro-paquete");
