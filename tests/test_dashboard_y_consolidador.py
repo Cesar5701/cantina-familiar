@@ -63,6 +63,14 @@ def test_generar_dashboard_errores_archivos_inexistentes(tmp_path: Path):
         generar_dashboard(data_json_path=valid_json, template_path=tmp_path / "no_existe_template.html")
 
 
+def test_generar_dashboard_sin_duplicado_local():
+    """Valida que LOCAL_HTML_PATH esté eliminado y solo se genere index.html (H39)."""
+    import src.generar_dashboard_v4 as mod_dash
+
+    assert not hasattr(mod_dash, "LOCAL_HTML_PATH")
+    assert mod_dash.INDEX_HTML_PATH.name == "index.html"
+
+
 def test_actualizar_todo_pipeline_completo(tmp_path: Path):
     """Valida el pipeline completo del consolidador con datasets sintéticos (H24 / H25)."""
     # Crear dos archivos CSV fuente simulando tiendas distintas

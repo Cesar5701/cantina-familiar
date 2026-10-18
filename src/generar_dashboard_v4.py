@@ -14,7 +14,6 @@ if str(ROOT_DIR) not in sys.path:
 from src.logger import get_logger
 
 logger = get_logger("dashboard_v4")
-LOCAL_HTML_PATH = ROOT_DIR / "data" / "dashboard_bi.html"
 INDEX_HTML_PATH = ROOT_DIR / "index.html"
 DATA_JSON_PATH = ROOT_DIR / "data" / "dashboard_data.json"
 TEMPLATE_PATH = ROOT_DIR / "src" / "templates" / "dashboard_template.html"
@@ -73,8 +72,8 @@ def generar_dashboard(
 
     html_final = renderizar_plantilla(template_content, datos_json_str)
 
-    # Definir destinos de salida por defecto
-    destinos = [Path(p) for p in output_paths] if output_paths is not None else [LOCAL_HTML_PATH, INDEX_HTML_PATH]
+    # Definir destinos de salida por defecto (solo index.html, autocontenido y publicado)
+    destinos = [Path(p) for p in output_paths] if output_paths is not None else [INDEX_HTML_PATH]
 
     # Ruta opcional de artefactos de entorno asistido
     artifact_dir = os.environ.get("ANTIGRAVITY_ARTIFACT_DIR")
