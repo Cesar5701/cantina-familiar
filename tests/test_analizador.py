@@ -853,3 +853,68 @@ def test_filtrar_catalogo_dashboard():
     limites_custom = {"Tequila": {"max_precio_promo": 500.0}}
     df_custom = filtrar_catalogo_dashboard(df, limites_presupuesto=limites_custom)
     assert len(df_custom) == 0  # 720.0 > 500.0
+
+
+def test_procesar_archivo_y_resumen_rankings(tmp_path):
+    from src.analizador import imprimir_resumen_rankings, procesar_archivo
+
+    archivo_in = tmp_path / "entrada.csv"
+    archivo_out = tmp_path / "salida.csv"
+
+    df_sample = crear_df_base(
+        [
+            {
+                "producto": "Tequila Tradicional Reposado 950 ml",
+                "marca": "José Cuervo",
+                "categoria": "Tequila",
+                "categoria_comparable": "Tequila - Reposado",
+                "precio_regular": 450.0,
+                "precio_promo": 380.0,
+                "ml": 950,
+                "tienda": "Bodegas Alianza",
+                "confianza": "alta",
+            }
+        ]
+    )
+    df_sample.to_csv(archivo_in, index=False)
+
+    df_res = procesar_archivo(str(archivo_in), str(archivo_out))
+    assert archivo_out.exists()
+    assert "precio_por_litro" in df_res.columns
+    assert df_res.loc[0, "precio_por_litro"] > 0
+
+    rankings = generar_rankings_por_categoria(df_res)
+    # Validar que imprimir_resumen_rankings no falle y recorra los rankings
+    imprimir_resumen_rankings(rankings)
+
+
+def test_cli_main_analizador(tmp_path, monkeypatch):
+    from src.analizador import main
+
+    archivo_in = tmp_path / "entrada_cli.csv"
+    archivo_out = tmp_path / "salida_cli.csv"
+
+    df_sample = crear_df_base(
+        [
+            {
+                "producto": "Whisky Black Label 750 ml",
+                "marca": "Johnnie Walker",
+                "categoria": "Whisky",
+                "categoria_comparable": "Whisky - Blended 12 Años",
+                "precio_regular": 800.0,
+                "precio_promo": 680.0,
+                "ml": 750,
+                "tienda": "Walmart",
+                "confianza": "alta",
+            }
+        ]
+    )
+    df_sample.to_csv(archivo_in, index=False)
+
+    monkeypatch.setattr("sys.argv", ["cantina-analizar", "--entrada", str(archivo_in), "--salida", str(archivo_out)])
+    main()
+
+    assert archivo_out.exists()
+    df_read = pd.read_csv(archivo_out)
+    assert len(df_read) == 1
+    assert df_read.loc[0, "producto"] == "Whisky Black Label 750 ml"

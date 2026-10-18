@@ -38,10 +38,10 @@ Cantina Familiar/
 ├── tests/
 │   ├── __init__.py
 │   ├── conftest.py                 # Fixtures y generadores de DataFrames sintéticos
-│   ├── test_analizador.py          # Pruebas de métricas, rankings, cross-tienda y filtro de presupuesto (43 pruebas)
+│   ├── test_analizador.py          # Pruebas de métricas, rankings, cross-tienda y CLI ad-hoc (45 pruebas)
 │   ├── test_clasificacion.py       # Pruebas de clasificación NOM, extracción de volumen y sincronización (79 pruebas)
-│   ├── test_dashboard_smoke.py     # Smoke tests de estructura de index.html y carga de dependencias (4 pruebas)
-│   ├── test_dashboard_y_consolidador.py # Pruebas del generador y consolidador maestro (15 pruebas)
+│   ├── test_dashboard_smoke.py     # Smoke tests de estructura de index.html, accesibilidad y dependencias (5 pruebas)
+│   ├── test_dashboard_y_consolidador.py # Pruebas del generador y consolidador maestro (16 pruebas)
 │   ├── test_scraper_selenium.py    # Pruebas del scraper asistido Selenium y detección de retos (19 pruebas)
 │   ├── test_scrapers_adquisicion.py# Pruebas de scrapers de adquisición y normalización multi-tienda (10 pruebas)
 │   ├── test_sprint2.py             # Pruebas de comparativas cross-tienda, esquema y guardado atómico (11 pruebas)
@@ -101,26 +101,38 @@ El flujo completo del proyecto consta de 3 fases desacopladas y observables:
 El proyecto expone comandos de consola estándar mediante `[project.scripts]` (H50):
 
 ```bash
-# Paso A: Consolidar y clasificar datasets de las 5 tiendas
+# Paso A: Consolidar y clasificar datasets de las 5 tiendas (ETL principal para dashboard)
 cantina-consolidar
 # (o alternativamente: python src/actualizar_dashboard_completo.py)
 
-# Paso B: Generar y sincronizar el Dashboard interactivo
+# Paso B: Generar y sincronizar el Dashboard interactivo web
 cantina-dashboard
 # (o alternativamente: python src/generar_dashboard_v4.py)
 
-# Paso C: Ejecutar auditoría y rankings de terminal
-cantina-analizar --entrada data/bebidas_verificadas.csv
+# Paso C: Auditoría ad-hoc y reporte de rankings en terminal para cualquier archivo CSV
+cantina-analizar --entrada data/bebidas_verificadas.csv --salida data/reporte_ranking.csv
+# (o alternativamente: python src/analizador.py --entrada <ruta_csv>)
 ```
 
+> **Diferencia entre comandos:**
+> - `cantina-consolidar` ejecuta el flujo integral de ETL multi-tienda: une los 5 catálogos fuente, aplica clasificación estricta NOM, detecta duplicados, enriquece con comparativas cross-tienda y genera `data/dashboard_data.json` junto a los catálogos unificados.
+> - `cantina-analizar` es una herramienta CLI de inspección ad-hoc para evaluar cualquier dataset tabular de forma independiente: audita datos faltantes y duplicados, calcula métricas unitarias e imprime una tabla de rankings por categoría directamente en la terminal.
+
 ### 2. Ejecutar la Suite de Pruebas Unitarias
-El proyecto cuenta con **194 pruebas automatizadas** organizadas en 8 módulos con una cobertura superior al **80%** (`tests/`), que cubren clasificación NOM, normalización de multipacks (`Pack 6`, `Pack x 3`, `(8 Bot)`, etc.), normalización de medidas (`ml` y `L`), métricas por litro, exclusión explícita de outliers de lujo, umbrales centralizados de presupuesto, arbitraje cross-tienda, validación de esquema, selectores interactivos en cascada, escritura atómica, cliente HTTP con backoff, parseo con mocks, entry points CLI e higiene de dependencias:
+El proyecto cuenta con **198 pruebas automatizadas** organizadas en 8 módulos con una cobertura superior al **82%** (`tests/`), que cubren clasificación NOM, normalización de multipacks (`Pack 6`, `Pack x 3`, `(8 Bot)`, etc.), normalización de medidas (`ml` y `L`), métricas por litro, exclusión explícita de outliers de lujo, umbrales centralizados de presupuesto, arbitraje cross-tienda, validación de esquema, selectores interactivos en cascada, escritura atómica, cliente HTTP con backoff, parseo con mocks, entry points CLI, accesibilidad WCAG y persistencia de estado:
 
 ```bash
 pytest
 ```
 
 ### 3. Ejecutar Scrapers Específicos
+
+- **Scraper Multitienda por Lote (Sam's Club, Walmart, Chedraui, Soriana):**
+  Motor de adquisición bajo demanda que consulta APIs y SSR de las 4 cadenas comerciales para actualizar los CSVs fuente de entrada:
+  ```bash
+  python src/scraper_multitienda.py
+  ```
+  *(Genera `data/scraped_chedraui.csv`, `data/scraped_sams.csv`, `data/scraped_walmart.csv` y `data/scraped_soriana.csv`).*
 
 - **Bodegas Alianza (API VTEX oficial con reintentos y logging):**
   ```bash
