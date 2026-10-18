@@ -150,3 +150,25 @@ def test_dashboard_smoke_index_html_produccion():
     assert "__DATA_JSON__" not in contenido
     assert "__CORTE_AUDITORIA__" not in contenido
     assert "__RESUMEN_WHATSAPP_VIGENCIAS__" not in contenido
+
+
+def test_dashboard_accesibilidad_formularios_y_zero_flicker():
+    """Verifica que todos los controles de formulario tengan labels accesibles y que exista el script zero-flicker."""
+    contenido = TEMPLATE_PATH.read_text(encoding="utf-8")
+    assert "ZERO-FLICKER TAB PRE-RENDER" in contenido
+    assert "tab-preload-style" in contenido
+
+    soup = BeautifulSoup(contenido, "html.parser")
+    controles = soup.find_all(["input", "select", "textarea"])
+    assert len(controles) >= 15
+
+    for ctrl in controles:
+        ctrl_id = ctrl.get("id")
+        tag = ctrl.name
+        has_parent_label = bool(ctrl.find_parent("label"))
+        has_for_label = bool(ctrl_id and soup.find("label", attrs={"for": ctrl_id}))
+        has_aria = bool(ctrl.get("aria-label") or ctrl.get("aria-labelledby"))
+        is_hidden = ctrl.get("aria-hidden") == "true"
+
+        es_accesible = has_parent_label or has_for_label or has_aria or is_hidden
+        assert es_accesible, f"Control <{tag} id='{ctrl_id}'> sin etiqueta accesible (a11y)"

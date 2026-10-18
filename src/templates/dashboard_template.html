@@ -8,6 +8,25 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- ZERO-FLICKER TAB PRE-RENDER (Evita FOUC al recargar en una pestaña secundaria) -->
+  <script>
+    (function() {
+      try {
+        var h = decodeURIComponent(String(location.hash || "").replace(/^#/, "")).trim().toLowerCase().replace(/^tab-/, "");
+        var validas = ["versus", "carrito", "matriz"];
+        if (validas.indexOf(h) !== -1) {
+          var s = document.createElement("style");
+          s.id = "tab-preload-style";
+          s.textContent = "#tab-rankings{display:none !important;}#tab-" + h + "{display:block !important;}" +
+                          "#btn-tab-rankings{background-color:transparent !important;color:#574A3D !important;box-shadow:none !important;}" +
+                          "#btn-tab-" + h + "{background-color:#ffffff !important;color:#1F1B16 !important;box-shadow:0 1px 2px 0 rgba(0,0,0,0.05) !important;}" +
+                          "#mob-btn-tab-rankings{color:#8A7B6B !important;font-weight:500 !important;}" +
+                          "#mob-btn-tab-" + h + "{color:#784516 !important;font-weight:700 !important;}";
+          document.head.appendChild(s);
+        }
+      } catch (e) {}
+    })();
+  </script>
   <style>
     :root {
       /* Material 3 Expressive · Warm Almond & Alabaster Tonal Palette */
@@ -416,7 +435,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
           <!-- 1. Menú de Categoría Principal -->
           <div>
-            <label class="block text-xs font-bold text-[#784516] mb-1.5">1. Categoría de Bebida:</label>
+            <label for="filtro-macro-categoria" class="block text-xs font-bold text-[#784516] mb-1.5">1. Categoría de Bebida:</label>
             <select id="filtro-macro-categoria" onchange="actualizarSubtiposCatalogo()" class="w-full md3-input px-3 py-2 font-semibold">
               <option value="Todas" selected>🍾 Todas las Bebidas (775)</option>
               <option value="Tequila">🥃 Tequila (210)</option>
@@ -429,7 +448,7 @@
 
           <!-- 2. Menú de Tipo de Bebida / Subcategoría (Desactivado hasta seleccionar categoría) -->
           <div>
-            <label id="label-filtro-categoria" class="block text-xs font-bold text-[#8A7B6B] mb-1.5 transition-colors">2. Tipo de Bebida:</label>
+            <label for="filtro-categoria" id="label-filtro-categoria" class="block text-xs font-bold text-[#8A7B6B] mb-1.5 transition-colors">2. Tipo de Bebida:</label>
             <select id="filtro-categoria" onchange="aplicarFiltros()" disabled class="w-full md3-input px-3 py-2 font-medium opacity-60 bg-[#EFE8DC]/50 cursor-not-allowed transition-all">
               <option value="Todas" selected>🔒 Selecciona primero una categoría...</option>
             </select>
@@ -437,7 +456,7 @@
 
           <!-- 3. Selector de Tienda -->
           <div>
-            <label class="block text-xs font-bold text-[#574A3D] mb-1.5">3. Tienda / Comercio:</label>
+            <label for="filtro-tienda" class="block text-xs font-bold text-[#574A3D] mb-1.5">3. Tienda / Comercio:</label>
             <select id="filtro-tienda" onchange="aplicarFiltros()" class="w-full md3-input px-3 py-2">
               <option value="Todas">🏬 Todas las Tiendas (5)</option>
               <option value="Bodegas Alianza">🟠 Bodegas Alianza (380)</option>
@@ -450,7 +469,7 @@
 
           <!-- 4. Búsqueda por palabras clave -->
           <div>
-            <label class="block text-xs font-bold text-[#574A3D] mb-1.5">4. Buscar Etiqueta o Marca:</label>
+            <label for="filtro-busqueda" class="block text-xs font-bold text-[#574A3D] mb-1.5">4. Buscar Etiqueta o Marca:</label>
             <input type="text" id="filtro-busqueda" oninput="aplicarFiltros()" placeholder="Ej. Dobel, 1800, Amarás, Red Label..."
                    class="w-full md3-input px-3 py-2">
           </div>
@@ -481,9 +500,9 @@
               </label>
               <label class="flex items-center gap-1.5 text-xs text-[#9B1C1C] cursor-pointer px-2.5 sm:px-3 py-1.5 rounded-full bg-white border border-[#F8B4B4] hover:bg-[#FDE8E8] transition-colors select-none min-h-[34px] sm:min-h-[36px]" title="Mostrar únicamente botellas en paquete, combos o con obsequios incluidos">
                 <input type="checkbox" id="filtro-paquete-pill" onchange="sincronizarFiltroPaquete(this.checked)" class="w-4 h-4 rounded accent-[#9B1C1C]">
-                <input type="checkbox" id="filtro-paquete" class="hidden">
                 <span class="font-bold text-[#9B1C1C] text-[11px] sm:text-xs">🎁 Solo paquetes y combos</span>
               </label>
+              <input type="checkbox" id="filtro-paquete" class="hidden" aria-hidden="true" tabindex="-1">
             </div>
 
             <!-- Botones de ordenación -->
@@ -578,7 +597,7 @@
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full lg:w-auto min-w-0">
             <div class="min-w-0">
-              <label class="block text-[11px] font-bold text-[#784516] uppercase mb-1">1. Categoría de Bebida:</label>
+              <label for="select-versus-macro" class="block text-[11px] font-bold text-[#784516] uppercase mb-1">1. Categoría de Bebida:</label>
               <select id="select-versus-macro" onchange="actualizarSubtiposVersus()" class="w-full sm:w-52 md3-input px-3 py-2 text-xs font-semibold max-w-full">
                 <option value="Tequila" selected>🥃 Tequila</option>
                 <option value="Mezcal">🌵 Mezcal</option>
@@ -590,7 +609,7 @@
             </div>
 
             <div class="min-w-0">
-              <label class="block text-[11px] font-bold text-[#486355] uppercase mb-1">2. Tipo de Bebida:</label>
+              <label for="select-versus-categoria-filtro" class="block text-[11px] font-bold text-[#486355] uppercase mb-1">2. Tipo de Bebida:</label>
               <select id="select-versus-categoria-filtro" onchange="filtrarSelectoresVersusPorCategoria()" class="w-full sm:w-64 md3-input px-3 py-2 text-xs font-semibold max-w-full">
               </select>
             </div>
@@ -622,7 +641,7 @@
             </p>
           </div>
           <div class="w-full md:w-auto flex-1 max-w-md min-w-0">
-            <select id="select-cross-tienda-duelo" onchange="cargarDueloCrossTienda(this.value)" class="w-full md3-input px-3 py-2 text-xs font-semibold min-w-0 max-w-full truncate">
+            <select id="select-cross-tienda-duelo" aria-label="Comparar misma botella entre tiendas" onchange="cargarDueloCrossTienda(this.value)" class="w-full md3-input px-3 py-2 text-xs font-semibold min-w-0 max-w-full truncate">
               <option value="">⚡ Cargando botellas comparables...</option>
             </select>
           </div>
@@ -632,12 +651,12 @@
       <!-- SELECTORES MANUALES A Y B -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
         <div class="md3-card p-4 space-y-1.5 border-l-4 border-l-[#784516] min-w-0 overflow-hidden">
-          <label class="block text-xs font-bold text-[#784516] uppercase tracking-wider">Contendiente A:</label>
+          <label for="select-versus-a" class="block text-xs font-bold text-[#784516] uppercase tracking-wider">Contendiente A:</label>
           <select id="select-versus-a" onchange="actualizarVersusManual('A')" class="w-full min-w-0 max-w-full md3-input p-2.5 text-xs sm:text-sm truncate">
           </select>
         </div>
         <div class="md3-card p-4 space-y-1.5 border-l-4 border-l-[#753B47] min-w-0 overflow-hidden">
-          <label class="block text-xs font-bold text-[#753B47] uppercase tracking-wider">Contendiente B:</label>
+          <label for="select-versus-b" class="block text-xs font-bold text-[#753B47] uppercase tracking-wider">Contendiente B:</label>
           <select id="select-versus-b" onchange="actualizarVersusManual('B')" class="w-full min-w-0 max-w-full md3-input p-2.5 text-xs sm:text-sm truncate">
           </select>
         </div>
@@ -1176,16 +1195,18 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
+      // H51: al cargar, abrir de inmediato la pestaña indicada en la URL sin scroll animado
+      const tabInicial = idTabDesdeHash();
+      if (tabInicial) cambiarTab(tabInicial);
+      const preloadStyle = document.getElementById("tab-preload-style");
+      if (preloadStyle) preloadStyle.remove();
+
       actualizarSubtiposCatalogo();
       actualizarSubtiposVersus();
       inicializarSelectorCrossTiendaVersus();
       renderizarCanastasDinamicas();
       renderizarConstructorCanasta();
       actualizarEstadoOrden();
-
-      // H51: al cargar, abrir la pestaña indicada en la URL; si no hay, la principal.
-      const tabInicial = idTabDesdeHash();
-      if (tabInicial) cambiarTab(tabInicial);
     });
 
     // =========================================================================
@@ -1793,6 +1814,7 @@
                       −
                     </button>
                     <input type="number" min="0" max="99" value="${cant}"
+                           aria-label="Cantidad de botellas"
                            onchange="fijarCantidad(${idx}, this.value)"
                            class="w-10 text-center bg-transparent font-mono font-bold text-sm text-[#1F1B16] focus:outline-none">
                     <button onclick="modificarCantidad(${idx}, 1)" class="w-8 h-8 flex items-center justify-center rounded-full bg-[#EFE8DC] hover:bg-[#E6DDD0] text-sm font-bold text-[#1F1B16] transition-colors cursor-pointer">
@@ -2009,10 +2031,17 @@
       return PESTANAS_VALIDAS.includes(id) ? id : null;
     }
 
+    let esCargaInicialTab = true;
+
     // CAMBIAR PESTAÑA (SINCRONIZA BARRA DESKTOP MD3 Y TAB BAR MÓVIL APPLE HIG)
     function cambiarTab(idTab) {
+      // Limpiar estilo temporal anti-flicker si fue inyectado en el pre-render
+      const preloadStyle = document.getElementById("tab-preload-style");
+      if (preloadStyle) preloadStyle.remove();
+
       document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
-      document.getElementById(idTab).classList.remove("hidden");
+      const tabTarget = document.getElementById(idTab);
+      if (tabTarget) tabTarget.classList.remove("hidden");
 
       // Desktop MD3 Segmented Bar
       document.querySelectorAll(".tab-btn").forEach(el => {
@@ -2043,7 +2072,10 @@
       // H51: dejar la pestaña activa en la URL sin recargar y sin manchar el historial.
       escribirHashEnURL(hashDesdeTab(idTab));
 
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (!esCargaInicialTab) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      esCargaInicialTab = false;
     }
 
     // Restaurar pestaña si el usuario edita el fragmento o abre un enlace compartido.
