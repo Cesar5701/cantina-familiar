@@ -1,0 +1,259 @@
+    :root {
+      /* Material 3 Expressive · Warm Almond & Alabaster Tonal Palette */
+      --md-bg: #FAF6F0;
+      --md-surface: #F4EFE6;
+      --md-surface-lowest: #FFFFFF;
+      --md-surface-low: #F7F2EA;
+      --md-surface-container: #EFE8DC;
+      --md-surface-high: #E6DDD0;
+      --md-on-surface: #1F1B16;
+      --md-on-surface-variant: #574A3D;
+      --md-outline: #8A7B6B;
+      --md-outline-variant: #DFD5C7;
+
+      /* Tonal Accents (Soft, low-saturation expressive containers) */
+      --md-primary: #784516;
+      --md-on-primary: #FFFFFF;
+      --md-primary-container: #F8E2C8;
+      --md-on-primary-container: #2B1500;
+
+      --md-secondary: #486355;
+      --md-secondary-container: #D3E8DC;
+      --md-on-secondary-container: #0B2016;
+
+      --md-tertiary: #753B47;
+      --md-tertiary-container: #FAD9DF;
+      --md-on-tertiary-container: #2C0811;
+
+      --md-ease-expressive: cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', 'SF Pro Text', sans-serif;
+      background-color: var(--md-bg);
+      color: var(--md-on-surface);
+      -webkit-font-smoothing: antialiased;
+      padding-bottom: 5.5rem; /* Espacio para iOS Bottom Tab Bar en móvil */
+    }
+
+    @media (min-width: 768px) {
+      body {
+        padding-bottom: 2.5rem;
+      }
+    }
+
+    .font-display-md3 {
+      font-family: 'Fraunces', Georgia, serif;
+      letter-spacing: -0.02em;
+    }
+
+    .font-mono {
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+    }
+
+    /* Scrollbar sutil tono almendra */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #F4EFE6; }
+    ::-webkit-scrollbar-thumb { background: #C8B9A6; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #9C8A74; }
+
+    /* Material 3 Expressive Surface Cards */
+    .md3-card {
+      background-color: var(--md-surface-lowest);
+      border: 1px solid var(--md-outline-variant);
+      border-radius: 24px;
+      box-shadow: 0 2px 12px rgba(31, 27, 22, 0.04);
+      transition: transform 0.25s var(--md-ease-expressive), box-shadow 0.25s var(--md-ease-expressive);
+      min-width: 0;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+
+    .md3-surface-tonal {
+      background-color: var(--md-surface-container);
+      border: 1px solid var(--md-outline-variant);
+      border-radius: 18px;
+      min-width: 0;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+
+    .md3-surface-low {
+      background-color: var(--md-surface-low);
+      border: 1px solid var(--md-outline-variant);
+      border-radius: 18px;
+      min-width: 0;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+
+    /* Inputs con soporte Apple HIG (16px en móvil para evitar auto-zoom de iOS Safari, 44px altura táctil) */
+    .md3-input {
+      background-color: var(--md-surface-lowest);
+      border: 1.5px solid #CFC2B2;
+      border-radius: 14px;
+      color: var(--md-on-surface);
+      min-height: 44px;
+      font-size: 16px;
+      transition: all 0.2s var(--md-ease-expressive);
+      min-width: 0;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+    @media (min-width: 640px) {
+      .md3-input {
+        font-size: 0.875rem;
+        min-height: 40px;
+      }
+    }
+    .md3-input:focus {
+      outline: none;
+      border-color: var(--md-primary);
+      box-shadow: 0 0 0 3px rgba(120, 69, 22, 0.14);
+    }
+    .md3-input::placeholder {
+      color: #9A8B7A;
+    }
+
+    /* Regla para evitar que los select y picklists desborden tarjetas */
+    select.md3-input {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      max-width: 100%;
+      width: 100%;
+    }
+    select.md3-input option {
+      font-size: 13px;
+      color: #1F1B16;
+      background-color: #FFFFFF;
+    }
+
+    /* Botones MD3 Expressive Pill */
+    .md3-btn-filled {
+      background-color: var(--md-primary);
+      color: var(--md-on-primary);
+      border-radius: 9999px;
+      min-height: 44px;
+      font-weight: 600;
+      transition: all 0.2s var(--md-ease-expressive);
+      box-shadow: 0 2px 6px rgba(120, 69, 22, 0.18);
+    }
+    @media (min-width: 640px) {
+      .md3-btn-filled {
+        min-height: 38px;
+      }
+    }
+    .md3-btn-filled:hover {
+      background-color: #63370F;
+      box-shadow: 0 4px 12px rgba(120, 69, 22, 0.26);
+      transform: translateY(-1px);
+    }
+    .md3-btn-filled:active {
+      transform: scale(0.98);
+    }
+
+    .md3-btn-tonal {
+      background-color: var(--md-primary-container);
+      color: var(--md-on-primary-container);
+      border: 1px solid #E5C8A3;
+      border-radius: 9999px;
+      min-height: 44px;
+      font-weight: 600;
+      transition: all 0.2s var(--md-ease-expressive);
+    }
+    @media (min-width: 640px) {
+      .md3-btn-tonal {
+        min-height: 36px;
+      }
+    }
+    .md3-btn-tonal:hover {
+      background-color: #F2D5B3;
+    }
+
+    /* Chips Tonales MD3 (Baja saturación) */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.2rem 0.65rem;
+      border-radius: 9999px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+      max-width: 100%;
+    }
+
+    /* Insignias de Arbitraje Cross-Tienda Adaptativas (H38 / H40) */
+    .btn-cross-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      line-height: 1.25;
+      white-space: nowrap;
+      max-width: 100%;
+      transition: all 0.2s var(--md-ease-expressive);
+    }
+    @media (max-width: 639px) {
+      .btn-cross-badge {
+        white-space: normal;
+        border-radius: 12px;
+        padding: 0.4rem 0.75rem;
+      }
+    }
+
+    /* Apple HIG Frosted Glass Bottom Bar en Móvil */
+    .ios-tab-bar {
+      background: rgba(250, 246, 240, 0.86);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      backdrop-filter: blur(20px) saturate(180%);
+      border-top: 0.5px solid rgba(138, 123, 107, 0.3);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    /* Toast MD3 Snackbar */
+    .toast {
+      position: fixed;
+      bottom: 5.25rem;
+      right: 1rem;
+      left: 1rem;
+      max-width: 24rem;
+      margin: 0 auto;
+      padding: 0.85rem 1.25rem;
+      background: #2C251E;
+      color: #FAF6F0;
+      border-radius: 16px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: 0 10px 25px -5px rgba(31, 27, 22, 0.28);
+      z-index: 9999;
+      opacity: 0;
+      transform: translateY(1rem);
+      transition: all 0.3s var(--md-ease-expressive);
+      pointer-events: none;
+    }
+    @media (min-width: 768px) {
+      .toast {
+        bottom: 1.5rem;
+        left: auto;
+        margin: 0;
+      }
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }

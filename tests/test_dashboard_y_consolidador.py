@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from src.actualizar_dashboard_completo import actualizar_todo
-from src.generar_dashboard_v4 import generar_dashboard, renderizar_plantilla
+from src.generar_dashboard_v4 import cargar_plantilla_dashboard, generar_dashboard, renderizar_plantilla
 from tests.conftest import crear_df_base
 
 
@@ -173,7 +173,7 @@ def test_fase2_botones_orden_template():
     """Valida que la plantilla HTML contenga los atributos data-orden y la función de estado (Fase 2)."""
     tpl_path = Path("src/templates/dashboard_template.html")
     assert tpl_path.exists()
-    contenido = tpl_path.read_text(encoding="utf-8")
+    contenido = cargar_plantilla_dashboard(tpl_path)
 
     # Botones con atributos data-orden
     assert 'data-orden="precio_por_litro"' in contenido
@@ -194,7 +194,7 @@ def test_fase3_sin_redundancias_template():
     """Valida la eliminación de redundancias de categoría y enlaces duplicados (Fase 3 - Opción A)."""
     tpl_path = Path("src/templates/dashboard_template.html")
     assert tpl_path.exists()
-    contenido = tpl_path.read_text(encoding="utf-8")
+    contenido = cargar_plantilla_dashboard(tpl_path)
 
     # Helper para quitar prefijo de categoría y lista de prefijos
     assert "const PREFIJOS_CATEGORIA =" in contenido
@@ -213,7 +213,7 @@ def test_toggle_solo_mejor_precio_template():
     """Valida la presencia del toggle de solo mejor precio y su lógica de deduplicación."""
     tpl_path = Path("src/templates/dashboard_template.html")
     assert tpl_path.exists()
-    contenido = tpl_path.read_text(encoding="utf-8")
+    contenido = cargar_plantilla_dashboard(tpl_path)
 
     # Toggle en el encabezado de catálogo
     assert 'id="filtro-mejor-precio"' in contenido
@@ -232,7 +232,7 @@ def test_cascada_categoria_tipo_template():
     """Valida que el selector de tipo de bebida inicie desactivado y dependa de la categoría seleccionada."""
     tpl_path = Path("src/templates/dashboard_template.html")
     assert tpl_path.exists()
-    contenido = tpl_path.read_text(encoding="utf-8")
+    contenido = cargar_plantilla_dashboard(tpl_path)
 
     # Selector de tipo de bebida inicia desactivado con placeholder explicativo
     assert 'id="filtro-categoria" onchange="aplicarFiltros()" disabled' in contenido
@@ -330,7 +330,7 @@ def test_filtro_paquete_en_dashboard(tmp_path: Path):
     # 1. Verificar presencia de controles en la plantilla HTML
     tpl_path = Path("src/templates/dashboard_template.html")
     assert tpl_path.exists()
-    tpl_content = tpl_path.read_text(encoding="utf-8")
+    tpl_content = cargar_plantilla_dashboard(tpl_path)
     assert 'id="filtro-paquete"' in tpl_content
     assert 'id="filtro-paquete-pill"' in tpl_content
     assert "sincronizarFiltroPaquete" in tpl_content
@@ -378,7 +378,7 @@ def test_h35_dashboard_cross_tienda_700_vs_750ml(tmp_path: Path):
     # 1. Verificar plantilla HTML para modal y versus ordenados por $/L
     tpl_path = Path("src/templates/dashboard_template.html")
     assert tpl_path.exists()
-    tpl_content = tpl_path.read_text(encoding="utf-8")
+    tpl_content = cargar_plantilla_dashboard(tpl_path)
     assert "sort((a, b) => a.p.precio_por_litro - b.p.precio_por_litro)" in tpl_content
     assert "sort((a, b) => a.item.precio_por_litro - b.item.precio_por_litro)" in tpl_content
 
@@ -455,7 +455,7 @@ def test_h51_pestana_activa_persistente_en_hash():
     """Valida que la pestaña activa se persista en el fragmento de la URL y se restaure al recargar (H51)."""
     tpl_path = Path("src/templates/dashboard_template.html")
     assert tpl_path.exists()
-    contenido = tpl_path.read_text(encoding="utf-8")
+    contenido = cargar_plantilla_dashboard(tpl_path)
 
     # Catálogo de pestañas válidas (mismas que las pestañas del nav desktop y móvil)
     assert 'const PESTANAS_VALIDAS = ["tab-rankings", "tab-versus", "tab-carrito", "tab-matriz"];' in contenido

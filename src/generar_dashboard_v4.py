@@ -1,9 +1,11 @@
 """
 Generador Maestro del Dashboard BI interactivo v6.0 para Cantina Familiar 2026.
-Desacoplado de la plantilla HTML (H29) para máxima mantenibilidad y facilidad de prueba.
+Desacoplado en arquitectura modular de plantillas (CSS, parciales HTML y módulos JS)
+que se ensamblan en un index.html autocontenido para publicación en GitHub Pages (H29).
 """
 
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -16,7 +18,10 @@ from src.logger import get_logger
 logger = get_logger("dashboard_v4")
 INDEX_HTML_PATH = ROOT_DIR / "index.html"
 DATA_JSON_PATH = ROOT_DIR / "data" / "dashboard_data.json"
-TEMPLATE_PATH = ROOT_DIR / "src" / "templates" / "dashboard_template.html"
+TEMPLATES_DIR = ROOT_DIR / "src" / "templates"
+TEMPLATE_PATH = TEMPLATES_DIR / "dashboard_template.html"
+
+PATRON_INCLUDE = re.compile(r"<!--\s*@include\s+([^\s]+)\s*-->\n?")
 
 # =====================================================================
 # MATRIZ OFICIAL DE VIGENCIAS Y PROMOCIONES MULTITIENDA (OCTUBRE 2026)
@@ -33,18 +38,43 @@ CONFIG_VIGENCIA = {
 }
 
 
+def ensamblar_plantilla_modular(template_content: str, base_dir: Path | None = None) -> str:
+    """Expande las directivas <!-- @include ruta --> leyendo los submódulos de CSS, HTML y JS."""
+    directorio_base = base_dir or TEMPLATES_DIR
+
+    def _reemplazar_include(match: re.Match) -> str:
+        rel_path = match.group(1)
+        inc_path = directorio_base / rel_path
+        if not inc_path.exists():
+            raise FileNotFoundError(f"Módulo de plantilla no encontrado: {inc_path}")
+        return inc_path.read_text(encoding="utf-8")
+
+    return PATRON_INCLUDE.sub(_reemplazar_include, template_content)
+
+
+def cargar_plantilla_dashboard(template_path: Path | str | None = None) -> str:
+    """Lee la plantilla maestra y resuelve todos sus submódulos (@include)."""
+    tpl_path = Path(template_path) if template_path else TEMPLATE_PATH
+    if not tpl_path.exists():
+        raise FileNotFoundError(f"Plantilla HTML no encontrada: {tpl_path}")
+    raw_content = tpl_path.read_text(encoding="utf-8")
+    return ensamblar_plantilla_modular(raw_content, base_dir=tpl_path.parent)
+
+
 def renderizar_plantilla(
     template_content: str,
     datos_json_str: str,
     corte_auditoria: str | None = None,
     resumen_whatsapp: str | None = None,
+    base_dir: Path | None = None,
 ) -> str:
-    """Inyecta el catálogo JSON y variables de vigencia dentro de la plantilla HTML."""
+    """Ensambla submódulos e inyecta el catálogo JSON y variables de vigencia en la plantilla HTML."""
     corte = corte_auditoria or CONFIG_VIGENCIA["corte_auditoria"]
     whatsapp = resumen_whatsapp or CONFIG_VIGENCIA["resumen_whatsapp"]
+    ensamblada = ensamblar_plantilla_modular(template_content, base_dir=base_dir)
 
     return (
-        template_content.replace("__DATA_JSON__", datos_json_str)
+        ensamblada.replace("__DATA_JSON__", datos_json_str)
         .replace("__CORTE_AUDITORIA__", corte)
         .replace("__RESUMEN_WHATSAPP_VIGENCIAS__", whatsapp)
     )
@@ -56,8 +86,8 @@ def generar_dashboard(
     output_paths: list[Path | str] | None = None,
 ) -> str:
     """
-    Carga los datos JSON, renderiza la plantilla HTML y guarda el dashboard generado
-    en las rutas especificadas.
+    Carga los datos JSON, ensambla y renderiza la plantilla HTML modular y guarda el dashboard
+    autocontenido en las rutas especificadas.
     """
     json_path = Path(data_json_path) if data_json_path else DATA_JSON_PATH
     tpl_path = Path(template_path) if template_path else TEMPLATE_PATH
@@ -70,7 +100,7 @@ def generar_dashboard(
     datos_json_str = json_path.read_text(encoding="utf-8")
     template_content = tpl_path.read_text(encoding="utf-8")
 
-    html_final = renderizar_plantilla(template_content, datos_json_str)
+    html_final = renderizar_plantilla(template_content, datos_json_str, base_dir=tpl_path.parent)
 
     # Definir destinos de salida por defecto (solo index.html, autocontenido y publicado)
     destinos = [Path(p) for p in output_paths] if output_paths is not None else [INDEX_HTML_PATH]

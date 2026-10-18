@@ -8,7 +8,13 @@ import json
 
 from bs4 import BeautifulSoup
 
-from src.generar_dashboard_v4 import INDEX_HTML_PATH, TEMPLATE_PATH, renderizar_plantilla
+from src.generar_dashboard_v4 import (
+    INDEX_HTML_PATH,
+    TEMPLATE_PATH,
+    TEMPLATES_DIR,
+    cargar_plantilla_dashboard,
+    renderizar_plantilla,
+)
 
 
 def test_dashboard_smoke_renderizado_completo():
@@ -118,7 +124,7 @@ def test_dashboard_smoke_datos_json_embebidos():
 
 def test_dashboard_smoke_funciones_javascript_criticas():
     """Valida la presencia de las funciones JS esenciales de UI y lógica de negocio (H44)."""
-    template_str = TEMPLATE_PATH.read_text(encoding="utf-8")
+    template_str = cargar_plantilla_dashboard()
 
     funciones_esperadas = [
         "function actualizarSubtiposCatalogo",
@@ -154,7 +160,7 @@ def test_dashboard_smoke_index_html_produccion():
 
 def test_dashboard_accesibilidad_formularios_y_zero_flicker():
     """Verifica que todos los controles de formulario tengan labels accesibles y que exista el script zero-flicker."""
-    contenido = TEMPLATE_PATH.read_text(encoding="utf-8")
+    contenido = cargar_plantilla_dashboard()
     assert "ZERO-FLICKER TAB PRE-RENDER" in contenido
     assert "tab-preload-style" in contenido
 
@@ -172,3 +178,29 @@ def test_dashboard_accesibilidad_formularios_y_zero_flicker():
 
         es_accesible = has_parent_label or has_for_label or has_aria or is_hidden
         assert es_accesible, f"Control <{tag} id='{ctrl_id}'> sin etiqueta accesible (a11y)"
+
+
+def test_arquitectura_modular_plantillas():
+    """Valida que los módulos de CSS, parciales HTML y JS existan y se ensamblen sin directivas residuales."""
+    modulos_esperados = [
+        "css/styles.css",
+        "partials/header_y_nav.html",
+        "partials/tab_rankings.html",
+        "partials/tab_versus.html",
+        "partials/tab_carrito.html",
+        "partials/tab_matriz.html",
+        "partials/footer_y_modales.html",
+        "js/01_estado_y_utilidades.js",
+        "js/02_modales_y_subtipos.js",
+        "js/03_carrito_y_canastas.js",
+        "js/04_navegacion_y_catalogo.js",
+        "js/05_versus_y_arranque.js",
+    ]
+    for rel in modulos_esperados:
+        ruta = TEMPLATES_DIR / rel
+        assert ruta.exists(), f"Falta el submódulo de plantilla: {rel}"
+        assert ruta.stat().st_size > 100, f"El submódulo {rel} está vacío"
+
+    ensamblado = cargar_plantilla_dashboard()
+    assert "@include" not in ensamblado
+    assert len(ensamblado.splitlines()) > 2700

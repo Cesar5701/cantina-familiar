@@ -1,0 +1,106 @@
+    <!-- HEADER MD3 EXPRESSIVE (SUPERFICIE ALMENDRADA CLARA, INPUTS EN BLANCO AL INICIAR) -->
+    <header class="md3-card p-5 sm:p-7 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-5">
+      <div class="space-y-1">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-[#F8E2C8] border border-[#E5C8A3] flex items-center justify-center text-2xl shadow-sm">
+            🥃
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-bold font-display-md3 text-[#1F1B16]">
+            Cantina Familiar 2026
+          </h1>
+        </div>
+        <p class="text-[#574A3D] text-xs sm:text-sm max-w-2xl pt-0.5">
+          Comparador multitienda de tequilas, mezcales, whiskies y vinos con cálculo en vivo por litro y por persona.
+        </p>
+      </div>
+
+      <!-- CONTROLES GLOBALES EN BLANCO AL INICIAR -->
+      <div class="grid grid-cols-2 sm:flex sm:flex-nowrap items-end gap-3 sm:gap-4 md3-surface-tonal p-3.5 sm:p-4 w-full lg:w-auto rounded-2xl">
+        <div class="flex-1 sm:flex-initial min-w-0">
+          <label for="input-presupuesto-global" class="h-8 flex items-end pb-1 text-[11px] font-bold text-[#784516] uppercase tracking-wider leading-tight">
+            Presupuesto ($ MXN)
+          </label>
+          <div class="relative flex items-center w-full">
+            <span class="absolute left-3 text-sm font-bold text-[#784516] font-mono pointer-events-none select-none">$</span>
+            <input type="number" id="input-presupuesto-global" value="" min="0" max="200000" step="100"
+                   placeholder="Ej. 8500"
+                   oninput="actualizarParametrosGlobales()"
+                   class="w-full sm:w-36 md3-input pl-7 pr-3 py-2 font-mono font-bold text-[#1F1B16] text-sm h-11">
+          </div>
+        </div>
+
+        <div class="h-10 w-px bg-[#D6C8B8] hidden sm:block mb-0.5"></div>
+
+        <div class="flex-1 sm:flex-initial min-w-0">
+          <label for="input-cooperadores-global" class="h-8 flex items-end pb-1 text-[11px] font-bold text-[#486355] uppercase tracking-wider leading-tight">
+            Personas (N)
+          </label>
+          <div class="relative flex items-center w-full">
+            <input type="number" id="input-cooperadores-global" value="" min="1" max="200" step="1"
+                   placeholder="Ej. 14"
+                   oninput="actualizarParametrosGlobales()"
+                   class="w-full sm:w-28 md3-input px-3 py-2 font-mono font-bold text-[#1F1B16] text-center text-sm h-11">
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- BANNER MULTITIENDA DE VIGENCIAS Y AUDITORÍA DE PROMOCIONES -->
+    <div class="md3-surface-tonal p-3.5 sm:p-4 rounded-2xl space-y-2.5 text-xs border border-[#DFD5C7]">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-[#DFD5C7]/70 pb-2">
+        <div class="flex items-center gap-2 font-bold text-[#1F1B16]">
+          <span class="text-base">📅</span>
+          <span>Vigencias de Ofertas y Promociones por Tienda (Octubre 2026):</span>
+        </div>
+        <span class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] font-mono text-[11px]">
+          Auditoría: __CORTE_AUDITORIA__
+        </span>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 font-mono text-[11px]">
+        <div class="p-2.5 rounded-xl bg-white/90 border border-[#E5C8A3] flex flex-col justify-between">
+          <span class="font-bold text-[#784516]">🟠 Bodegas Alianza</span>
+          <span class="text-[10px] text-[#574A3D] truncate">Aniversario Web</span>
+          <span class="font-extrabold text-[#784516] mt-0.5">Hasta 25 Oct 2026</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-white/90 border border-[#BFDBFE] flex flex-col justify-between">
+          <span class="font-bold text-[#1E3A8A]">🔵 Sam's Club</span>
+          <span class="text-[10px] text-[#574A3D] truncate">Cuponera de Octubre</span>
+          <span class="font-extrabold text-[#1E3A8A] mt-0.5">Hasta 2 Nov 2026</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-white/90 border border-[#FED7AA] flex flex-col justify-between">
+          <span class="font-bold text-[#7C2D12]">🟧 Chedraui</span>
+          <span class="text-[10px] text-[#574A3D] truncate">Quincena MiChedraui</span>
+          <span class="font-extrabold text-[#7C2D12] mt-0.5">Hasta 31 Oct 2026</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-white/90 border border-[#FECDD3] flex flex-col justify-between">
+          <span class="font-bold text-[#881337]">🔴 Soriana</span>
+          <span class="text-[10px] text-[#574A3D] truncate">Folleto Licores</span>
+          <span class="font-extrabold text-[#881337] mt-0.5">Hasta 22 Oct 2026</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-white/90 border border-[#BAE6FD] flex flex-col justify-between col-span-2 sm:col-span-1">
+          <span class="font-bold text-[#0C4A6E]">🩵 Walmart</span>
+          <span class="text-[10px] text-[#574A3D] truncate">Rebajas en Línea</span>
+          <span class="font-extrabold text-[#0C4A6E] mt-0.5">Hasta 31 Oct 2026</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- NAVEGACIÓN DESKTOP MD3 SEGMENTED PILL BAR (OCULTA EN MÓVIL, VISIBLE EN >=768px) -->
+    <nav class="hidden md:flex md3-surface-tonal p-1.5 gap-1.5 text-sm font-semibold">
+      <button onclick="cambiarTab('tab-rankings')" id="btn-tab-rankings" class="tab-btn flex-1 py-2.5 px-4 rounded-2xl bg-white text-[#1F1B16] shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer">
+        <span>🍾 1. Catálogo & Rankings $/L</span>
+      </button>
+
+      <button onclick="cambiarTab('tab-versus')" id="btn-tab-versus" class="tab-btn flex-1 py-2.5 px-4 rounded-2xl text-[#574A3D] hover:text-[#1F1B16] hover:bg-white/50 flex items-center justify-center gap-2 transition-all cursor-pointer">
+        <span>⚔️ 2. Duelo Head-to-Head</span>
+      </button>
+
+      <button onclick="cambiarTab('tab-carrito')" id="btn-tab-carrito" class="tab-btn flex-1 py-2.5 px-4 rounded-2xl text-[#574A3D] hover:text-[#1F1B16] hover:bg-white/50 flex items-center justify-center gap-2 transition-all cursor-pointer">
+        <span>🛒 3. Carrito & Armador</span>
+        <span class="badge bg-[#F8E2C8] text-[#784516] border border-[#E5C8A3] text-[11px] ml-1 font-mono" id="badge-nav-carrito-count">0</span>
+      </button>
+
+      <button onclick="cambiarTab('tab-matriz')" id="btn-tab-matriz" class="tab-btn flex-1 py-2.5 px-4 rounded-2xl text-[#574A3D] hover:text-[#1F1B16] hover:bg-white/50 flex items-center justify-center gap-2 transition-all cursor-pointer">
+        <span>📜 4. Guía de Barricas</span>
+      </button>
+    </nav>

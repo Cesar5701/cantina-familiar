@@ -1,0 +1,428 @@
+    // PESTAÑA ACTIVA EN EL HASH (H51): la recarga conserva la pestaña elegida
+    // y un enlace con fragmento (#versus, #carrito, #matriz, #rankings) abre directo en ella.
+    const PESTANAS_VALIDAS = ["tab-rankings", "tab-versus", "tab-carrito", "tab-matriz"];
+
+    function hashDesdeTab(idTab) {
+      return "#" + idTab.replace(/^tab-/, "");
+    }
+
+    function escribirHashEnURL(hash) {
+      if (!window.history || !history.replaceState) return;
+      if (location.hash === hash) return;
+      try {
+        history.replaceState(null, "", hash);
+      } catch (_) {
+        // Entornos restringidos (p. ej. file://): la pestaña sigue operativa,
+        // solo no se persiste en la URL.
+      }
+    }
+
+    function idTabDesdeHash() {
+      const bruto = decodeURIComponent(String(location.hash || "").replace(/^#/, "")).trim().toLowerCase();
+      if (!bruto) return null;
+      const id = "tab-" + bruto.replace(/^tab-/, "");
+      return PESTANAS_VALIDAS.includes(id) ? id : null;
+    }
+
+    let esCargaInicialTab = true;
+
+    // CAMBIAR PESTAÑA (SINCRONIZA BARRA DESKTOP MD3 Y TAB BAR MÓVIL APPLE HIG)
+    function cambiarTab(idTab) {
+      // Limpiar estilo temporal anti-flicker si fue inyectado en el pre-render
+      const preloadStyle = document.getElementById("tab-preload-style");
+      if (preloadStyle) preloadStyle.remove();
+
+      document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
+      const tabTarget = document.getElementById(idTab);
+      if (tabTarget) tabTarget.classList.remove("hidden");
+
+      // Desktop MD3 Segmented Bar
+      document.querySelectorAll(".tab-btn").forEach(el => {
+        el.classList.remove("bg-white", "text-[#1F1B16]", "shadow-sm");
+        el.classList.add("text-[#574A3D]");
+      });
+      const btn = document.getElementById("btn-" + idTab);
+      if (btn) {
+        btn.classList.add("bg-white", "text-[#1F1B16]", "shadow-sm");
+        btn.classList.remove("text-[#574A3D]");
+      }
+
+      // Mobile iOS HIG Bottom Tab Bar
+      document.querySelectorAll(".mob-tab-btn").forEach(el => {
+        el.classList.remove("text-[#784516]", "font-bold");
+        el.classList.add("text-[#8A7B6B]", "font-medium");
+      });
+      const mobBtn = document.getElementById("mob-btn-" + idTab);
+      if (mobBtn) {
+        mobBtn.classList.add("text-[#784516]", "font-bold");
+        mobBtn.classList.remove("text-[#8A7B6B]", "font-medium");
+      }
+
+      if (idTab === 'tab-rankings') {
+        renderizarGraficoTop10();
+      }
+
+      // H51: dejar la pestaña activa en la URL sin recargar y sin manchar el historial.
+      escribirHashEnURL(hashDesdeTab(idTab));
+
+      if (!esCargaInicialTab) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      esCargaInicialTab = false;
+    }
+
+    // Restaurar pestaña si el usuario edita el fragmento o abre un enlace compartido.
+    window.addEventListener("hashchange", () => {
+      const id = idTabDesdeHash();
+      if (id) cambiarTab(id);
+    });
+
+    function sincronizarFiltroPaquete(estado) {
+      const chk1 = document.getElementById("filtro-paquete");
+      const chk2 = document.getElementById("filtro-paquete-pill");
+      if (chk1) chk1.checked = estado;
+      if (chk2) chk2.checked = estado;
+      aplicarFiltros();
+    }
+
+    function esProductoPaquete(item) {
+      if (!item) return false;
+      if (item.es_paquete !== undefined && typeof item.es_paquete === "boolean") return item.es_paquete;
+      const nom = (item.producto || "").toLowerCase();
+      const cond = (item.condiciones || "").toLowerCase();
+      if (cond.includes("🎁") || cond.includes("obsequio") || cond.includes("combo") || cond.includes("kit")) return true;
+      const patron = /\b(pack|paquete|combo|kit|caja|set)\b|\b\d+\s*pzas?\b|\bx\s*\d+\b|\b\d+\s*botellas?\b|\bcon\s+(vaso|copa|termo|shaker|tumbler|caballito|sal|kit)\b/i;
+      if (patron.test(nom)) return true;
+      if (nom.includes(" + ") || nom.includes(" c/") || nom.includes(" con ")) {
+        if (/\+\s*(\d+|vaso|copa|termo|sal|bot|agua|refresco|chivas|jack|absolut|woodford|mason|shaker|tumbler)/i.test(nom)) return true;
+        if (/c\/\s*(\d+|bot|vaso|copa|bal[oó]n|caballito|termo|porta|kit|escurridor|concentrado|tamborin|sangria|tinto|vino|ultra|reposado|joven|pechuga)/i.test(nom)) return true;
+      }
+      return false;
+    }
+
+    function aplicarFiltros() {
+      const busq = document.getElementById("filtro-busqueda").value.toLowerCase();
+      const macroCat = document.getElementById("filtro-macro-categoria").value;
+      const subCat = document.getElementById("filtro-categoria").value;
+      const tienda = document.getElementById("filtro-tienda").value;
+      const soloDesc = document.getElementById("filtro-descuento") ? document.getElementById("filtro-descuento").checked : false;
+      const chkPaq = document.getElementById("filtro-paquete") || document.getElementById("filtro-paquete-pill");
+      const soloPaquete = chkPaq ? chkPaq.checked : false;
+      const chkMejor = document.getElementById("filtro-mejor-precio");
+      const soloMejor = chkMejor ? chkMejor.checked : true;
+
+      // Actualizar estado visual y disponibilidad del toggle según la tienda seleccionada
+      if (chkMejor) {
+        if (tienda !== "Todas") {
+          chkMejor.disabled = true;
+          chkMejor.parentElement.classList.add("opacity-50", "cursor-not-allowed");
+          chkMejor.parentElement.classList.remove("hover:bg-[#EFE8DC]", "cursor-pointer");
+          chkMejor.parentElement.title = "Filtro activo solo al ver Todas las Tiendas";
+        } else {
+          chkMejor.disabled = false;
+          chkMejor.parentElement.classList.remove("opacity-50", "cursor-not-allowed");
+          chkMejor.parentElement.classList.add("hover:bg-[#EFE8DC]", "cursor-pointer");
+          chkMejor.parentElement.title = "Mostrar únicamente la opción más barata por cada producto (oculta ofertas repetidas de tiendas más caras)";
+        }
+      }
+
+      datosFiltrados = DATOS_COMPLETOS.filter(item => {
+        const matchBusq = !busq || item.producto.toLowerCase().includes(busq) || item.marca.toLowerCase().includes(busq);
+        const matchMacro = (macroCat === 'Todas') || (item.categoria === macroCat);
+        const matchSub = (subCat === 'Todas' || subCat === 'Todos_Macro') || (item.categoria_comparable === subCat);
+        const matchTienda = (tienda === 'Todas') || (item.tienda === tienda);
+        const matchDesc = !soloDesc || (item.ahorro_verificable > 0);
+        const matchPaquete = !soloPaquete || esProductoPaquete(item);
+        return matchBusq && matchMacro && matchSub && matchTienda && matchDesc && matchPaquete;
+      });
+
+      // Si está en 'Todas las Tiendas' y el filtro está activo, mostrar únicamente la mejor oferta por producto
+      if (tienda === "Todas" && soloMejor) {
+        const clavesVistas = new Set();
+        datosFiltrados = datosFiltrados.filter(item => {
+          if (!item.es_precio_mas_bajo) return false;
+          const k = item.clave_comparativa || (item.producto + "_" + item.ml);
+          if (clavesVistas.has(k)) return false;
+          clavesVistas.add(k);
+          return true;
+        });
+      }
+
+      datosFiltrados.sort((a, b) => {
+        let vA = a[columnaOrden] || 0;
+        let vB = b[columnaOrden] || 0;
+        return ordenAsc ? vA - vB : vB - vA;
+      });
+
+      paginaActual = 1;
+      renderizarTabla();
+      renderizarGraficoTop10();
+      document.getElementById("contador-filtrados").innerText = `${datosFiltrados.length} botellas verificadas`;
+      const tituloG = (subCat !== 'Todas' && subCat !== 'Todos_Macro') ? subCat : (macroCat !== 'Todas' ? macroCat : 'Catálogo General');
+      document.getElementById("chart-titulo").innerText = `Top 10 Rendimiento $/Litro: ${tituloG}`;
+    }
+
+    const CLASE_ORDEN_BASE = "px-3 py-1.5 rounded-full font-semibold text-xs transition-colors cursor-pointer min-h-[36px]";
+    const CLASE_ORDEN_ACTIVO = "md3-btn-tonal border border-transparent";
+    const CLASE_ORDEN_INACTIVO = "bg-white border border-[#D6C8B8] text-[#1F1B16] hover:bg-[#EFE8DC]";
+
+    function actualizarEstadoOrden() {
+      document.querySelectorAll("[data-orden]").forEach(btn => {
+        const activo = btn.dataset.orden === columnaOrden;
+        btn.className = `${CLASE_ORDEN_BASE} ${activo ? CLASE_ORDEN_ACTIVO : CLASE_ORDEN_INACTIVO}`;
+        const f = btn.querySelector(".orden-flecha");
+        if (f) f.textContent = activo ? (ordenAsc ? "↑" : "↓") : "↕";
+      });
+
+      document.querySelectorAll("[data-orden-header]").forEach(th => {
+        const activo = th.dataset.ordenHeader === columnaOrden;
+        th.setAttribute("aria-sort", activo ? (ordenAsc ? "ascending" : "descending") : "none");
+        const f = th.querySelector(".orden-flecha");
+        if (f) f.textContent = activo ? (ordenAsc ? "↑" : "↓") : "↕";
+        if (activo) {
+          th.classList.add("text-[#784516]", "font-bold");
+        } else {
+          th.classList.remove("text-[#784516]", "font-bold");
+        }
+      });
+    }
+
+    function ordenarPor(col) {
+      if (columnaOrden === col) ordenAsc = !ordenAsc;
+      else { columnaOrden = col; ordenAsc = true; }
+      aplicarFiltros();
+      actualizarEstadoOrden();
+    }
+
+    const PREFIJOS_CATEGORIA = [
+      "licor de whisky", "licor de wisky", "tequila", "mezcal",
+      "whisky", "whiskey", "vino", "licor", "ron", "cerveza",
+      "brandy", "vodka", "ginebra"
+    ];
+
+    function nombreSinCategoria(item) {
+      let nombre = (item.producto || "").trim();
+      const lower = nombre.toLowerCase();
+      for (const pref of PREFIJOS_CATEGORIA) {
+        if (lower.startsWith(pref)) {
+          nombre = nombre.slice(pref.length).trim();
+          break;
+        }
+      }
+      return nombre || item.producto || "";
+    }
+
+    function renderizarTabla() {
+      const tbody = document.getElementById("tabla-productos-body");
+      const contMovil = document.getElementById("lista-productos-movil");
+      if (tbody) tbody.innerHTML = "";
+      if (contMovil) contMovil.innerHTML = "";
+
+      const inicio = (paginaActual - 1) * itemsPorPagina;
+      const fin = Math.min(inicio + itemsPorPagina, datosFiltrados.length);
+      const paginaItems = datosFiltrados.slice(inicio, fin);
+
+      if (paginaItems.length === 0) {
+        if (tbody) {
+          tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-[#574A3D]">No se encontraron botellas con los filtros seleccionados.</td></tr>`;
+        }
+        if (contMovil) {
+          contMovil.innerHTML = `<div class="p-8 text-center text-xs text-[#574A3D]">No se encontraron botellas con los filtros seleccionados.</div>`;
+        }
+        return;
+      }
+
+      let movilHtml = "";
+
+      paginaItems.forEach(item => {
+        const ahorroBadge = item.ahorro_verificable > 0
+          ? `<span class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5]">-$${item.ahorro_verificable.toFixed(2)} (${item.porcentaje_ahorro}%)</span>`
+          : `<span class="text-[#8A7B6B] text-xs">Precio regular</span>`;
+
+        const tiendaBadge = getBadgeTienda(item.tienda, false);
+        const tiendaBadgeCorto = getBadgeTienda(item.tienda, true);
+        const originalIndex = DATOS_COMPLETOS.indexOf(item);
+
+        let crossBadgeDesktop = "";
+        let crossBadgeMovil = "";
+        if (item.es_comparable_cross_tienda) {
+          if (item.es_precio_mas_bajo) {
+            crossBadgeDesktop = `
+              <div class="mt-1">
+                <button type="button" onclick="toggleModalCrossTienda(${originalIndex})" class="btn-cross-badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] hover:bg-[#B7D6C5] cursor-pointer" title="Ver comparativa de precios en ${item.num_tiendas_cross} tiendas">
+                  <span>⭐ Mejor precio de ${item.num_tiendas_cross} tiendas</span>
+                  <span class="text-[9px] underline font-normal">Comparar ↗</span>
+                </button>
+              </div>
+            `;
+            crossBadgeMovil = `
+              <div class="pt-0.5">
+                <button type="button" onclick="toggleModalCrossTienda(${originalIndex})" class="btn-cross-badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] active:bg-[#B7D6C5] cursor-pointer w-full justify-between" title="Ver comparativa de precios en ${item.num_tiendas_cross} tiendas">
+                  <span>⭐ Mejor precio de ${item.num_tiendas_cross} tiendas</span>
+                  <span class="text-[10px] underline font-normal">Comparar ↗</span>
+                </button>
+              </div>
+            `;
+          } else {
+            crossBadgeDesktop = `
+              <div class="mt-1">
+                <button type="button" onclick="toggleModalCrossTienda(${originalIndex})" class="btn-cross-badge bg-[#FDE8E8] text-[#9B1C1C] border border-[#F8B4B4] hover:bg-[#FCD9BD] cursor-pointer" title="Ver comparativa de precios en ${item.num_tiendas_cross} tiendas">
+                  <span>🏷️ Más barato en ${item.tienda_mas_barata} ($${item.precio_minimo_cross.toFixed(2)})</span>
+                  <span class="text-[9px] underline font-bold">Ahorra $${item.diferencia_vs_minimo.toFixed(2)} ↗</span>
+                </button>
+              </div>
+            `;
+            crossBadgeMovil = `
+              <div class="pt-0.5">
+                <button type="button" onclick="toggleModalCrossTienda(${originalIndex})" class="btn-cross-badge bg-[#FDE8E8] text-[#9B1C1C] border border-[#F8B4B4] active:bg-[#FCD9BD] cursor-pointer w-full justify-between" title="Ver comparativa de precios en ${item.num_tiendas_cross} tiendas">
+                  <span>🏷️ Más barato en ${item.tienda_mas_barata} ($${item.precio_minimo_cross.toFixed(2)})</span>
+                  <span class="text-[10px] underline font-bold">Ahorra $${item.diferencia_vs_minimo.toFixed(2)} ↗</span>
+                </button>
+              </div>
+            `;
+          }
+        }
+
+        let paqueteBadgeDesktop = "";
+        let paqueteBadgeMovil = "";
+        if (esProductoPaquete(item)) {
+          const textoPaq = (item.condiciones && item.condiciones.includes("🎁"))
+            ? item.condiciones
+            : "🎁 Paquete / Combo";
+          paqueteBadgeDesktop = `
+            <div class="mt-1">
+              <span class="badge bg-[#FDE8E8] text-[#9B1C1C] border border-[#F8B4B4]" title="Presentación en paquete o con obsequios incluidos">
+                <span>${textoPaq}</span>
+              </span>
+            </div>
+          `;
+          paqueteBadgeMovil = `
+            <div>
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10px] font-bold bg-[#FDE8E8] text-[#9B1C1C] border border-[#F8B4B4] leading-tight" title="Presentación en paquete o con obsequios incluidos">
+                <span>${textoPaq}</span>
+              </span>
+            </div>
+          `;
+        }
+
+        // 1. Fila Desktop (tr)
+        if (tbody) {
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-[#F7F2EA] transition-colors";
+          tr.innerHTML = `
+            <td class="p-3.5 font-medium text-[#1F1B16] max-w-xs">
+              <a href="${item.url}" target="_blank" rel="noopener noreferrer"
+                 class="hover:underline text-[#1F1B16] hover:text-[#784516] inline-flex items-center gap-1 group font-semibold leading-snug"
+                 title="Ver ${item.producto} en tienda oficial ${item.tienda}">
+                <span class="line-clamp-2">${nombreSinCategoria(item)}</span>
+                <span class="text-[10px] text-[#8A7B6B] group-hover:text-[#784516] flex-shrink-0">↗</span>
+              </a>
+              ${paqueteBadgeDesktop}
+              ${crossBadgeDesktop}
+            </td>
+            <td class="p-3.5 text-xs">
+              <span class="badge bg-[#EFE8DC] border border-[#D6C8B8] text-[#574A3D]">${item.categoria_comparable}</span>
+            </td>
+            <td class="p-3.5 text-xs font-mono text-[#574A3D] hidden md:table-cell whitespace-nowrap">${item.ml} ml</td>
+            <td class="p-3.5 font-bold text-[#1F1B16] font-mono whitespace-nowrap">$${item.precio_promo.toFixed(2)}</td>
+            <td class="p-3.5 font-extrabold text-[#784516] font-mono whitespace-nowrap">$${item.precio_por_litro.toFixed(2)}</td>
+            <td class="p-3.5 hidden lg:table-cell whitespace-nowrap">${ahorroBadge}</td>
+            <td class="p-3.5 whitespace-nowrap">${tiendaBadge}</td>
+            <td class="p-3.5 text-center whitespace-nowrap">
+              <button onclick="agregarDesdeTabla(${originalIndex})" class="px-3 py-1.5 text-xs md3-btn-tonal cursor-pointer whitespace-nowrap">
+                + Carrito
+              </button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        }
+
+        // 2. Tarjeta Móvil (Mobile Card táctil sin desbordamiento)
+        const ahorroBadgeMovil = item.ahorro_verificable > 0
+          ? `<span class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] text-[10px]">-$${item.ahorro_verificable.toFixed(2)} (${item.porcentaje_ahorro}%)</span>`
+          : "";
+
+        movilHtml += `
+          <div class="p-3.5 space-y-2 hover:bg-[#F7F2EA] transition-colors">
+            <!-- Fila Superior: Tienda + Categoría + Volumen -->
+            <div class="flex items-center justify-between gap-1.5 flex-wrap">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                ${tiendaBadgeCorto}
+                <span class="badge bg-[#EFE8DC] border border-[#D6C8B8] text-[#574A3D] text-[10px]">${item.categoria_comparable}</span>
+              </div>
+              <span class="text-xs font-mono font-bold text-[#574A3D]">${item.ml} ml</span>
+            </div>
+
+            <!-- Nombre de Producto (Legible, sin recortar agresivamente) -->
+            <div class="font-bold text-sm text-[#1F1B16] leading-snug">
+              <a href="${item.url}" target="_blank" rel="noopener noreferrer"
+                 class="hover:underline hover:text-[#784516] inline-flex items-center gap-1 group"
+                 title="Ver ${item.producto} en tienda oficial ${item.tienda}">
+                <span>${nombreSinCategoria(item)}</span>
+                <span class="text-xs text-[#8A7B6B] group-hover:text-[#784516] flex-shrink-0">↗</span>
+              </a>
+            </div>
+
+            <!-- Badges de paquetes y arbitraje cross-tienda -->
+            ${paqueteBadgeMovil}
+            ${crossBadgeMovil}
+
+            <!-- Fila Inferior: Precios ($ y $/L) + Botón + Carrito -->
+            <div class="flex items-center justify-between pt-1.5 border-t border-[#DFD5C7]/60 mt-1">
+              <div class="flex items-baseline gap-2 flex-wrap">
+                <span class="font-extrabold text-base text-[#1F1B16] font-mono">$${item.precio_promo.toFixed(2)}</span>
+                <span class="text-xs font-extrabold text-[#784516] font-mono">$${item.precio_por_litro.toFixed(2)} <span class="font-normal text-[10px] text-[#574A3D]">/ L</span></span>
+                ${ahorroBadgeMovil}
+              </div>
+              <button onclick="agregarDesdeTabla(${originalIndex})" class="px-3.5 py-1.5 text-xs font-bold md3-btn-tonal cursor-pointer whitespace-nowrap min-h-[36px] flex items-center gap-1 shadow-sm">
+                <span>+</span> Carrito
+              </button>
+            </div>
+          </div>
+        `;
+      });
+
+      if (contMovil) contMovil.innerHTML = movilHtml;
+
+      document.getElementById("info-paginacion").innerText = `Mostrando ${inicio + 1} - ${fin} de ${datosFiltrados.length}`;
+      document.getElementById("btn-prev").disabled = paginaActual === 1;
+      document.getElementById("btn-next").disabled = fin >= datosFiltrados.length;
+    }
+
+    function cambiarPagina(delta) {
+      paginaActual += delta;
+      renderizarTabla();
+    }
+
+    function renderizarGraficoTop10() {
+      const container = document.getElementById("chart-container");
+      const top10 = datosFiltrados.slice(0, 10);
+      if (top10.length === 0) {
+        container.innerHTML = "<div class='text-xs text-[#574A3D] p-4'>Sin datos para graficar</div>";
+        return;
+      }
+
+      const maxLitro = Math.max(...top10.map(d => d.precio_por_litro));
+
+      let svgHtml = `<div class="space-y-2.5 py-2">`;
+      top10.forEach((item, idx) => {
+        const anchoPorcentaje = Math.max(15, (item.precio_por_litro / maxLitro) * 100);
+        const colorBarra = idx === 0
+          ? "bg-[#486355]"
+          : (idx < 3 ? "bg-[#784516]" : "bg-[#B89F86]");
+
+        svgHtml += `
+          <div class="space-y-1">
+            <div class="flex items-center justify-between gap-2 text-xs">
+              <span class="font-semibold text-[#1F1B16] truncate flex-1 min-w-0">${idx + 1}. ${item.producto} <span class="text-[#574A3D] font-normal">(${item.tienda})</span></span>
+              <span class="font-bold font-mono text-[#784516] flex-shrink-0 whitespace-nowrap">$${item.precio_por_litro.toFixed(2)} / L</span>
+            </div>
+            <div class="w-full bg-[#EFE8DC] h-3 rounded-full overflow-hidden">
+              <div class="${colorBarra} h-full rounded-full transition-all duration-500" style="width: ${anchoPorcentaje}%"></div>
+            </div>
+          </div>
+        `;
+      });
+      svgHtml += `</div>`;
+      container.innerHTML = svgHtml;
+    }
