@@ -73,8 +73,9 @@ def test_dashboard_smoke_renderizado_completo():
     assert soup.find(id="select-cross-tienda-duelo") is not None
     assert soup.find(id="versus-tarjetas-container") is not None
 
-    # 6. Tabla y paginación
+    # 6. Tabla, lista móvil y paginación
     assert soup.find(id="tabla-productos-body") is not None
+    assert soup.find(id="lista-productos-movil") is not None
     assert soup.find(id="btn-prev") is not None
     assert soup.find(id="btn-next") is not None
 

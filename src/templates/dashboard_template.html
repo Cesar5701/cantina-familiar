@@ -191,6 +191,38 @@
       font-size: 0.72rem;
       font-weight: 600;
       letter-spacing: 0.01em;
+      white-space: nowrap;
+      max-width: 100%;
+    }
+
+    /* Insignias de Arbitraje Cross-Tienda Adaptativas (H38 / H40) */
+    .btn-cross-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      line-height: 1.25;
+      white-space: nowrap;
+      max-width: 100%;
+      transition: all 0.2s var(--md-ease-expressive);
+    }
+    @media (max-width: 639px) {
+      .btn-cross-badge {
+        white-space: normal;
+        border-radius: 12px;
+        padding: 0.4rem 0.75rem;
+      }
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
     }
 
     /* Apple HIG Frosted Glass Bottom Bar en Móvil */
@@ -246,7 +278,7 @@
     }
   </style>
 </head>
-<body class="p-3 sm:p-6">
+<body class="p-3 sm:p-6 pb-28 sm:pb-8">
 
   <!-- SNACKBAR / TOAST MD3 -->
   <div id="toast-notif" class="toast">🍾 Producto añadido al carrito</div>
@@ -425,51 +457,69 @@
         </div>
       </div>
 
-      <!-- TABLA / LISTA DE PRODUCTOS (ADAPTATIVA DESKTOP + APPLE HIG CARDS EN MÓVIL) -->
+      <!-- TABLA / LISTA DE PRODUCTOS (ADAPTATIVA DESKTOP + MOBILE CARDS EN MÓVIL) -->
       <div class="md3-card overflow-hidden">
-        <div class="p-4 sm:p-5 border-b border-[#DFD5C7] flex flex-col sm:flex-row justify-between sm:items-center gap-3 bg-[#F7F2EA]">
-          <div>
-            <h3 class="font-bold text-base sm:text-lg font-display-md3 text-[#1F1B16]">Catálogo General Normalizado</h3>
-            <p class="text-xs text-[#574A3D]">Pulsa <strong>+ Carrito</strong> para sumar cualquier botella a tu cuenta</p>
+        <div class="p-3.5 sm:p-5 border-b border-[#DFD5C7] space-y-3 bg-[#F7F2EA]">
+          <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-1.5">
+            <div>
+              <h3 class="font-bold text-base sm:text-lg font-display-md3 text-[#1F1B16]">Catálogo General Normalizado</h3>
+              <p class="text-xs text-[#574A3D]">Pulsa <strong>+ Carrito</strong> para sumar cualquier botella a tu cuenta</p>
+            </div>
           </div>
-          <div class="flex flex-wrap items-center gap-2 text-xs">
-            <label class="flex items-center gap-1.5 text-xs text-[#1F1B16] cursor-pointer px-3 py-1.5 rounded-full bg-white border border-[#D6C8B8] hover:bg-[#EFE8DC] transition-colors select-none min-h-[36px]" title="Mostrar únicamente la opción más barata por cada producto (oculta ofertas repetidas de tiendas más caras)">
-              <input type="checkbox" id="filtro-mejor-precio" onchange="aplicarFiltros()" checked class="w-4 h-4 rounded accent-[#486355]">
-              <span class="font-semibold text-[#0B2016]">⭐ Solo mejor precio</span>
-            </label>
-            <label class="flex items-center gap-1.5 text-xs text-[#784516] cursor-pointer px-3 py-1.5 rounded-full bg-white border border-[#DFD5C7] hover:bg-[#EFE8DC] transition-colors select-none min-h-[36px]" title="Mostrar únicamente botellas con descuento directo verificado">
-              <input type="checkbox" id="filtro-descuento" onchange="aplicarFiltros()" class="w-4 h-4 rounded accent-[#784516]">
-              <span class="font-semibold text-[#784516]">🏷️ Solo ofertas</span>
-            </label>
-            <label class="flex items-center gap-1.5 text-xs text-[#9B1C1C] cursor-pointer px-3 py-1.5 rounded-full bg-white border border-[#F8B4B4] hover:bg-[#FDE8E8] transition-colors select-none min-h-[36px]" title="Mostrar únicamente botellas en paquete, combos o con obsequios incluidos">
-              <input type="checkbox" id="filtro-paquete-pill" onchange="sincronizarFiltroPaquete(this.checked)" class="w-4 h-4 rounded accent-[#9B1C1C]">
-              <input type="checkbox" id="filtro-paquete" class="hidden">
-              <span class="font-bold text-[#9B1C1C]">🎁 Solo paquetes y combos</span>
-            </label>
-            <div class="h-4 w-px bg-[#DFD5C7] hidden sm:block"></div>
-            <span class="text-[#574A3D] font-medium">Ordenar:</span>
-            <button data-orden="precio_por_litro" onclick="ordenarPor('precio_por_litro')"
-                    class="px-3 py-1.5 rounded-full font-semibold text-xs transition-colors cursor-pointer min-h-[36px]">
-              Menor $/Litro <span class="orden-flecha">↕</span>
-            </button>
-            <button data-orden="precio_promo" onclick="ordenarPor('precio_promo')"
-                    class="px-3 py-1.5 rounded-full font-semibold text-xs transition-colors cursor-pointer min-h-[36px]">
-              Precio Botella <span class="orden-flecha">↕</span>
-            </button>
+
+          <!-- FILTROS Y ORDEN ADAPTATIVOS (Pills en móvil sin cortes ni solapamientos) -->
+          <div class="flex flex-col lg:flex-row justify-between lg:items-center gap-2.5 pt-2 border-t border-[#DFD5C7]/70">
+            <!-- Pills de filtros rápidos -->
+            <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs">
+              <label class="flex items-center gap-1.5 text-xs text-[#1F1B16] cursor-pointer px-2.5 sm:px-3 py-1.5 rounded-full bg-white border border-[#D6C8B8] hover:bg-[#EFE8DC] transition-colors select-none min-h-[34px] sm:min-h-[36px]" title="Mostrar únicamente la opción más barata por cada producto (oculta ofertas repetidas de tiendas más caras)">
+                <input type="checkbox" id="filtro-mejor-precio" onchange="aplicarFiltros()" checked class="w-4 h-4 rounded accent-[#486355]">
+                <span class="font-semibold text-[#0B2016] text-[11px] sm:text-xs">⭐ Solo mejor precio</span>
+              </label>
+              <label class="flex items-center gap-1.5 text-xs text-[#784516] cursor-pointer px-2.5 sm:px-3 py-1.5 rounded-full bg-white border border-[#DFD5C7] hover:bg-[#EFE8DC] transition-colors select-none min-h-[34px] sm:min-h-[36px]" title="Mostrar únicamente botellas con descuento directo verificado">
+                <input type="checkbox" id="filtro-descuento" onchange="aplicarFiltros()" class="w-4 h-4 rounded accent-[#784516]">
+                <span class="font-semibold text-[#784516] text-[11px] sm:text-xs">🏷️ Solo ofertas</span>
+              </label>
+              <label class="flex items-center gap-1.5 text-xs text-[#9B1C1C] cursor-pointer px-2.5 sm:px-3 py-1.5 rounded-full bg-white border border-[#F8B4B4] hover:bg-[#FDE8E8] transition-colors select-none min-h-[34px] sm:min-h-[36px]" title="Mostrar únicamente botellas en paquete, combos o con obsequios incluidos">
+                <input type="checkbox" id="filtro-paquete-pill" onchange="sincronizarFiltroPaquete(this.checked)" class="w-4 h-4 rounded accent-[#9B1C1C]">
+                <input type="checkbox" id="filtro-paquete" class="hidden">
+                <span class="font-bold text-[#9B1C1C] text-[11px] sm:text-xs">🎁 Solo paquetes y combos</span>
+              </label>
+            </div>
+
+            <!-- Botones de ordenación -->
+            <div class="flex items-center gap-2 text-xs self-start lg:self-auto pt-1 lg:pt-0">
+              <span class="text-[#574A3D] font-medium text-xs whitespace-nowrap">Ordenar:</span>
+              <div class="flex items-center gap-1.5">
+                <button data-orden="precio_por_litro" onclick="ordenarPor('precio_por_litro')"
+                        class="px-2.5 sm:px-3 py-1.5 rounded-full font-semibold text-[11px] sm:text-xs transition-colors cursor-pointer min-h-[34px] sm:min-h-[36px]">
+                  Menor $/Litro <span class="orden-flecha">↕</span>
+                </button>
+                <button data-orden="precio_promo" onclick="ordenarPor('precio_promo')"
+                        class="px-2.5 sm:px-3 py-1.5 rounded-full font-semibold text-[11px] sm:text-xs transition-colors cursor-pointer min-h-[34px] sm:min-h-[36px]">
+                  Precio Botella <span class="orden-flecha">↕</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="overflow-x-auto">
+        <!-- 1. VISTA MÓVIL: TARJETAS COMPACTAS FLUIDAS (block sm:hidden) -->
+        <div id="lista-productos-movil" class="divide-y divide-[#EAE0D3] block sm:hidden">
+          <!-- Tarjetas generadas dinámicamente por renderizarTabla() -->
+        </div>
+
+        <!-- 2. VISTA DESKTOP / TABLET: TABLA TABULAR COMPLETA (hidden sm:block) -->
+        <div class="hidden sm:block overflow-x-auto">
           <table class="w-full text-left text-sm">
             <thead class="bg-[#EFE8DC] text-[#574A3D] text-xs uppercase border-b border-[#DFD5C7]">
               <tr>
                 <th class="p-3.5">Botella / Marca</th>
-                <th class="p-3.5 hidden sm:table-cell">Categoría & Tipo</th>
+                <th class="p-3.5">Categoría & Tipo</th>
                 <th class="p-3.5 hidden md:table-cell">Volumen</th>
-                <th data-orden-header="precio_promo" class="p-3.5 cursor-pointer hover:text-[#784516]" onclick="ordenarPor('precio_promo')" aria-sort="none">
+                <th data-orden-header="precio_promo" class="p-3.5 cursor-pointer hover:text-[#784516] whitespace-nowrap" onclick="ordenarPor('precio_promo')" aria-sort="none">
                   Precio <span class="orden-flecha">↕</span>
                 </th>
-                <th data-orden-header="precio_por_litro" class="p-3.5 cursor-pointer hover:text-[#784516]" onclick="ordenarPor('precio_por_litro')" aria-sort="none">
+                <th data-orden-header="precio_por_litro" class="p-3.5 cursor-pointer hover:text-[#784516] whitespace-nowrap" onclick="ordenarPor('precio_por_litro')" aria-sort="none">
                   $/Litro <span class="orden-flecha">↕</span>
                 </th>
                 <th class="p-3.5 hidden lg:table-cell">Promoción</th>
@@ -483,11 +533,11 @@
           </table>
         </div>
 
-        <div class="p-4 border-t border-[#DFD5C7] flex justify-between items-center text-xs text-[#574A3D] bg-[#F7F2EA]">
-          <div id="info-paginacion" class="font-medium">Mostrando 1 a 20 de 760</div>
-          <div class="flex gap-2">
-            <button onclick="cambiarPagina(-1)" id="btn-prev" class="px-4 py-2 rounded-full bg-white border border-[#D6C8B8] hover:bg-[#EFE8DC] disabled:opacity-40 transition-colors text-[#1F1B16] font-semibold cursor-pointer min-h-[40px]">← Anterior</button>
-            <button onclick="cambiarPagina(1)" id="btn-next" class="px-4 py-2 rounded-full bg-white border border-[#D6C8B8] hover:bg-[#EFE8DC] disabled:opacity-40 transition-colors text-[#1F1B16] font-semibold cursor-pointer min-h-[40px]">Siguiente →</button>
+        <div class="p-3.5 sm:p-4 border-t border-[#DFD5C7] flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-[#574A3D] bg-[#F7F2EA]">
+          <div id="info-paginacion" class="font-medium text-center sm:text-left">Mostrando 1 a 20 de 760</div>
+          <div class="flex gap-2 w-full sm:w-auto justify-center">
+            <button onclick="cambiarPagina(-1)" id="btn-prev" class="flex-1 sm:flex-initial px-4 py-2 rounded-full bg-white border border-[#D6C8B8] hover:bg-[#EFE8DC] disabled:opacity-40 transition-colors text-[#1F1B16] font-semibold cursor-pointer min-h-[40px]">← Anterior</button>
+            <button onclick="cambiarPagina(1)" id="btn-next" class="flex-1 sm:flex-initial px-4 py-2 rounded-full bg-white border border-[#D6C8B8] hover:bg-[#EFE8DC] disabled:opacity-40 transition-colors text-[#1F1B16] font-semibold cursor-pointer min-h-[40px]">Siguiente →</button>
           </div>
         </div>
       </div>
@@ -2157,95 +2207,175 @@
 
     function renderizarTabla() {
       const tbody = document.getElementById("tabla-productos-body");
-      tbody.innerHTML = "";
+      const contMovil = document.getElementById("lista-productos-movil");
+      if (tbody) tbody.innerHTML = "";
+      if (contMovil) contMovil.innerHTML = "";
 
       const inicio = (paginaActual - 1) * itemsPorPagina;
       const fin = Math.min(inicio + itemsPorPagina, datosFiltrados.length);
       const paginaItems = datosFiltrados.slice(inicio, fin);
 
       if (paginaItems.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-[#574A3D]">No se encontraron botellas con los filtros seleccionados.</td></tr>`;
+        if (tbody) {
+          tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-[#574A3D]">No se encontraron botellas con los filtros seleccionados.</td></tr>`;
+        }
+        if (contMovil) {
+          contMovil.innerHTML = `<div class="p-8 text-center text-xs text-[#574A3D]">No se encontraron botellas con los filtros seleccionados.</div>`;
+        }
         return;
       }
 
-      paginaItems.forEach(item => {
-        const tr = document.createElement("tr");
-        tr.className = "hover:bg-[#F7F2EA] transition-colors";
+      let movilHtml = "";
 
+      paginaItems.forEach(item => {
         const ahorroBadge = item.ahorro_verificable > 0
           ? `<span class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5]">-$${item.ahorro_verificable.toFixed(2)} (${item.porcentaje_ahorro}%)</span>`
           : `<span class="text-[#8A7B6B] text-xs">Precio regular</span>`;
 
         const tiendaBadge = getBadgeTienda(item.tienda, false);
+        const tiendaBadgeCorto = getBadgeTienda(item.tienda, true);
         const originalIndex = DATOS_COMPLETOS.indexOf(item);
 
-        let crossBadge = "";
+        let crossBadgeDesktop = "";
+        let crossBadgeMovil = "";
         if (item.es_comparable_cross_tienda) {
           if (item.es_precio_mas_bajo) {
-            crossBadge = `
+            crossBadgeDesktop = `
               <div class="mt-1">
-                <button type="button" onclick="toggleModalCrossTienda(${originalIndex})" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] hover:bg-[#B7D6C5] transition-colors cursor-pointer" title="Ver comparativa de precios en ${item.num_tiendas_cross} tiendas">
+                <button type="button" onclick="toggleModalCrossTienda(${originalIndex})" class="btn-cross-badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] hover:bg-[#B7D6C5] cursor-pointer" title="Ver comparativa de precios en ${item.num_tiendas_cross} tiendas">
                   <span>⭐ Mejor precio de ${item.num_tiendas_cross} tiendas</span>
                   <span class="text-[9px] underline font-normal">Comparar ↗</span>
                 </button>
               </div>
             `;
+            crossBadgeMovil = `
+              <div class="pt-0.5">
+                <button type="button" onclick="toggleModalCrossTienda(${originalIndex})" class="btn-cross-badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] active:bg-[#B7D6C5] cursor-pointer w-full justify-between" title="Ver comparativa de precios en ${item.num_tiendas_cross} tiendas">
+                  <span>⭐ Mejor precio de ${item.num_tiendas_cross} tiendas</span>
+                  <span class="text-[10px] underline font-normal">Comparar ↗</span>
+                </button>
+              </div>
+            `;
           } else {
-            crossBadge = `
+            crossBadgeDesktop = `
               <div class="mt-1">
-                <button type="button" onclick="toggleModalCrossTienda(${originalIndex})" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FDE8E8] text-[#9B1C1C] border border-[#F8B4B4] hover:bg-[#FCD9BD] transition-colors cursor-pointer" title="Ver comparativa de precios en ${item.num_tiendas_cross} tiendas">
+                <button type="button" onclick="toggleModalCrossTienda(${originalIndex})" class="btn-cross-badge bg-[#FDE8E8] text-[#9B1C1C] border border-[#F8B4B4] hover:bg-[#FCD9BD] cursor-pointer" title="Ver comparativa de precios en ${item.num_tiendas_cross} tiendas">
                   <span>🏷️ Más barato en ${item.tienda_mas_barata} ($${item.precio_minimo_cross.toFixed(2)})</span>
                   <span class="text-[9px] underline font-bold">Ahorra $${item.diferencia_vs_minimo.toFixed(2)} ↗</span>
+                </button>
+              </div>
+            `;
+            crossBadgeMovil = `
+              <div class="pt-0.5">
+                <button type="button" onclick="toggleModalCrossTienda(${originalIndex})" class="btn-cross-badge bg-[#FDE8E8] text-[#9B1C1C] border border-[#F8B4B4] active:bg-[#FCD9BD] cursor-pointer w-full justify-between" title="Ver comparativa de precios en ${item.num_tiendas_cross} tiendas">
+                  <span>🏷️ Más barato en ${item.tienda_mas_barata} ($${item.precio_minimo_cross.toFixed(2)})</span>
+                  <span class="text-[10px] underline font-bold">Ahorra $${item.diferencia_vs_minimo.toFixed(2)} ↗</span>
                 </button>
               </div>
             `;
           }
         }
 
-        let paqueteBadge = "";
+        let paqueteBadgeDesktop = "";
+        let paqueteBadgeMovil = "";
         if (esProductoPaquete(item)) {
           const textoPaq = (item.condiciones && item.condiciones.includes("🎁"))
             ? item.condiciones
             : "🎁 Paquete / Combo";
-          paqueteBadge = `
+          paqueteBadgeDesktop = `
             <div class="mt-1">
-              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FDE8E8] text-[#9B1C1C] border border-[#F8B4B4]" title="Presentación en paquete o con obsequios incluidos">
+              <span class="badge bg-[#FDE8E8] text-[#9B1C1C] border border-[#F8B4B4]" title="Presentación en paquete o con obsequios incluidos">
+                <span>${textoPaq}</span>
+              </span>
+            </div>
+          `;
+          paqueteBadgeMovil = `
+            <div>
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10px] font-bold bg-[#FDE8E8] text-[#9B1C1C] border border-[#F8B4B4] leading-tight" title="Presentación en paquete o con obsequios incluidos">
                 <span>${textoPaq}</span>
               </span>
             </div>
           `;
         }
 
-        tr.innerHTML = `
-          <td class="p-3.5 font-medium text-[#1F1B16]">
-            <a href="${item.url}" target="_blank" rel="noopener noreferrer"
-               class="hover:underline text-[#1F1B16] hover:text-[#784516] flex items-center gap-1 group font-semibold"
-               title="Ver ${item.producto} en tienda oficial ${item.tienda}">
-              <span class="line-clamp-1">${nombreSinCategoria(item)}</span>
-              <span class="text-[10px] text-[#8A7B6B] group-hover:text-[#784516] flex-shrink-0">↗</span>
-            </a>
-            <div class="text-xs text-[#574A3D] flex items-center gap-1.5 mt-0.5 sm:hidden">
-              <span>· ${item.ml} ml</span>
+        // 1. Fila Desktop (tr)
+        if (tbody) {
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-[#F7F2EA] transition-colors";
+          tr.innerHTML = `
+            <td class="p-3.5 font-medium text-[#1F1B16] max-w-xs">
+              <a href="${item.url}" target="_blank" rel="noopener noreferrer"
+                 class="hover:underline text-[#1F1B16] hover:text-[#784516] inline-flex items-center gap-1 group font-semibold leading-snug"
+                 title="Ver ${item.producto} en tienda oficial ${item.tienda}">
+                <span class="line-clamp-2">${nombreSinCategoria(item)}</span>
+                <span class="text-[10px] text-[#8A7B6B] group-hover:text-[#784516] flex-shrink-0">↗</span>
+              </a>
+              ${paqueteBadgeDesktop}
+              ${crossBadgeDesktop}
+            </td>
+            <td class="p-3.5 text-xs">
+              <span class="badge bg-[#EFE8DC] border border-[#D6C8B8] text-[#574A3D]">${item.categoria_comparable}</span>
+            </td>
+            <td class="p-3.5 text-xs font-mono text-[#574A3D] hidden md:table-cell whitespace-nowrap">${item.ml} ml</td>
+            <td class="p-3.5 font-bold text-[#1F1B16] font-mono whitespace-nowrap">$${item.precio_promo.toFixed(2)}</td>
+            <td class="p-3.5 font-extrabold text-[#784516] font-mono whitespace-nowrap">$${item.precio_por_litro.toFixed(2)}</td>
+            <td class="p-3.5 hidden lg:table-cell whitespace-nowrap">${ahorroBadge}</td>
+            <td class="p-3.5 whitespace-nowrap">${tiendaBadge}</td>
+            <td class="p-3.5 text-center whitespace-nowrap">
+              <button onclick="agregarDesdeTabla(${originalIndex})" class="px-3 py-1.5 text-xs md3-btn-tonal cursor-pointer whitespace-nowrap">
+                + Carrito
+              </button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        }
+
+        // 2. Tarjeta Móvil (Mobile Card táctil sin desbordamiento)
+        const ahorroBadgeMovil = item.ahorro_verificable > 0
+          ? `<span class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] text-[10px]">-$${item.ahorro_verificable.toFixed(2)} (${item.porcentaje_ahorro}%)</span>`
+          : "";
+
+        movilHtml += `
+          <div class="p-3.5 space-y-2 hover:bg-[#F7F2EA] transition-colors">
+            <!-- Fila Superior: Tienda + Categoría + Volumen -->
+            <div class="flex items-center justify-between gap-1.5 flex-wrap">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                ${tiendaBadgeCorto}
+                <span class="badge bg-[#EFE8DC] border border-[#D6C8B8] text-[#574A3D] text-[10px]">${item.categoria_comparable}</span>
+              </div>
+              <span class="text-xs font-mono font-bold text-[#574A3D]">${item.ml} ml</span>
             </div>
-            ${paqueteBadge}
-            ${crossBadge}
-          </td>
-          <td class="p-3.5 text-xs hidden sm:table-cell">
-            <span class="badge bg-[#EFE8DC] border border-[#D6C8B8] text-[#574A3D]">${item.categoria_comparable}</span>
-          </td>
-          <td class="p-3.5 text-xs font-mono text-[#574A3D] hidden md:table-cell">${item.ml} ml</td>
-          <td class="p-3.5 font-bold text-[#1F1B16] font-mono">$${item.precio_promo.toFixed(2)}</td>
-          <td class="p-3.5 font-extrabold text-[#784516] font-mono">$${item.precio_por_litro.toFixed(2)}</td>
-          <td class="p-3.5 hidden lg:table-cell">${ahorroBadge}</td>
-          <td class="p-3.5">${tiendaBadge}</td>
-          <td class="p-3.5 text-center">
-            <button onclick="agregarDesdeTabla(${originalIndex})" class="px-3 py-1.5 text-xs md3-btn-tonal cursor-pointer whitespace-nowrap">
-              + Carrito
-            </button>
-          </td>
+
+            <!-- Nombre de Producto (Legible, sin recortar agresivamente) -->
+            <div class="font-bold text-sm text-[#1F1B16] leading-snug">
+              <a href="${item.url}" target="_blank" rel="noopener noreferrer"
+                 class="hover:underline hover:text-[#784516] inline-flex items-center gap-1 group"
+                 title="Ver ${item.producto} en tienda oficial ${item.tienda}">
+                <span>${nombreSinCategoria(item)}</span>
+                <span class="text-xs text-[#8A7B6B] group-hover:text-[#784516] flex-shrink-0">↗</span>
+              </a>
+            </div>
+
+            <!-- Badges de paquetes y arbitraje cross-tienda -->
+            ${paqueteBadgeMovil}
+            ${crossBadgeMovil}
+
+            <!-- Fila Inferior: Precios ($ y $/L) + Botón + Carrito -->
+            <div class="flex items-center justify-between pt-1.5 border-t border-[#DFD5C7]/60 mt-1">
+              <div class="flex items-baseline gap-2 flex-wrap">
+                <span class="font-extrabold text-base text-[#1F1B16] font-mono">$${item.precio_promo.toFixed(2)}</span>
+                <span class="text-xs font-extrabold text-[#784516] font-mono">$${item.precio_por_litro.toFixed(2)} <span class="font-normal text-[10px] text-[#574A3D]">/ L</span></span>
+                ${ahorroBadgeMovil}
+              </div>
+              <button onclick="agregarDesdeTabla(${originalIndex})" class="px-3.5 py-1.5 text-xs font-bold md3-btn-tonal cursor-pointer whitespace-nowrap min-h-[36px] flex items-center gap-1 shadow-sm">
+                <span>+</span> Carrito
+              </button>
+            </div>
+          </div>
         `;
-        tbody.appendChild(tr);
       });
+
+      if (contMovil) contMovil.innerHTML = movilHtml;
 
       document.getElementById("info-paginacion").innerText = `Mostrando ${inicio + 1} - ${fin} de ${datosFiltrados.length}`;
       document.getElementById("btn-prev").disabled = paginaActual === 1;
@@ -2276,9 +2406,9 @@
 
         svgHtml += `
           <div class="space-y-1">
-            <div class="flex justify-between text-xs">
-              <span class="font-semibold text-[#1F1B16] truncate max-w-md">${idx + 1}. ${item.producto} <span class="text-[#574A3D] font-normal">(${item.tienda})</span></span>
-              <span class="font-bold font-mono text-[#784516]">$${item.precio_por_litro.toFixed(2)} / L</span>
+            <div class="flex items-center justify-between gap-2 text-xs">
+              <span class="font-semibold text-[#1F1B16] truncate flex-1 min-w-0">${idx + 1}. ${item.producto} <span class="text-[#574A3D] font-normal">(${item.tienda})</span></span>
+              <span class="font-bold font-mono text-[#784516] flex-shrink-0 whitespace-nowrap">$${item.precio_por_litro.toFixed(2)} / L</span>
             </div>
             <div class="w-full bg-[#EFE8DC] h-3 rounded-full overflow-hidden">
               <div class="${colorBarra} h-full rounded-full transition-all duration-500" style="width: ${anchoPorcentaje}%"></div>
@@ -2508,9 +2638,9 @@
 
         return `
           <div class="md3-card border-t-4 ${colorBorder} p-5 space-y-4">
-            <div class="flex justify-between items-start">
+            <div class="flex flex-wrap justify-between items-start gap-2">
               <span class="badge bg-[#EFE8DC] border border-[#D6C8B8] font-bold text-xs text-[#1F1B16]">Contendiente ${letra}</span>
-              <div class="flex gap-1.5">${tiendaBadge}${ahorro}</div>
+              <div class="flex flex-wrap gap-1.5 items-center">${tiendaBadge}${ahorro}</div>
             </div>
 
             <div>
@@ -2545,9 +2675,9 @@
               <strong class="text-[#1F1B16]">Perfil de Barrica:</strong> ${getMaduracionInfo(p)}
             </div>
 
-            <div class="pt-2 flex justify-between items-center text-xs border-t border-[#DFD5C7]">
+            <div class="pt-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs border-t border-[#DFD5C7]">
               <a href="${p.url}" target="_blank" class="text-xs font-semibold text-[#784516] hover:underline">Ver en tienda en línea ↗</a>
-              <button onclick="modificarCantidad(${DATOS_COMPLETOS.indexOf(p)}, 1); mostrarToast('🍾 Añadido al carrito: ${p.producto}');" class="px-4 py-2 md3-btn-filled text-xs cursor-pointer">
+              <button onclick="modificarCantidad(${DATOS_COMPLETOS.indexOf(p)}, 1); mostrarToast('🍾 Añadido al carrito: ${p.producto}');" class="w-full sm:w-auto px-4 py-2 md3-btn-filled text-xs cursor-pointer text-center">
                 + Añadir al Carrito
               </button>
             </div>
