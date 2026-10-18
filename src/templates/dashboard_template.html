@@ -1035,15 +1035,15 @@
   </nav>
 
   <!-- MODAL DE COMPARATIVA CROSS-TIENDA -->
-  <div id="modal-cross-tienda" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-[#FAF6F0] rounded-3xl border border-[#DFD5C7] max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-start border-b border-[#DFD5C7] pb-3">
-        <div>
+  <div id="modal-cross-tienda" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-[#FAF6F0] rounded-2xl sm:rounded-3xl border border-[#DFD5C7] max-w-2xl w-full p-4 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-start border-b border-[#DFD5C7] pb-3 gap-2">
+        <div class="min-w-0 flex-1">
           <span class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] text-[10px] uppercase font-bold" id="modal-cross-badge-cat">Categoría</span>
-          <h3 class="text-lg font-bold font-display-md3 text-[#1F1B16] mt-1" id="modal-cross-titulo">Nombre de la Botella</h3>
-          <p class="text-xs text-[#574A3D]" id="modal-cross-subtitulo">Comparativa de precios verificados entre tiendas</p>
+          <h3 class="text-base sm:text-lg font-bold font-display-md3 text-[#1F1B16] mt-1 break-words leading-snug" id="modal-cross-titulo">Nombre de la Botella</h3>
+          <p class="text-[11px] sm:text-xs text-[#574A3D] mt-0.5" id="modal-cross-subtitulo">Comparativa de precios verificados entre tiendas</p>
         </div>
-        <button onclick="cerrarModalCrossTienda()" class="w-8 h-8 rounded-full bg-[#EFE8DC] hover:bg-[#E6DDD0] text-[#1F1B16] font-bold flex items-center justify-center cursor-pointer transition-colors" title="Cerrar modal">
+        <button onclick="cerrarModalCrossTienda()" class="w-8 h-8 rounded-full bg-[#EFE8DC] hover:bg-[#E6DDD0] text-[#1F1B16] font-bold flex items-center justify-center cursor-pointer transition-colors flex-shrink-0" title="Cerrar modal">
           ✕
         </button>
       </div>
@@ -1052,9 +1052,9 @@
         <!-- Tarjetas de tiendas generadas dinámicamente -->
       </div>
 
-      <div class="flex justify-between items-center pt-3 border-t border-[#DFD5C7]">
-        <span class="text-xs text-[#574A3D]">Precios auditados en tiempo real · Octubre 2026</span>
-        <button onclick="cerrarModalCrossTienda()" class="px-5 py-2 md3-btn-tonal text-xs font-semibold cursor-pointer">
+      <div class="flex flex-col sm:flex-row justify-between items-center gap-2 pt-3 border-t border-[#DFD5C7] text-center sm:text-left">
+        <span class="text-[11px] sm:text-xs text-[#574A3D]">Precios auditados en tiempo real · Octubre 2026</span>
+        <button onclick="cerrarModalCrossTienda()" class="w-full sm:w-auto px-5 py-2 md3-btn-tonal text-xs font-semibold cursor-pointer">
           Cerrar
         </button>
       </div>
@@ -1236,10 +1236,18 @@
         .sort((a, b) => a.p.precio_por_litro - b.p.precio_por_litro);
 
       const mlsDistintos = [...new Set(ofertas.map(x => x.p.ml))];
-      const formatoStr = mlsDistintos.length > 1 ? `${mlsDistintos.join(" / ")} ml` : `${item.ml} ml`;
+      let tituloModal = item.producto;
+      if (mlsDistintos.length > 1) {
+        tituloModal += ` (${mlsDistintos.join(" / ")} ml)`;
+      } else {
+        const yaTieneMl = new RegExp(`\\b${item.ml}\\s*ml\\b`, 'i').test(tituloModal);
+        if (!yaTieneMl) {
+          tituloModal += ` (${item.ml} ml)`;
+        }
+      }
 
       document.getElementById("modal-cross-badge-cat").innerText = item.categoria_comparable;
-      document.getElementById("modal-cross-titulo").innerText = `${item.producto} (${formatoStr})`;
+      document.getElementById("modal-cross-titulo").innerText = tituloModal;
       document.getElementById("modal-cross-subtitulo").innerText =
         `Disponible en ${item.num_tiendas_cross} tiendas · Ahorro máximo entre tiendas: $${item.ahorro_maximo_cross.toFixed(2)} MXN`;
 
@@ -1257,34 +1265,34 @@
 
         let bannerAhorro = "";
         if (esMinimo) {
-          bannerAhorro = `<span class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] text-[10px] font-bold">🏆 Mejor Precio del Mercado (Ahorras hasta $${item.ahorro_maximo_cross.toFixed(2)})</span>`;
+          bannerAhorro = `<span class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] text-[10px] font-bold whitespace-normal sm:whitespace-nowrap leading-tight text-left">🏆 Mejor Precio (Ahorras hasta $${item.ahorro_maximo_cross.toFixed(2)})</span>`;
         } else {
           bannerAhorro = `<span class="text-[11px] text-[#9B1C1C] font-semibold">+$${difVsMin.toFixed(2)} vs ${mejorOferta.tienda}</span>`;
         }
 
         html += `
           <div class="p-3.5 rounded-2xl border ${esMinimo ? 'bg-[#F4F9F6] border-[#B7D6C5] ring-2 ring-[#486355]/20' : 'bg-white border-[#DFD5C7]'} flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all">
-            <div class="space-y-1 min-w-0 flex-1">
+            <div class="space-y-1.5 min-w-0 flex-1">
               <div class="flex items-center gap-2 flex-wrap">
                 ${badgeTienda}
                 ${bannerAhorro}
               </div>
-              <div class="font-bold text-sm text-[#1F1B16] truncate">${p.producto}</div>
-              <div class="text-xs text-[#574A3D]">
+              <div class="font-bold text-sm text-[#1F1B16] leading-snug break-words">${p.producto}</div>
+              <div class="text-xs text-[#574A3D] flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
                 <span>Precio: <strong class="text-sm font-mono text-[#784516] font-extrabold">$${p.precio_promo.toFixed(2)}</strong></span>
-                <span class="mx-1.5">·</span>
+                <span>·</span>
                 <span class="font-mono text-[#486355] font-semibold">$${p.precio_por_litro.toFixed(2)} / L</span>
-                <span class="mx-1.5">·</span>
+                <span>·</span>
                 <span class="text-[11px] text-[#786C5E] font-medium">${p.ml} ml</span>
-                ${p.ahorro_verificable > 0 ? `<span class="ml-1 text-[#047857]">(${p.condiciones})</span>` : ''}
+                ${p.ahorro_verificable > 0 ? `<span class="ml-1 text-[#047857] text-[11px] font-medium">(${p.condiciones})</span>` : ''}
               </div>
             </div>
 
-            <div class="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
-              <a href="${p.url}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 md3-btn-tonal text-xs inline-flex items-center gap-1" title="Ver en ${p.tienda}">
+            <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-[#DFD5C7]/60 w-full sm:w-auto flex-shrink-0">
+              <a href="${p.url}" target="_blank" rel="noopener noreferrer" class="flex-1 sm:flex-initial text-center px-3 py-1.5 md3-btn-tonal text-xs inline-flex items-center justify-center gap-1" title="Ver en ${p.tienda}">
                 <span>Ver en Tienda</span> <span>↗</span>
               </a>
-              <button onclick="modificarCantidad(${idx}, 1); cerrarModalCrossTienda(); mostrarToast('🍾 Añadido al carrito: ${p.producto} (${p.tienda})');" class="px-3 py-1.5 md3-btn-filled text-xs cursor-pointer">
+              <button onclick="modificarCantidad(${idx}, 1); cerrarModalCrossTienda(); mostrarToast('🍾 Añadido al carrito: ${p.producto.replace(/'/g, "\\'")} (${p.tienda})');" class="flex-1 sm:flex-initial px-3 py-1.5 md3-btn-filled text-xs cursor-pointer text-center">
                 + Carrito
               </button>
             </div>
