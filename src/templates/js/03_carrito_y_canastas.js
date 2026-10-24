@@ -1,6 +1,6 @@
     function agregarDesdeTabla(idx) {
       modificarCantidad(idx, 1);
-      mostrarToast(`🍾 Añadido al carrito: ${DATOS_COMPLETOS[idx].producto}`);
+      mostrarToast(`Añadido al carrito: ${DATOS_COMPLETOS[idx].producto}`);
     }
 
     function mostrarToast(mensaje) {
@@ -41,7 +41,7 @@
     function vaciarCarrito() {
       canastaPersonalizada = {};
       renderizarConstructorCanasta();
-      mostrarToast("🗑️ Carrito vaciado");
+      mostrarToast("Carrito vaciado");
     }
 
     // GENERADOR DINÁMICO DE CANASTAS
@@ -142,7 +142,7 @@
       if (tieneDatos) {
         const txtPres = PRESUPUESTO_OBJETIVO > 0 ? `Presupuesto activo: $${PRESUPUESTO_OBJETIVO.toLocaleString('es-MX')}` : `Presupuesto libre`;
         const txtPers = COOPERADORES_TOTAL > 0 ? `${COOPERADORES_TOTAL} personas` : `Base 12 personas`;
-        sub.innerHTML = `<span class="text-[#784516] font-bold">⚡ Recalculado en vivo (${txtPres} · ${txtPers}):</span> Toca cualquiera de las 3 propuestas dinámicas para cargarla al carrito.`;
+        sub.innerHTML = `<span class="text-[#784516] font-bold">Recalculado en vivo (${txtPres} · ${txtPers}):</span> Toca cualquiera de las 3 propuestas dinámicas para cargarla al carrito.`;
       } else {
         sub.innerText = "Ingresa arriba tu Presupuesto ($) y Personas (N) para que estas 3 propuestas recalculen su número de botellas y cuota automáticamente.";
       }
@@ -203,7 +203,7 @@
               </ul>
             </div>
             <button onclick="cargarCanastaDinamica('${p.id}')" class="mt-4 w-full py-2 px-3 md3-btn-tonal text-xs cursor-pointer">
-              ⚡ Cargar Propuesta Dinámica
+              Cargar Propuesta Dinámica
             </button>
           </div>
         `;
@@ -215,7 +215,7 @@
     function cargarCanastaDinamica(perfil) {
       canastaPersonalizada = construirCanastaDinamica(perfil);
       renderizarConstructorCanasta();
-      mostrarToast("✨ Canasta dinámica cargada en el carrito");
+      mostrarToast("Canasta dinámica cargada en el carrito");
     }
 
     function renderizarConstructorCanasta() {
@@ -234,6 +234,7 @@
       let totalVolumenMl = 0;
       let subAlianza = 0;
       let subSams = 0;
+      let subCostco = 0;
       let subWalmart = 0;
       let subChedraui = 0;
       let subSoriana = 0;
@@ -256,6 +257,7 @@
           totalVolumenMl += (cant * (item.ml || 750));
 
           if (item.tienda === "Sam's Club") subSams += sub;
+          else if (item.tienda === "Costco") subCostco += sub;
           else if (item.tienda === "Walmart") subWalmart += sub;
           else if (item.tienda === "Chedraui") subChedraui += sub;
           else if (item.tienda === "Soriana") subSoriana += sub;
@@ -295,7 +297,7 @@
               alertaAhorro = `
                 <div class="mt-2 p-2 rounded-xl bg-[#FDE8E8] border border-[#F8B4B4] text-[11px] flex items-center justify-between gap-2 flex-wrap">
                   <div class="text-[#9B1C1C]">
-                    💡 <strong>Disponible más barato en ${item.tienda_mas_barata}:</strong> a $${item.precio_minimo_cross.toFixed(2)} (Ahorras <strong>$${item.diferencia_vs_minimo.toFixed(2)}/u</strong> · Total: <strong>$${ahorroTotalLinea}</strong>).
+                    <strong>Disponible más barato en ${item.tienda_mas_barata}:</strong> a $${item.precio_minimo_cross.toFixed(2)} (Ahorras <strong>$${item.diferencia_vs_minimo.toFixed(2)}/u</strong> · Total: <strong>$${ahorroTotalLinea}</strong>).
                   </div>
                   <button type="button" onclick="cambiarTiendaCarrito(${idx})" class="px-2.5 py-1 rounded-lg bg-[#9B1C1C] hover:bg-[#771D1D] text-white font-bold text-[10px] whitespace-nowrap cursor-pointer transition-colors shadow-sm" title="Cambiar a la oferta de ${item.tienda_mas_barata}">
                     Cambiar a ${item.tienda_mas_barata}
@@ -328,15 +330,15 @@
 
                 <!-- CONTROLES DE CANTIDAD TÁCTILES (HIG 44pt) -->
                 <div class="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-t-0 pt-2.5 sm:pt-0 border-[#DFD5C7] sm:flex-shrink-0">
-                  <div class="flex items-center gap-1 bg-white p-1 rounded-full border border-[#D6C8B8]">
-                    <button onclick="modificarCantidad(${idx}, -1)" class="w-8 h-8 flex items-center justify-center rounded-full bg-[#EFE8DC] hover:bg-[#E6DDD0] text-sm font-bold text-[#1F1B16] transition-colors cursor-pointer">
+                  <div class="flex items-center gap-1 bg-white p-1 rounded-lg border border-[#D6C8B8]">
+                    <button onclick="modificarCantidad(${idx}, -1)" class="w-8 h-8 flex items-center justify-center rounded-md bg-[#EFE8DC] hover:bg-[#E6DDD0] text-sm font-bold text-[#1F1B16] transition-colors cursor-pointer">
                       −
                     </button>
                     <input type="number" min="0" max="99" value="${cant}"
                            aria-label="Cantidad de botellas"
                            onchange="fijarCantidad(${idx}, this.value)"
                            class="w-10 text-center bg-transparent font-mono font-bold text-sm text-[#1F1B16] focus:outline-none">
-                    <button onclick="modificarCantidad(${idx}, 1)" class="w-8 h-8 flex items-center justify-center rounded-full bg-[#EFE8DC] hover:bg-[#E6DDD0] text-sm font-bold text-[#1F1B16] transition-colors cursor-pointer">
+                    <button onclick="modificarCantidad(${idx}, 1)" class="w-8 h-8 flex items-center justify-center rounded-md bg-[#EFE8DC] hover:bg-[#E6DDD0] text-sm font-bold text-[#1F1B16] transition-colors cursor-pointer">
                       +
                     </button>
                   </div>
@@ -346,7 +348,7 @@
                     <div class="font-bold font-mono text-sm text-[#784516]">$${costoLinea.toFixed(2)}</div>
                   </div>
 
-                  <button onclick="eliminarProducto(${idx})" title="Quitar botella" class="w-8 h-8 flex items-center justify-center rounded-full text-[#8A7B6B] hover:text-[#753B47] hover:bg-[#FAD9DF] transition-colors cursor-pointer">
+                  <button onclick="eliminarProducto(${idx})" title="Quitar botella" class="w-8 h-8 flex items-center justify-center rounded-lg text-[#8A7B6B] hover:text-[#753B47] hover:bg-[#FAD9DF] transition-colors cursor-pointer">
                     ✕
                   </button>
                 </div>
@@ -370,6 +372,8 @@
 
       document.getElementById("sim-total-alianza").innerText = `$${subAlianza.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
       document.getElementById("sim-total-sams").innerText = `$${subSams.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      const elCostco = document.getElementById("sim-total-costco");
+      if (elCostco) elCostco.innerText = `$${subCostco.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
       document.getElementById("sim-total-walmart").innerText = `$${subWalmart.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
       document.getElementById("sim-total-chedraui").innerText = `$${subChedraui.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
       document.getElementById("sim-total-soriana").innerText = `$${subSoriana.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
@@ -399,14 +403,14 @@
 
         if (granTotal > PRESUPUESTO_OBJETIVO) {
           barraEl.className = "bg-[#9F1239] h-full rounded-full transition-all duration-300";
-          alertaBox.className = "p-3 rounded-xl flex items-center justify-between text-xs bg-[#FAD9DF] border border-[#E5B3BC]";
-          labelSobrante.innerText = "⚠️ Excedente sobre presupuesto:";
+          alertaBox.className = "p-3 rounded-lg flex items-center justify-between text-xs bg-[#FAD9DF] border border-[#E5B3BC]";
+          labelSobrante.innerText = "Excedente sobre presupuesto:";
           labelSobrante.className = "text-[#753B47] font-bold";
           valSobrante.innerText = `-$${Math.abs(sobrante).toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
           valSobrante.className = "text-[#753B47] font-black text-sm font-mono";
         } else {
           barraEl.className = "bg-[#784516] h-full rounded-full transition-all duration-300";
-          alertaBox.className = "p-3 rounded-xl flex items-center justify-between text-xs bg-[#D3E8DC] border border-[#B7D6C5]";
+          alertaBox.className = "p-3 rounded-lg flex items-center justify-between text-xs bg-[#D3E8DC] border border-[#B7D6C5]";
           labelSobrante.innerText = "Presupuesto Disponible:";
           labelSobrante.className = "text-[#0B2016] font-medium";
           valSobrante.innerText = `+$${sobrante.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
@@ -415,7 +419,7 @@
       } else {
         document.getElementById("sim-porcentaje-barra").innerText = `Sin tope`;
         barraEl.style.width = `0%`;
-        alertaBox.className = "p-3 rounded-xl flex items-center justify-between text-xs md3-surface-low";
+        alertaBox.className = "p-3 rounded-lg flex items-center justify-between text-xs md3-surface-low";
         labelSobrante.innerText = "Presupuesto Objetivo:";
         labelSobrante.className = "text-[#574A3D] font-medium";
         valSobrante.innerText = "Ingresa monto arriba";
@@ -437,16 +441,16 @@
       if (alertaOptimizar) {
         if (ahorroPotencialTotal > 0) {
           alertaOptimizar.innerHTML = `
-            <div class="p-3 rounded-xl bg-[#FDE8E8] border border-[#F8B4B4] space-y-1.5 text-xs">
+            <div class="p-3 rounded-lg bg-[#FDE8E8] border border-[#F8B4B4] space-y-1.5 text-xs">
               <div class="flex items-center justify-between text-[#9B1C1C] font-bold">
-                <span class="flex items-center gap-1"><span>💡</span> <span>Ahorro Cross-Tienda:</span></span>
+                <span>Ahorro Cross-Tienda:</span>
                 <span class="font-mono text-sm font-extrabold">$${ahorroPotencialTotal.toFixed(2)} MXN</span>
               </div>
               <p class="text-[11px] text-[#771D1D] leading-tight">
                 Hay botellas en tu carrito con mejor precio en otra tienda.
               </p>
-              <button onclick="optimizarTodoAlMejorPrecio()" class="w-full py-1.5 px-3 rounded-lg bg-[#9B1C1C] hover:bg-[#771D1D] text-white font-bold text-xs transition-colors cursor-pointer text-center shadow-sm">
-                ⚡ Optimizar Carrito al Mejor Precio
+              <button onclick="optimizarTodoAlMejorPrecio()" class="w-full py-1.5 px-3 rounded-md bg-[#9B1C1C] hover:bg-[#771D1D] text-white font-bold text-xs transition-colors cursor-pointer text-center shadow-xs">
+                Optimizar Carrito al Mejor Precio
               </button>
             </div>
           `;
@@ -473,7 +477,7 @@
 
     function copiarListaCompra() {
       const macros = ['Tequila', 'Mezcal', 'Whisky', 'Honey', 'Vino'];
-      let texto = `🥃 LISTA DE COMPRA MULTITIENDA - CANTINA FAMILIAR 2026\n`;
+      let texto = `LISTA DE COMPRA MULTITIENDA - CANTINA FAMILIAR 2026\n`;
       if (PRESUPUESTO_OBJETIVO > 0 || COOPERADORES_TOTAL > 0) {
         texto += `Presupuesto: ${PRESUPUESTO_OBJETIVO > 0 ? '$' + PRESUPUESTO_OBJETIVO.toFixed(2) : 'Libre'} | Personas: ${COOPERADORES_TOTAL > 0 ? COOPERADORES_TOTAL : 'Sin definir'}\n`;
       }
@@ -483,6 +487,7 @@
       let subTiendas = {
         "Bodegas Alianza": 0,
         "Sam's Club": 0,
+        "Costco": 0,
         "Walmart": 0,
         "Chedraui": 0,
         "Soriana": 0
@@ -499,7 +504,7 @@
             const sub = cant * item.precio_promo;
             total += sub;
             subTiendas[item.tienda] = (subTiendas[item.tienda] || 0) + sub;
-            texto += `• ${cant}× ${item.producto} (${item.ml}ml) - $${item.precio_promo.toFixed(2)} c/u [Sub: $${sub.toFixed(2)}] (${item.tienda})\n  🔗 ${item.url}\n`;
+            texto += `• ${cant}× ${item.producto} (${item.ml}ml) - $${item.precio_promo.toFixed(2)} c/u [Sub: $${sub.toFixed(2)}] (${item.tienda})\n  ${item.url}\n`;
           });
         }
       });
@@ -515,10 +520,10 @@
         texto += `CUOTA POR PERSONA (${COOPERADORES_TOTAL} personas): $${(total / COOPERADORES_TOTAL).toFixed(2)} MXN\n`;
       }
       texto += `--------------------------------------------------------\n`;
-      texto += `📅 VIGENCIAS DE OFERTAS POR TIENDA:\n__RESUMEN_WHATSAPP_VIGENCIAS__\n`;
+      texto += `VIGENCIAS DE OFERTAS POR TIENDA:\n__RESUMEN_WHATSAPP_VIGENCIAS__\n`;
 
       navigator.clipboard.writeText(texto).then(() => {
-        mostrarToast("📋 ¡Lista de compras copiada al portapapeles!");
+        mostrarToast("¡Lista de compras copiada al portapapeles!");
       }).catch(() => {
         mostrarToast("No se pudo copiar automáticamente.");
       });

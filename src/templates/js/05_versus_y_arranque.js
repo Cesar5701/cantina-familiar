@@ -129,8 +129,8 @@
       if (catA.includes("Añejo Cristalino") && catB.includes("Añejo Cristalino")) {
         return `
           <div class="md3-surface-tonal p-4 text-xs space-y-1.5 text-[#1F1B16]">
-            <div class="flex items-center gap-1.5 font-bold text-[#784516]">
-              <span>💡</span> <span>Tip de Arbitraje en Añejo Cristalino:</span>
+            <div class="font-bold text-[#784516]">
+              Nota de Arbitraje en Añejo Cristalino:
             </div>
             <p class="text-[#574A3D]">
               <strong>Maestro Dobel Diamante en Sam's Club ($574.93)</strong>, <strong>1800 Cristalino en Alianza ($600)</strong> y <strong>Don Julio 70 en Walmart ($699)</strong> lideran cada segmento. Elegir la opción de mejor precio en ${cantBotellas} botellas representa un ahorro directo de <strong class="text-[#1F1B16]">$${ahorroTotal.toFixed(2)} MXN</strong> ${textoCuota}.
@@ -142,8 +142,8 @@
       if (catA.includes("Mezcal") && catB.includes("Mezcal")) {
         return `
           <div class="md3-surface-tonal p-4 text-xs space-y-1.5 text-[#1F1B16]">
-            <div class="flex items-center gap-1.5 font-bold text-[#486355]">
-              <span>🌵</span> <span>Tip de Arbitraje en Mezcal:</span>
+            <div class="font-bold text-[#486355]">
+              Nota de Arbitraje en Mezcal:
             </div>
             <p class="text-[#574A3D]">
               La línea <strong>400 Conejos en Chedraui ($520 en Reposado, Tobalá y Cuishe)</strong> tiene un descuento de $130 por botella frente a Bodegas Alianza ($650), mientras que <strong>Amarás Reposado en Alianza ($503.30)</strong> es el campeón en relación suavidad-precio.
@@ -154,7 +154,7 @@
 
       return `
         <div class="md3-surface-tonal p-4 text-xs text-[#574A3D]">
-          <strong class="text-[#1F1B16]">Tip de Compra:</strong> Optar por la presentación de menor $/Litro dentro del mismo tipo de bebida ahorra <strong class="text-[#784516]">$${ahorroTotal.toFixed(2)} MXN</strong> en una compra de ${cantBotellas} unidades ${textoCuota}.
+          <strong class="text-[#1F1B16]">Nota de Compra:</strong> Optar por la presentación de menor $/Litro dentro del mismo tipo de bebida ahorra <strong class="text-[#784516]">$${ahorroTotal.toFixed(2)} MXN</strong> en una compra de ${cantBotellas} unidades ${textoCuota}.
         </div>
       `;
     }
@@ -175,8 +175,7 @@
 
       if (!compatible) {
         alertaCompat.innerHTML = `
-          <div class="bg-[#FAD9DF] border border-[#E5B3BC] rounded-2xl p-4 flex items-start gap-3 text-xs text-[#2C0811]">
-            <span class="text-xl">⚠️</span>
+          <div class="bg-[#FAD9DF] border border-[#E5B3BC] rounded-xl p-4 flex items-start gap-3 text-xs text-[#2C0811]">
             <div>
               <strong class="font-bold text-[#753B47]">Comparando Tipos de Bebida Distintos:</strong>
               <p class="mt-1">
@@ -188,8 +187,7 @@
         `;
       } else {
         alertaCompat.innerHTML = `
-          <div class="bg-[#D3E8DC] border border-[#B7D6C5] rounded-2xl p-3.5 flex items-center gap-2 text-xs text-[#0B2016]">
-            <span>✅</span>
+          <div class="bg-[#D3E8DC] border border-[#B7D6C5] rounded-xl p-3.5 flex items-center gap-2 text-xs text-[#0B2016]">
             <span><strong>Mismo Tipo de Bebida:</strong> Ambos contendientes pertenecen a <strong>${prodA.categoria_comparable}</strong>.</span>
           </div>
         `;
@@ -255,7 +253,7 @@
 
             <div class="pt-2 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2 text-xs border-t border-[#DFD5C7]">
               <a href="${p.url}" target="_blank" rel="noopener noreferrer" class="text-xs font-semibold text-[#784516] hover:underline text-center sm:text-left py-1">Ver en tienda en línea ↗</a>
-              <button onclick="modificarCantidad(${DATOS_COMPLETOS.indexOf(p)}, 1); mostrarToast('🍾 Añadido al carrito: ${p.producto.replace(/'/g, "\\'")}');" class="w-full sm:w-auto px-4 py-2 md3-btn-filled text-xs cursor-pointer text-center">
+              <button onclick="modificarCantidad(${DATOS_COMPLETOS.indexOf(p)}, 1); mostrarToast('Añadido al carrito: ${p.producto.replace(/'/g, "\\'")}');" class="w-full sm:w-auto px-4 py-2 md3-btn-filled text-xs cursor-pointer text-center">
                 + Añadir al Carrito
               </button>
             </div>
@@ -326,7 +324,7 @@
           <div class="space-y-1.5 min-w-0 flex-1">
             <span class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] uppercase">Veredicto de Compra</span>
             <h3 class="text-lg sm:text-xl font-bold font-display-md3 text-[#1F1B16] break-words">
-              🏆 Mejor Rendimiento $/Litro: <span class="text-[#784516]">${ganadorLitro.producto} (${ganadorLitro.tienda})</span>
+              Mejor Rendimiento $/Litro: <span class="text-[#784516]">${ganadorLitro.producto} (${ganadorLitro.tienda})</span>
             </h3>
             <p class="text-xs text-[#574A3D] max-w-3xl leading-relaxed break-words">
               Ofrece un costo estandarizado de <strong class="text-[#1F1B16]">$${ganadorLitro.precio_por_litro.toFixed(2)} por litro</strong> frente a
@@ -340,7 +338,7 @@
                title="Abrir ${ganadorLitro.producto} en ${ganadorLitro.tienda}">
               <span>Ver en ${ganadorLitro.tienda}</span> <span>↗</span>
             </a>
-            <button onclick="modificarCantidad(${DATOS_COMPLETOS.indexOf(ganadorLitro)}, 1); mostrarToast('🏆 Ganador añadido al carrito: ${ganadorLitro.producto.replace(/'/g, "\\'")}');" class="flex-1 sm:flex-initial px-5 py-2.5 md3-btn-filled text-xs whitespace-normal sm:whitespace-nowrap cursor-pointer text-center">
+            <button onclick="modificarCantidad(${DATOS_COMPLETOS.indexOf(ganadorLitro)}, 1); mostrarToast('Ganador añadido al carrito: ${ganadorLitro.producto.replace(/'/g, "\\'")}');" class="flex-1 sm:flex-initial px-5 py-2.5 md3-btn-filled text-xs whitespace-normal sm:whitespace-nowrap cursor-pointer text-center">
               + Agregar Ganador al Carrito
             </button>
           </div>

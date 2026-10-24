@@ -29,11 +29,12 @@ PATRON_INCLUDE = re.compile(r"<!--\s*@include\s+([^\s]+)\s*-->\n?")
 CONFIG_VIGENCIA = {
     "corte_auditoria": "Octubre 2026",
     "resumen_whatsapp": (
-        "🟠 Bodegas Alianza: hasta 25 Oct (Aniversario)\n"
-        "🔵 Sam's Club: hasta 2 Nov (Cuponera)\n"
-        "🟧 Chedraui: hasta 31 Oct (Quincena)\n"
-        "🔴 Soriana: hasta 22 Oct (Folleto semanal)\n"
-        "🩵 Walmart: hasta 31 Oct (Rebajas)"
+        "Bodegas Alianza: hasta 25 Oct (Aniversario)\n"
+        "Sam's Club: hasta 2 Nov (Cuponera)\n"
+        "Costco: hasta 31 Oct (Cuponera Ahorros)\n"
+        "Chedraui: hasta 31 Oct (Quincena)\n"
+        "Soriana: hasta 22 Oct (Folleto semanal)\n"
+        "Walmart: hasta 31 Oct (Rebajas)"
     ),
 }
 

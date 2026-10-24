@@ -217,7 +217,7 @@ def test_toggle_solo_mejor_precio_template():
 
     # Toggle en el encabezado de catálogo
     assert 'id="filtro-mejor-precio"' in contenido
-    assert "⭐ Solo mejor precio" in contenido
+    assert "Solo mejor precio" in contenido
 
     # Activo por defecto
     assert '<input type="checkbox" id="filtro-mejor-precio" onchange="aplicarFiltros()" checked' in contenido
@@ -237,7 +237,7 @@ def test_cascada_categoria_tipo_template():
     # Selector de tipo de bebida inicia desactivado con placeholder explicativo
     assert 'id="filtro-categoria" onchange="aplicarFiltros()" disabled' in contenido
     assert 'id="label-filtro-categoria"' in contenido
-    assert "🔒 Selecciona primero una categoría..." in contenido
+    assert "Selecciona primero una categoría..." in contenido
 
     # Lógica de activación reactiva en actualizarSubtiposCatalogo
     assert 'if (macro === "Todas") {' in contenido
@@ -247,7 +247,7 @@ def test_cascada_categoria_tipo_template():
     assert 'selectSub.classList.add("cursor-pointer", "bg-white");' in contenido
 
     # Lógica de desactivación defensiva en versus libre
-    assert "🔓 Comparativa libre (sin filtro de tipo)" in contenido
+    assert "Comparativa libre (sin filtro de tipo)" in contenido
 
 
 def test_h32_umbrales_centralizados():

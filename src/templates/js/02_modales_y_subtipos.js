@@ -43,13 +43,13 @@
 
         let bannerAhorro = "";
         if (esMinimo) {
-          bannerAhorro = `<span class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] text-[10px] font-bold whitespace-normal sm:whitespace-nowrap leading-tight text-left">🏆 Mejor Precio (Ahorras hasta $${item.ahorro_maximo_cross.toFixed(2)})</span>`;
+          bannerAhorro = `<span class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] text-[10px] font-bold whitespace-normal sm:whitespace-nowrap leading-tight text-left">Mejor Precio (Ahorras hasta $${item.ahorro_maximo_cross.toFixed(2)})</span>`;
         } else {
           bannerAhorro = `<span class="text-[11px] text-[#9B1C1C] font-semibold">+$${difVsMin.toFixed(2)} vs ${mejorOferta.tienda}</span>`;
         }
 
         html += `
-          <div class="p-3.5 rounded-2xl border ${esMinimo ? 'bg-[#F4F9F6] border-[#B7D6C5] ring-2 ring-[#486355]/20' : 'bg-white border-[#DFD5C7]'} flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all">
+          <div class="p-3.5 rounded-xl border ${esMinimo ? 'bg-[#F4F9F6] border-[#B7D6C5] ring-1 ring-[#486355]/25' : 'bg-white border-[#DFD5C7]'} flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all">
             <div class="space-y-1.5 min-w-0 flex-1">
               <div class="flex items-center gap-2 flex-wrap">
                 ${badgeTienda}
@@ -70,7 +70,7 @@
               <a href="${p.url}" target="_blank" rel="noopener noreferrer" class="flex-1 sm:flex-initial text-center px-3 py-1.5 md3-btn-tonal text-xs inline-flex items-center justify-center gap-1" title="Ver en ${p.tienda}">
                 <span>Ver en Tienda</span> <span>↗</span>
               </a>
-              <button onclick="modificarCantidad(${idx}, 1); cerrarModalCrossTienda(); mostrarToast('🍾 Añadido al carrito: ${p.producto.replace(/'/g, "\\'")} (${p.tienda})');" class="flex-1 sm:flex-initial px-3 py-1.5 md3-btn-filled text-xs cursor-pointer text-center">
+              <button onclick="modificarCantidad(${idx}, 1); cerrarModalCrossTienda(); mostrarToast('Añadido al carrito: ${p.producto.replace(/'/g, "\\'")} (${p.tienda})');" class="flex-1 sm:flex-initial px-3 py-1.5 md3-btn-filled text-xs cursor-pointer text-center">
                 + Carrito
               </button>
             </div>
@@ -112,7 +112,7 @@
       const badgeTotal = document.getElementById("badge-total-cross");
       if (badgeTotal) badgeTotal.innerText = `${lista.length} botellas`;
 
-      sel.innerHTML = `<option value="">⚡ Elige una botella para ver arbitraje entre tiendas (${lista.length} disponibles)...</option>`;
+      sel.innerHTML = `<option value="">Elige una botella para ver arbitraje entre tiendas (${lista.length} disponibles)...</option>`;
       lista.forEach(g => {
         const prodCorto = g.producto.length > 40 ? g.producto.slice(0, 39) + "…" : g.producto;
         const opt = document.createElement("option");
@@ -145,7 +145,7 @@
       document.getElementById("select-versus-b").value = idxMax;
       renderizarVersus();
 
-      mostrarToast(`⚡ Duelo cross-tienda: ${items[0].item.tienda} ($${items[0].item.precio_promo.toFixed(2)}) vs ${items[items.length - 1].item.tienda} ($${items[items.length - 1].item.precio_promo.toFixed(2)})`);
+      mostrarToast(`Duelo cross-tienda: ${items[0].item.tienda} ($${items[0].item.precio_promo.toFixed(2)}) vs ${items[items.length - 1].item.tienda} ($${items[items.length - 1].item.precio_promo.toFixed(2)})`);
     }
 
     function cambiarTiendaCarrito(idx) {
@@ -164,7 +164,7 @@
         canastaPersonalizada[altIdx] = (canastaPersonalizada[altIdx] || 0) + cant;
         guardarCanastaEnStorage();
         renderizarConstructorCanasta();
-        mostrarToast(`🔄 Cambiado a ${item.tienda_mas_barata}. ¡Ahorraste $${ahorro} MXN!`);
+        mostrarToast(`Cambiado a ${item.tienda_mas_barata}. ¡Ahorraste $${ahorro} MXN!`);
       }
     }
 
@@ -195,9 +195,9 @@
       if (cambios > 0) {
         guardarCanastaEnStorage();
         renderizarConstructorCanasta();
-        mostrarToast(`🎉 ¡Canasta optimizada! Ahorraste $${ahorroTotal.toFixed(2)} MXN en ${cambios} botella(s).`);
+        mostrarToast(`¡Canasta optimizada! Ahorraste $${ahorroTotal.toFixed(2)} MXN en ${cambios} botella(s).`);
       } else {
-        mostrarToast(`✅ Tu canasta ya tiene los mejores precios disponibles.`);
+        mostrarToast(`Tu canasta ya tiene los mejores precios disponibles.`);
       }
     }
 
@@ -210,7 +210,7 @@
         selectSub.disabled = true;
         selectSub.classList.add("opacity-60", "bg-[#EFE8DC]/50", "cursor-not-allowed");
         selectSub.classList.remove("cursor-pointer", "bg-white");
-        selectSub.innerHTML = '<option value="Todas" selected>🔒 Selecciona primero una categoría...</option>';
+        selectSub.innerHTML = '<option value="Todas" selected>Selecciona primero una categoría...</option>';
         if (labelSub) {
           labelSub.classList.remove("text-[#486355]");
           labelSub.classList.add("text-[#8A7B6B]");
@@ -249,7 +249,7 @@
         selectSub.classList.remove("cursor-pointer", "bg-white");
         const optLibre = document.createElement("option");
         optLibre.value = "Todas";
-        optLibre.innerText = "🔓 Comparativa libre (sin filtro de tipo)";
+        optLibre.innerText = "Comparativa libre (sin filtro de tipo)";
         selectSub.appendChild(optLibre);
       } else {
         selectSub.disabled = false;

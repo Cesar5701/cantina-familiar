@@ -15,7 +15,7 @@
             </p>
           </div>
           <div class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] font-mono text-xs self-start sm:self-auto px-3 py-1" id="contador-filtrados">
-            775 botellas verificadas (5 tiendas)
+            827 botellas verificadas (6 tiendas)
           </div>
         </div>
 
@@ -24,12 +24,12 @@
           <div>
             <label for="filtro-macro-categoria" class="block text-xs font-bold text-[#784516] mb-1.5">1. Categoría de Bebida:</label>
             <select id="filtro-macro-categoria" onchange="actualizarSubtiposCatalogo()" class="w-full md3-input px-3 py-2 font-semibold">
-              <option value="Todas" selected>🍾 Todas las Bebidas (775)</option>
-              <option value="Tequila">🥃 Tequila (210)</option>
-              <option value="Mezcal">🌵 Mezcal (226)</option>
-              <option value="Whisky">🥃 Whisky Escocés (175)</option>
-              <option value="Licor de Whisky">🍯 Licor Whisky Honey (9)</option>
-              <option value="Vino">🍷 Vino Tinto (155)</option>
+              <option value="Todas" selected>Todas las Bebidas (827)</option>
+              <option value="Tequila">Tequila</option>
+              <option value="Mezcal">Mezcal</option>
+              <option value="Whisky">Whisky Escocés</option>
+              <option value="Licor de Whisky">Licor Whisky Honey</option>
+              <option value="Vino">Vino Tinto</option>
             </select>
           </div>
 
@@ -37,7 +37,7 @@
           <div>
             <label for="filtro-categoria" id="label-filtro-categoria" class="block text-xs font-bold text-[#8A7B6B] mb-1.5 transition-colors">2. Tipo de Bebida:</label>
             <select id="filtro-categoria" onchange="aplicarFiltros()" disabled class="w-full md3-input px-3 py-2 font-medium opacity-60 bg-[#EFE8DC]/50 cursor-not-allowed transition-all">
-              <option value="Todas" selected>🔒 Selecciona primero una categoría...</option>
+              <option value="Todas" selected>Selecciona primero una categoría...</option>
             </select>
           </div>
 
@@ -45,12 +45,13 @@
           <div>
             <label for="filtro-tienda" class="block text-xs font-bold text-[#574A3D] mb-1.5">3. Tienda / Comercio:</label>
             <select id="filtro-tienda" onchange="aplicarFiltros()" class="w-full md3-input px-3 py-2">
-              <option value="Todas">🏬 Todas las Tiendas (5)</option>
-              <option value="Bodegas Alianza">🟠 Bodegas Alianza (380)</option>
-              <option value="Chedraui">🟧 Chedraui (133)</option>
-              <option value="Soriana">🔴 Soriana (112)</option>
-              <option value="Walmart">🩵 Walmart (82)</option>
-              <option value="Sam's Club">🔵 Sam's Club (68)</option>
+              <option value="Todas">Todas las Tiendas (6)</option>
+              <option value="Bodegas Alianza">Bodegas Alianza</option>
+              <option value="Sam's Club">Sam's Club</option>
+              <option value="Costco">Costco</option>
+              <option value="Chedraui">Chedraui</option>
+              <option value="Soriana">Soriana</option>
+              <option value="Walmart">Walmart</option>
             </select>
           </div>
 
@@ -73,21 +74,21 @@
             </div>
           </div>
 
-          <!-- FILTROS Y ORDEN ADAPTATIVOS (Pills en móvil sin cortes ni solapamientos) -->
+          <!-- FILTROS Y ORDEN ADAPTATIVOS (Chips en móvil sin cortes ni solapamientos) -->
           <div class="flex flex-col lg:flex-row justify-between lg:items-center gap-2.5 pt-2 border-t border-[#DFD5C7]/70">
-            <!-- Pills de filtros rápidos -->
+            <!-- Chips de filtros rápidos -->
             <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs">
-              <label class="flex items-center gap-1.5 text-xs text-[#1F1B16] cursor-pointer px-2.5 sm:px-3 py-1.5 rounded-full bg-white border border-[#D6C8B8] hover:bg-[#EFE8DC] transition-colors select-none min-h-[34px] sm:min-h-[36px]" title="Mostrar únicamente la opción más barata por cada producto (oculta ofertas repetidas de tiendas más caras)">
+              <label class="flex items-center gap-1.5 text-xs text-[#1F1B16] cursor-pointer px-2.5 sm:px-3 py-1.5 rounded-lg bg-white border border-[#D6C8B8] hover:bg-[#EFE8DC] transition-colors select-none min-h-[34px] sm:min-h-[36px]" title="Mostrar únicamente la opción más barata por cada producto (oculta ofertas repetidas de tiendas más caras)">
                 <input type="checkbox" id="filtro-mejor-precio" onchange="aplicarFiltros()" checked class="w-4 h-4 rounded accent-[#486355]">
-                <span class="font-semibold text-[#0B2016] text-[11px] sm:text-xs">⭐ Solo mejor precio</span>
+                <span class="font-semibold text-[#0B2016] text-[11px] sm:text-xs">Solo mejor precio</span>
               </label>
-              <label class="flex items-center gap-1.5 text-xs text-[#784516] cursor-pointer px-2.5 sm:px-3 py-1.5 rounded-full bg-white border border-[#DFD5C7] hover:bg-[#EFE8DC] transition-colors select-none min-h-[34px] sm:min-h-[36px]" title="Mostrar únicamente botellas con descuento directo verificado">
+              <label class="flex items-center gap-1.5 text-xs text-[#784516] cursor-pointer px-2.5 sm:px-3 py-1.5 rounded-lg bg-white border border-[#DFD5C7] hover:bg-[#EFE8DC] transition-colors select-none min-h-[34px] sm:min-h-[36px]" title="Mostrar únicamente botellas con descuento directo verificado">
                 <input type="checkbox" id="filtro-descuento" onchange="aplicarFiltros()" class="w-4 h-4 rounded accent-[#784516]">
-                <span class="font-semibold text-[#784516] text-[11px] sm:text-xs">🏷️ Solo ofertas</span>
+                <span class="font-semibold text-[#784516] text-[11px] sm:text-xs">Solo ofertas</span>
               </label>
-              <label class="flex items-center gap-1.5 text-xs text-[#9B1C1C] cursor-pointer px-2.5 sm:px-3 py-1.5 rounded-full bg-white border border-[#F8B4B4] hover:bg-[#FDE8E8] transition-colors select-none min-h-[34px] sm:min-h-[36px]" title="Mostrar únicamente botellas en paquete, combos o con obsequios incluidos">
+              <label class="flex items-center gap-1.5 text-xs text-[#9B1C1C] cursor-pointer px-2.5 sm:px-3 py-1.5 rounded-lg bg-white border border-[#F8B4B4] hover:bg-[#FDE8E8] transition-colors select-none min-h-[34px] sm:min-h-[36px]" title="Mostrar únicamente botellas en paquete, combos o con obsequios incluidos">
                 <input type="checkbox" id="filtro-paquete-pill" onchange="sincronizarFiltroPaquete(this.checked)" class="w-4 h-4 rounded accent-[#9B1C1C]">
-                <span class="font-bold text-[#9B1C1C] text-[11px] sm:text-xs">🎁 Solo paquetes y combos</span>
+                <span class="font-bold text-[#9B1C1C] text-[11px] sm:text-xs">Solo paquetes y combos</span>
               </label>
               <input type="checkbox" id="filtro-paquete" class="hidden" aria-hidden="true" tabindex="-1">
             </div>
@@ -97,12 +98,12 @@
               <span class="text-[#574A3D] font-medium text-xs whitespace-nowrap">Ordenar:</span>
               <div class="flex items-center gap-1.5">
                 <button data-orden="precio_por_litro" onclick="ordenarPor('precio_por_litro')"
-                        class="px-2.5 sm:px-3 py-1.5 rounded-full font-semibold text-[11px] sm:text-xs transition-colors cursor-pointer min-h-[34px] sm:min-h-[36px]">
-                  Menor $/Litro <span class="orden-flecha">↕</span>
+                        class="px-2.5 sm:px-3 py-1.5 rounded-lg font-semibold text-[11px] sm:text-xs transition-colors cursor-pointer min-h-[34px] sm:min-h-[36px]">
+                  Menor $/Litro <span class="orden-flecha"></span>
                 </button>
                 <button data-orden="precio_promo" onclick="ordenarPor('precio_promo')"
-                        class="px-2.5 sm:px-3 py-1.5 rounded-full font-semibold text-[11px] sm:text-xs transition-colors cursor-pointer min-h-[34px] sm:min-h-[36px]">
-                  Precio Botella <span class="orden-flecha">↕</span>
+                        class="px-2.5 sm:px-3 py-1.5 rounded-lg font-semibold text-[11px] sm:text-xs transition-colors cursor-pointer min-h-[34px] sm:min-h-[36px]">
+                  Precio Botella <span class="orden-flecha"></span>
                 </button>
               </div>
             </div>
@@ -120,13 +121,13 @@
             <thead class="bg-[#EFE8DC] text-[#574A3D] text-xs uppercase border-b border-[#DFD5C7]">
               <tr>
                 <th class="p-3.5">Botella / Marca</th>
-                <th class="p-3.5">Categoría & Tipo</th>
+                <th class="p-3.5">Categoría &amp; Tipo</th>
                 <th class="p-3.5 hidden md:table-cell">Volumen</th>
                 <th data-orden-header="precio_promo" class="p-3.5 cursor-pointer hover:text-[#784516] whitespace-nowrap" onclick="ordenarPor('precio_promo')" aria-sort="none">
-                  Precio <span class="orden-flecha">↕</span>
+                  Precio <span class="orden-flecha"></span>
                 </th>
                 <th data-orden-header="precio_por_litro" class="p-3.5 cursor-pointer hover:text-[#784516] whitespace-nowrap" onclick="ordenarPor('precio_por_litro')" aria-sort="none">
-                  $/Litro <span class="orden-flecha">↕</span>
+                  $/Litro <span class="orden-flecha"></span>
                 </th>
                 <th class="p-3.5 hidden lg:table-cell">Promoción</th>
                 <th class="p-3.5">Tienda</th>
@@ -140,22 +141,22 @@
         </div>
 
         <div class="p-3.5 sm:p-4 border-t border-[#DFD5C7] flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-[#574A3D] bg-[#F7F2EA]">
-          <div id="info-paginacion" class="font-medium text-center sm:text-left">Mostrando 1 a 20 de 760</div>
+          <div id="info-paginacion" class="font-medium text-center sm:text-left">Mostrando 1 a 20 de 827</div>
           <div class="flex gap-2 w-full sm:w-auto justify-center">
-            <button onclick="cambiarPagina(-1)" id="btn-prev" class="flex-1 sm:flex-initial px-4 py-2 rounded-full bg-white border border-[#D6C8B8] hover:bg-[#EFE8DC] disabled:opacity-40 transition-colors text-[#1F1B16] font-semibold cursor-pointer min-h-[40px]">← Anterior</button>
-            <button onclick="cambiarPagina(1)" id="btn-next" class="flex-1 sm:flex-initial px-4 py-2 rounded-full bg-white border border-[#D6C8B8] hover:bg-[#EFE8DC] disabled:opacity-40 transition-colors text-[#1F1B16] font-semibold cursor-pointer min-h-[40px]">Siguiente →</button>
+            <button onclick="cambiarPagina(-1)" id="btn-prev" class="flex-1 sm:flex-initial px-4 py-2 rounded-lg bg-white border border-[#D6C8B8] hover:bg-[#EFE8DC] disabled:opacity-40 transition-colors text-[#1F1B16] font-semibold cursor-pointer min-h-[40px]">← Anterior</button>
+            <button onclick="cambiarPagina(1)" id="btn-next" class="flex-1 sm:flex-initial px-4 py-2 rounded-lg bg-white border border-[#D6C8B8] hover:bg-[#EFE8DC] disabled:opacity-40 transition-colors text-[#1F1B16] font-semibold cursor-pointer min-h-[40px]">Siguiente →</button>
           </div>
         </div>
       </div>
 
-      <!-- GRÁFICO TOP 10 RENDIMIENTO $/LITRO (PALETA SUAVE MD3) -->
+      <!-- GRÁFICO TOP 10 RENDIMIENTO $/LITRO -->
       <div class="md3-card p-5 space-y-3">
         <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-[#DFD5C7] pb-3">
           <div>
             <h3 class="font-bold text-lg font-display-md3 text-[#1F1B16]" id="chart-titulo">
               Top 10 Rendimiento $/Litro del Catálogo
             </h3>
-            <p class="text-xs text-[#574A3D]">Comparativa volumétrica estandarizada a 1,000 ml entre las 5 cadenas</p>
+            <p class="text-xs text-[#574A3D]">Comparativa volumétrica estandarizada a 1,000 ml entre las 6 cadenas</p>
           </div>
           <span class="badge bg-[#F8E2C8] text-[#784516] border border-[#E5C8A3] text-xs self-start sm:self-auto">Barra más corta = Mejor precio por litro</span>
         </div>

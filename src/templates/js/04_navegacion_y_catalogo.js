@@ -90,7 +90,7 @@
       if (item.es_paquete !== undefined && typeof item.es_paquete === "boolean") return item.es_paquete;
       const nom = (item.producto || "").toLowerCase();
       const cond = (item.condiciones || "").toLowerCase();
-      if (cond.includes("🎁") || cond.includes("obsequio") || cond.includes("combo") || cond.includes("kit")) return true;
+      if (cond.includes("\u{1F381}") || cond.includes("obsequio") || cond.includes("combo") || cond.includes("kit")) return true;
       const patron = /\b(pack|paquete|combo|kit|caja|set)\b|\b\d+\s*pzas?\b|\bx\s*\d+\b|\b\d+\s*botellas?\b|\bcon\s+(vaso|copa|termo|shaker|tumbler|caballito|sal|kit)\b/i;
       if (patron.test(nom)) return true;
       if (nom.includes(" + ") || nom.includes(" c/") || nom.includes(" con ")) {
@@ -162,7 +162,7 @@
       document.getElementById("chart-titulo").innerText = `Top 10 Rendimiento $/Litro: ${tituloG}`;
     }
 
-    const CLASE_ORDEN_BASE = "px-3 py-1.5 rounded-full font-semibold text-xs transition-colors cursor-pointer min-h-[36px]";
+    const CLASE_ORDEN_BASE = "px-3 py-1.5 rounded-lg font-semibold text-xs transition-colors cursor-pointer min-h-[36px]";
     const CLASE_ORDEN_ACTIVO = "md3-btn-tonal border border-transparent";
     const CLASE_ORDEN_INACTIVO = "bg-white border border-[#D6C8B8] text-[#1F1B16] hover:bg-[#EFE8DC]";
 
@@ -171,14 +171,14 @@
         const activo = btn.dataset.orden === columnaOrden;
         btn.className = `${CLASE_ORDEN_BASE} ${activo ? CLASE_ORDEN_ACTIVO : CLASE_ORDEN_INACTIVO}`;
         const f = btn.querySelector(".orden-flecha");
-        if (f) f.textContent = activo ? (ordenAsc ? "↑" : "↓") : "↕";
+        if (f) f.textContent = activo ? (ordenAsc ? "↑" : "↓") : "";
       });
 
       document.querySelectorAll("[data-orden-header]").forEach(th => {
         const activo = th.dataset.ordenHeader === columnaOrden;
         th.setAttribute("aria-sort", activo ? (ordenAsc ? "ascending" : "descending") : "none");
         const f = th.querySelector(".orden-flecha");
-        if (f) f.textContent = activo ? (ordenAsc ? "↑" : "↓") : "↕";
+        if (f) f.textContent = activo ? (ordenAsc ? "↑" : "↓") : "";
         if (activo) {
           th.classList.add("text-[#784516]", "font-bold");
         } else {
@@ -250,16 +250,16 @@
             crossBadgeDesktop = `
               <div class="mt-1">
                 <button type="button" onclick="toggleModalCrossTienda(${originalIndex})" class="btn-cross-badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] hover:bg-[#B7D6C5] cursor-pointer" title="Ver comparativa de precios en ${item.num_tiendas_cross} tiendas">
-                  <span>⭐ Mejor precio de ${item.num_tiendas_cross} tiendas</span>
-                  <span class="text-[9px] underline font-normal">Comparar ↗</span>
+                  <span>Mejor precio de ${item.num_tiendas_cross} tiendas</span>
+                  <span class="text-[9px] underline font-normal">Comparar →</span>
                 </button>
               </div>
             `;
             crossBadgeMovil = `
               <div class="pt-0.5">
                 <button type="button" onclick="toggleModalCrossTienda(${originalIndex})" class="btn-cross-badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] active:bg-[#B7D6C5] cursor-pointer w-full justify-between" title="Ver comparativa de precios en ${item.num_tiendas_cross} tiendas">
-                  <span>⭐ Mejor precio de ${item.num_tiendas_cross} tiendas</span>
-                  <span class="text-[10px] underline font-normal">Comparar ↗</span>
+                  <span>Mejor precio de ${item.num_tiendas_cross} tiendas</span>
+                  <span class="text-[10px] underline font-normal">Comparar →</span>
                 </button>
               </div>
             `;
@@ -267,16 +267,16 @@
             crossBadgeDesktop = `
               <div class="mt-1">
                 <button type="button" onclick="toggleModalCrossTienda(${originalIndex})" class="btn-cross-badge bg-[#FDE8E8] text-[#9B1C1C] border border-[#F8B4B4] hover:bg-[#FCD9BD] cursor-pointer" title="Ver comparativa de precios en ${item.num_tiendas_cross} tiendas">
-                  <span>🏷️ Más barato en ${item.tienda_mas_barata} ($${item.precio_minimo_cross.toFixed(2)})</span>
-                  <span class="text-[9px] underline font-bold">Ahorra $${item.diferencia_vs_minimo.toFixed(2)} ↗</span>
+                  <span>Más barato en ${item.tienda_mas_barata} ($${item.precio_minimo_cross.toFixed(2)})</span>
+                  <span class="text-[9px] underline font-bold">Ahorra $${item.diferencia_vs_minimo.toFixed(2)} →</span>
                 </button>
               </div>
             `;
             crossBadgeMovil = `
               <div class="pt-0.5">
                 <button type="button" onclick="toggleModalCrossTienda(${originalIndex})" class="btn-cross-badge bg-[#FDE8E8] text-[#9B1C1C] border border-[#F8B4B4] active:bg-[#FCD9BD] cursor-pointer w-full justify-between" title="Ver comparativa de precios en ${item.num_tiendas_cross} tiendas">
-                  <span>🏷️ Más barato en ${item.tienda_mas_barata} ($${item.precio_minimo_cross.toFixed(2)})</span>
-                  <span class="text-[10px] underline font-bold">Ahorra $${item.diferencia_vs_minimo.toFixed(2)} ↗</span>
+                  <span>Más barato en ${item.tienda_mas_barata} ($${item.precio_minimo_cross.toFixed(2)})</span>
+                  <span class="text-[10px] underline font-bold">Ahorra $${item.diferencia_vs_minimo.toFixed(2)} →</span>
                 </button>
               </div>
             `;
@@ -286,9 +286,9 @@
         let paqueteBadgeDesktop = "";
         let paqueteBadgeMovil = "";
         if (esProductoPaquete(item)) {
-          const textoPaq = (item.condiciones && item.condiciones.includes("🎁"))
-            ? item.condiciones
-            : "🎁 Paquete / Combo";
+          const textoPaq = (item.condiciones && item.condiciones.includes("\u{1F381}"))
+            ? item.condiciones.replace("\u{1F381}", "").trim()
+            : "Paquete / Combo";
           paqueteBadgeDesktop = `
             <div class="mt-1">
               <span class="badge bg-[#FDE8E8] text-[#9B1C1C] border border-[#F8B4B4]" title="Presentación en paquete o con obsequios incluidos">
@@ -298,7 +298,7 @@
           `;
           paqueteBadgeMovil = `
             <div>
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10px] font-bold bg-[#FDE8E8] text-[#9B1C1C] border border-[#F8B4B4] leading-tight" title="Presentación en paquete o con obsequios incluidos">
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-[#FDE8E8] text-[#9B1C1C] border border-[#F8B4B4] leading-tight" title="Presentación en paquete o con obsequios incluidos">
                 <span>${textoPaq}</span>
               </span>
             </div>

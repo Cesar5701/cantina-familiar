@@ -44,11 +44,58 @@
 
     .font-display-md3 {
       font-family: 'Fraunces', Georgia, serif;
-      letter-spacing: -0.02em;
+      letter-spacing: -0.022em;
     }
 
     .font-mono {
       font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
+    table {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Iconografía lineal SVG minimalista */
+    .ico {
+      width: 1.2rem;
+      height: 1.2rem;
+      stroke: currentColor;
+      stroke-width: 1.75;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+
+    .ico-sm {
+      width: 0.95rem;
+      height: 0.95rem;
+      stroke: currentColor;
+      stroke-width: 1.75;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+
+    /* Indicador cromático discreto por cadena comercial */
+    .store-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 9999px;
+      flex-shrink: 0;
+    }
+
+    /* Kicker editorial de cabecera */
+    .editorial-kicker {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--md-primary);
     }
 
     /* Scrollbar sutil tono almendra */
@@ -57,12 +104,12 @@
     ::-webkit-scrollbar-thumb { background: #C8B9A6; border-radius: 9999px; }
     ::-webkit-scrollbar-thumb:hover { background: #9C8A74; }
 
-    /* Material 3 Expressive Surface Cards */
+    /* Superficies Editoriales Cálidas */
     .md3-card {
       background-color: var(--md-surface-lowest);
       border: 1px solid var(--md-outline-variant);
-      border-radius: 24px;
-      box-shadow: 0 2px 12px rgba(31, 27, 22, 0.04);
+      border-radius: 14px;
+      box-shadow: 0 1px 3px rgba(31, 27, 22, 0.04), 0 4px 14px rgba(31, 27, 22, 0.025);
       transition: transform 0.25s var(--md-ease-expressive), box-shadow 0.25s var(--md-ease-expressive);
       min-width: 0;
       max-width: 100%;
@@ -72,7 +119,7 @@
     .md3-surface-tonal {
       background-color: var(--md-surface-container);
       border: 1px solid var(--md-outline-variant);
-      border-radius: 18px;
+      border-radius: 10px;
       min-width: 0;
       max-width: 100%;
       box-sizing: border-box;
@@ -81,7 +128,7 @@
     .md3-surface-low {
       background-color: var(--md-surface-low);
       border: 1px solid var(--md-outline-variant);
-      border-radius: 18px;
+      border-radius: 10px;
       min-width: 0;
       max-width: 100%;
       box-sizing: border-box;
@@ -90,8 +137,8 @@
     /* Inputs con soporte Apple HIG (16px en móvil para evitar auto-zoom de iOS Safari, 44px altura táctil) */
     .md3-input {
       background-color: var(--md-surface-lowest);
-      border: 1.5px solid #CFC2B2;
-      border-radius: 14px;
+      border: 1px solid #C8B9A6;
+      border-radius: 8px;
       color: var(--md-on-surface);
       min-height: 44px;
       font-size: 16px;
@@ -109,7 +156,7 @@
     .md3-input:focus {
       outline: none;
       border-color: var(--md-primary);
-      box-shadow: 0 0 0 3px rgba(120, 69, 22, 0.14);
+      box-shadow: 0 0 0 3px rgba(120, 69, 22, 0.12);
     }
     .md3-input::placeholder {
       color: #9A8B7A;
@@ -129,25 +176,25 @@
       background-color: #FFFFFF;
     }
 
-    /* Botones MD3 Expressive Pill */
+    /* Botones Editoriales Arquitectónicos */
     .md3-btn-filled {
       background-color: var(--md-primary);
       color: var(--md-on-primary);
-      border-radius: 9999px;
+      border-radius: 8px;
       min-height: 44px;
       font-weight: 600;
       transition: all 0.2s var(--md-ease-expressive);
-      box-shadow: 0 2px 6px rgba(120, 69, 22, 0.18);
+      box-shadow: 0 1px 3px rgba(120, 69, 22, 0.18);
     }
     @media (min-width: 640px) {
       .md3-btn-filled {
-        min-height: 38px;
+        min-height: 36px;
       }
     }
     .md3-btn-filled:hover {
       background-color: #63370F;
-      box-shadow: 0 4px 12px rgba(120, 69, 22, 0.26);
-      transform: translateY(-1px);
+      box-shadow: 0 3px 8px rgba(120, 69, 22, 0.24);
+      transform: translateY(-0.5px);
     }
     .md3-btn-filled:active {
       transform: scale(0.98);
@@ -157,27 +204,28 @@
       background-color: var(--md-primary-container);
       color: var(--md-on-primary-container);
       border: 1px solid #E5C8A3;
-      border-radius: 9999px;
+      border-radius: 8px;
       min-height: 44px;
       font-weight: 600;
       transition: all 0.2s var(--md-ease-expressive);
     }
     @media (min-width: 640px) {
       .md3-btn-tonal {
-        min-height: 36px;
+        min-height: 34px;
       }
     }
     .md3-btn-tonal:hover {
       background-color: #F2D5B3;
     }
 
-    /* Chips Tonales MD3 (Baja saturación) */
+    /* Etiquetas Tonales Editoriales */
     .badge {
       display: inline-flex;
       align-items: center;
-      padding: 0.2rem 0.65rem;
-      border-radius: 9999px;
-      font-size: 0.72rem;
+      gap: 0.35rem;
+      padding: 0.18rem 0.55rem;
+      border-radius: 6px;
+      font-size: 0.7rem;
       font-weight: 600;
       letter-spacing: 0.01em;
       white-space: nowrap;
@@ -189,8 +237,8 @@
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
-      padding: 0.25rem 0.65rem;
-      border-radius: 9999px;
+      padding: 0.22rem 0.6rem;
+      border-radius: 6px;
       font-size: 0.68rem;
       font-weight: 700;
       line-height: 1.25;
@@ -201,21 +249,21 @@
     @media (max-width: 639px) {
       .btn-cross-badge {
         white-space: normal;
-        border-radius: 12px;
-        padding: 0.4rem 0.75rem;
+        border-radius: 8px;
+        padding: 0.38rem 0.65rem;
       }
     }
 
     /* Apple HIG Frosted Glass Bottom Bar en Móvil */
     .ios-tab-bar {
-      background: rgba(250, 246, 240, 0.86);
+      background: rgba(250, 246, 240, 0.9);
       -webkit-backdrop-filter: blur(20px) saturate(180%);
       backdrop-filter: blur(20px) saturate(180%);
-      border-top: 0.5px solid rgba(138, 123, 107, 0.3);
+      border-top: 1px solid rgba(138, 123, 107, 0.25);
       padding-bottom: env(safe-area-inset-bottom, 0px);
     }
 
-    /* Toast MD3 Snackbar */
+    /* Toast Editorial */
     .toast {
       position: fixed;
       bottom: 5.25rem;
@@ -223,13 +271,14 @@
       left: 1rem;
       max-width: 24rem;
       margin: 0 auto;
-      padding: 0.85rem 1.25rem;
-      background: #2C251E;
+      padding: 0.8rem 1.15rem;
+      background: #1F1B16;
       color: #FAF6F0;
-      border-radius: 16px;
-      font-size: 0.85rem;
+      border: 1px solid #4A3F35;
+      border-radius: 10px;
+      font-size: 0.82rem;
       font-weight: 600;
-      box-shadow: 0 10px 25px -5px rgba(31, 27, 22, 0.28);
+      box-shadow: 0 10px 25px -5px rgba(31, 27, 22, 0.3);
       z-index: 9999;
       opacity: 0;
       transform: translateY(1rem);
