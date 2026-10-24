@@ -1,6 +1,6 @@
-# Cantina Familiar — Sistema de Apoyo a la Decisión de Compra Navideña
+# Cantina Familiar — Sistema de Decisión de Compra y Arbitraje Multitienda
 
-Herramienta de optimización y auditoría de precios para compras familiares de bebidas alcohólicas (Navidad 2026, San Pedro Xalcaltzinco, Tepeyanco, Tlaxcala).
+Herramienta de optimización, comparativa multitienda y auditoría de precios por litro para compras de vinos y destilados en seis cadenas comerciales de México.
 
 ---
 
@@ -61,11 +61,11 @@ Cantina Familiar/
 │   ├── io_utils.py                 # Guardado atómico de CSV/JSON y métricas de scraping (H10)
 │   ├── logger.py                   # Sistema centralizado de logging con consola y archivo rotativo (H19)
 │   ├── actualizar_dashboard_completo.py # Pipeline de consolidación, validación de esquema y orquestador (H41)
-│   ├── generar_dashboard_v4.py     # Ensamblador y generador del dashboard BI (Material 3 Expressive)
+│   ├── generar_dashboard_v4.py     # Ensamblador y generador del dashboard BI (Diseño Stitch Archival)
 │   └── templates/                  # Arquitectura frontend modular (ensamblada en index.html)
 │       ├── dashboard_template.html # Layout maestro con directivas @include
 │       ├── css/
-│       │   └── styles.css          # Variables de diseño Material 3, componentes y animaciones
+│       │   └── styles.css          # Variables y utilidades semánticas del sistema de diseño Stitch
 │       ├── partials/               # Vistas modulares HTML por sección y pestaña
 │       │   ├── header_y_nav.html
 │       │   ├── tab_rankings.html
@@ -206,7 +206,7 @@ pytest
 
 | Columna | Descripción |
 | :--- | :--- |
-| `tienda` | Comercio donde se cotiza (ej. Bodegas Alianza, Sam's Club, Walmart, Chedraui, Soriana). |
+| `tienda` | Comercio donde se cotiza (Bodegas Alianza, Sam's Club, Costco, Walmart, Chedraui, Soriana). |
 | `producto` | Nombre comercial completo de la etiqueta. |
 | `marca` | Marca de la bebida. |
 | `categoria` | Tequila, Mezcal, Whisky, Licor de Whisky, Vino. |
