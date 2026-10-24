@@ -15,6 +15,7 @@ from src.http_utils import (
 )
 from src.scraper_multitienda.chedraui import scrapear_chedraui
 from src.scraper_multitienda.cli import main
+from src.scraper_multitienda.costco import scrapear_costco
 from src.scraper_multitienda.normalizador import evaluar_y_normalizar_producto
 from src.scraper_multitienda.soriana import scrapear_soriana
 from src.scraper_multitienda.walmart_sams import scrapear_nextjs_walmart_platform
@@ -26,6 +27,7 @@ __all__ = [
     "evaluar_y_normalizar_producto",
     "main",
     "scrapear_chedraui",
+    "scrapear_costco",
     "scrapear_nextjs_walmart_platform",
     "scrapear_soriana",
 ]

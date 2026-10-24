@@ -52,6 +52,7 @@ def actualizar_todo(archivos_fuente: list[str] | None = None, carpeta_salida: st
             "data/scraped_walmart.csv",
             "data/scraped_chedraui.csv",
             "data/scraped_soriana.csv",
+            "data/scraped_costco.csv",
         ]
 
     dfs = []

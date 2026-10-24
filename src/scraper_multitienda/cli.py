@@ -62,6 +62,11 @@ def main():
     if prods_soriana:
         guardar_csv_atomico(pd.DataFrame(prods_soriana), "data/scraped_soriana.csv")
 
+    # 5. Costco
+    prods_costco = _pkg.scrapear_costco()
+    if prods_costco:
+        guardar_csv_atomico(pd.DataFrame(prods_costco), "data/scraped_costco.csv")
+
     logger.info("=" * 70)
     logger.info("RESUMEN DE EXTRACCIÓN MULTITIENDA")
     logger.info("=" * 70)
@@ -69,3 +74,4 @@ def main():
     logger.info(f"  - Sam's Club: {len(prods_sams)} productos")
     logger.info(f"  - Walmart:    {len(prods_walmart)} productos")
     logger.info(f"  - Soriana:    {len(prods_soriana)} productos")
+    logger.info(f"  - Costco:     {len(prods_costco)} productos")

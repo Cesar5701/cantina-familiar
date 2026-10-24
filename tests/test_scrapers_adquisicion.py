@@ -13,6 +13,7 @@ from src.scraper_catalogo_completo import procesar_catalogo_completo
 from src.scraper_multitienda import (
     evaluar_y_normalizar_producto,
     scrapear_chedraui,
+    scrapear_costco,
     scrapear_nextjs_walmart_platform,
     scrapear_soriana,
 )
@@ -462,6 +463,49 @@ def test_scrapear_soriana_mock():
         assert "Herradura Ultra" in prod["producto"]
         assert prod["precio_promo"] == 699.0
         assert prod["precio_regular"] == 890.0
+
+
+def test_scrapear_costco_mock_exitoso():
+    """Valida la extracción desde API OCC v2 de SAP Commerce Cloud de Costco (H43)."""
+    mock_response = {
+        "pagination": {"currentPage": 0, "totalPages": 1, "totalResults": 3},
+        "products": [
+            {
+                "code": "538764",
+                "name": "Don Julio 70 Cristalino Tequila 700 ml",
+                "price": {"value": 999.0},
+                "basePrice": {"value": 1149.0},
+                "couponDiscount": {"discountValue": 150.0},
+                "stock": {"stockLevelStatus": "inStock"},
+                "url": "/tequila/don-julio-70/p/538764",
+            },
+            # Producto agotado
+            {
+                "code": "999999",
+                "name": "Patrón Tequila Añejo 700 ml",
+                "price": {"value": 850.0},
+                "stock": {"stockLevelStatus": "outOfStock"},
+            },
+            # Producto con precio oculto
+            {
+                "code": "888888",
+                "name": "Siete Leguas Tequila Blanco 1 L",
+                "hidePriceValue": True,
+            },
+        ],
+    }
+
+    with patch("src.scraper_multitienda.descargar_json_con_reintentos", return_value=mock_response):
+        resultados = scrapear_costco(terminos=["tequila cristalino"])
+        assert len(resultados) == 1
+        p = resultados[0]
+        assert p["tienda"] == "Costco"
+        assert "Don Julio 70" in p["producto"]
+        assert p["precio_promo"] == 999.0
+        assert p["precio_regular"] == 1149.0
+        assert "Oferta Costco (Ahorra $150.00)" in p["condiciones"]
+        assert p["disponibilidad"] == "disponible"
+        assert p["url"] == "https://www.costco.com.mx/tequila/don-julio-70/p/538764"
 
 
 # ==============================================================================

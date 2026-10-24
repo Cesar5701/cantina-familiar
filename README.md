@@ -10,10 +10,10 @@ Herramienta de optimización y auditoría de precios para compras familiares de 
 Cantina Familiar/
 ├── data/
 │   ├── bebidas_verificadas.csv     # Dataset auditado con 32 etiquetas confirmadas
-│   ├── scraped_*.csv               # Catálogos fuente por tienda (Alianza, Chedraui, Sam's, Soriana, Walmart)
-│   ├── catalogo_completo_consolidado.csv # Catálogo unificado y normalizado (1,004 registros)
-│   ├── ranking_completo_general.csv# Ranking filtrado libre de outliers de lujo (866 registros)
-│   ├── dashboard_data.json         # JSON optimizado para el dashboard interactivo (775 registros)
+│   ├── scraped_*.csv               # Catálogos fuente por tienda (Alianza, Chedraui, Costco, Sam's, Soriana, Walmart)
+│   ├── catalogo_completo_consolidado.csv # Catálogo unificado y normalizado
+│   ├── ranking_completo_general.csv# Ranking filtrado libre de outliers de lujo
+│   ├── dashboard_data.json         # JSON optimizado para el dashboard interactivo (827 registros)
 │   └── reporte_ranking.csv         # Salida generada con métricas por litro y rankings
 ├── docs/
 │   ├── politica_scraping.md        # Política de Scraping Ético y Gobernanza de Datos (H17)
@@ -36,10 +36,11 @@ Cantina Familiar/
 │   │   ├── metricas_y_outliers.py  # Cálculo vectorial $/L, outliers de lujo y filtro de presupuesto
 │   │   ├── cross_tienda.py         # Deduplicación y arbitraje cross-tienda (H8, H35, H40)
 │   │   └── rankings_y_cli.py       # Rankings por categoría comparable y CLI ad-hoc
-│   ├── scraper_multitienda/        # Paquete de adquisición multitienda (Sam's, Walmart, Chedraui, Soriana)
+│   ├── scraper_multitienda/        # Paquete de adquisición multitienda (Sam's, Costco, Walmart, Chedraui, Soriana)
 │   │   ├── __init__.py
 │   │   ├── __main__.py
 │   │   ├── normalizador.py         # Normalización y filtrado estricto multitienda
+│   │   ├── costco.py               # Scraper API REST OCC v2 Costco México
 │   │   ├── chedraui.py             # Scraper API VTEX Chedraui
 │   │   ├── walmart_sams.py         # Scraper SSR __NEXT_DATA__ Sam's Club y Walmart
 │   │   ├── soriana.py              # Scraper SFCC Soriana
@@ -132,7 +133,7 @@ Entorno probado: **Linux Fedora 44 (Plasma) / Python 3.12+ / Google Chrome o Fir
 El flujo completo del proyecto consta de 3 fases desacopladas y observables:
 
 ```
-[1. Recolección] Scrapers multitienda (Alianza, Sam's, Walmart, Chedraui, Soriana)
+[1. Recolección] Scrapers multitienda (Alianza, Sam's, Costco, Walmart, Chedraui, Soriana)
        ↓ (HTTP con reintentos exponenciales y jitter en http_utils.py)
 [2. Consolidación] Clasificación estricta NOM, validación de esquema y cross-tienda
        ↓ (Escritura atómica en io_utils.py y logging estructurado)
@@ -144,7 +145,7 @@ El flujo completo del proyecto consta de 3 fases desacopladas y observables:
 El proyecto expone comandos de consola estándar mediante `[project.scripts]` (H50):
 
 ```bash
-# Paso A: Consolidar y clasificar datasets de las 5 tiendas (ETL principal para dashboard)
+# Paso A: Consolidar y clasificar datasets de las 6 tiendas (ETL principal para dashboard)
 cantina-consolidar
 # (o alternativamente: python src/actualizar_dashboard_completo.py)
 
@@ -158,11 +159,11 @@ cantina-analizar --entrada data/bebidas_verificadas.csv --salida data/reporte_ra
 ```
 
 > **Diferencia entre comandos:**
-> - `cantina-consolidar` ejecuta el flujo integral de ETL multi-tienda: une los 5 catálogos fuente, aplica clasificación estricta NOM, detecta duplicados, enriquece con comparativas cross-tienda y genera `data/dashboard_data.json` junto a los catálogos unificados.
+> - `cantina-consolidar` ejecuta el flujo integral de ETL multi-tienda: une los 6 catálogos fuente, aplica clasificación estricta NOM, detecta duplicados, enriquece con comparativas cross-tienda y genera `data/dashboard_data.json` junto a los catálogos unificados.
 > - `cantina-analizar` es una herramienta CLI de inspección ad-hoc para evaluar cualquier dataset tabular de forma independiente: audita datos faltantes y duplicados, calcula métricas unitarias e imprime una tabla de rankings por categoría directamente en la terminal.
 
 ### 2. Ejecutar la Suite de Pruebas Unitarias
-El proyecto cuenta con **199 pruebas automatizadas** organizadas en 8 módulos con una cobertura superior al **83%** (`tests/`), que cubren clasificación NOM, normalización de multipacks (`Pack 6`, `Pack x 3`, `(8 Bot)`, etc.), normalización de medidas (`ml` y `L`), métricas por litro, exclusión explícita de outliers de lujo, umbrales centralizados de presupuesto, arbitraje cross-tienda, validación de esquema, selectores interactivos en cascada, escritura atómica, cliente HTTP con backoff, parseo con mocks, entry points CLI, arquitectura modular de plantillas, accesibilidad WCAG y persistencia de estado:
+El proyecto cuenta con **200 pruebas automatizadas** organizadas en 8 módulos con una cobertura superior al **83%** (`tests/`), que cubren clasificación NOM, normalización de multipacks (`Pack 6`, `Pack x 3`, `(8 Bot)`, etc.), normalización de medidas (`ml` y `L`), métricas por litro, exclusión explícita de outliers de lujo, umbrales centralizados de presupuesto, arbitraje cross-tienda, validación de esquema, selectores interactivos en cascada, escritura atómica, cliente HTTP con backoff, parseo con mocks, entry points CLI, arquitectura modular de plantillas, accesibilidad WCAG y persistencia de estado:
 
 ```bash
 pytest
@@ -170,12 +171,12 @@ pytest
 
 ### 3. Ejecutar Scrapers Específicos
 
-- **Scraper Multitienda por Lote (Sam's Club, Walmart, Chedraui, Soriana):**
-  Motor de adquisición bajo demanda que consulta APIs y SSR de las 4 cadenas comerciales para actualizar los CSVs fuente de entrada:
+- **Scraper Multitienda por Lote (Sam's Club, Costco, Walmart, Chedraui, Soriana):**
+  Motor de adquisición bajo demanda que consulta APIs y SSR de las cadenas comerciales para actualizar los CSVs fuente de entrada:
   ```bash
   python -m src.scraper_multitienda
   ```
-  *(Genera `data/scraped_chedraui.csv`, `data/scraped_sams.csv`, `data/scraped_walmart.csv` y `data/scraped_soriana.csv`).*
+  *(Genera `data/scraped_chedraui.csv`, `data/scraped_sams.csv`, `data/scraped_walmart.csv`, `data/scraped_soriana.csv` y `data/scraped_costco.csv`).*
 
 - **Bodegas Alianza (Catálogo exhaustivo o búsqueda por términos):**
   ```bash
