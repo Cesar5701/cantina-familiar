@@ -1,61 +1,69 @@
-    <!-- FOOTER INFORMATIVO & AUDITORÍA DE DATOS -->
-    <footer class="pt-6 pb-4 border-t border-[#DFD5C7] text-center text-xs text-[#574A3D] space-y-1.5">
-      <p class="font-semibold text-[#1F1B16]">
-        Cantina Familiar 2026 · Comparador Multitienda para Reunión Familiar
-      </p>
-      <p>
-        Precios auditados en 6 cadenas: Bodegas Alianza, Sam's Club, Costco, Walmart, Chedraui y Soriana. Vigencias por tienda detalladas en el panel superior.
-      </p>
-      <p class="text-[11px] text-[#8A7B6B]">
-        Corte de catálogo: __CORTE_AUDITORIA__ · Precios sujetos a cambios y existencias por tienda.
-      </p>
-    </footer>
-
   </div>
 
-  <!-- APPLE HIG BOTTOM TAB BAR PARA MÓVIL (< 768px) -->
-  <nav class="md:hidden fixed bottom-0 left-0 right-0 ios-tab-bar z-50 flex justify-around items-center h-16 px-2">
-    <button onclick="cambiarTab('tab-rankings')" id="mob-btn-tab-rankings" class="mob-tab-btn flex flex-col items-center justify-center flex-1 py-1 text-[#784516] font-bold transition-colors">
-      <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
-      <span class="text-[10px] mt-1">Catálogo</span>
+  <!-- PIE DE PÁGINA EDITORIAL DE REGISTRO (STITCH ARCHIVAL FOOTER) -->
+  <footer class="w-full bg-surface-container border-t border-outline-variant/80 py-8 px-4 lg:px-8 mt-6">
+    <div class="max-w-[1440px] mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-xs text-on-surface-variant font-mono">
+      <div class="flex items-center gap-3">
+        <div class="w-7 h-7 rounded bg-primary-container text-on-primary flex items-center justify-center flex-shrink-0">
+          <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">liquor</span>
+        </div>
+        <div>
+          <div class="font-bold text-on-surface uppercase tracking-wider">Cantina Familiar • Registro de Auditoría 2026</div>
+          <div class="text-[11px] text-on-surface-variant">Precios normalizados por litro en Bodegas Alianza, Sam's Club, Costco, Walmart, Chedraui y Soriana.</div>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-4 text-[11px]">
+        <span class="px-2.5 py-1 rounded bg-surface-container-lowest border border-outline-variant/60 text-on-surface font-semibold">
+          Corte de catálogo: __CORTE_AUDITORIA__
+        </span>
+        <span class="text-outline">Consumo responsable • 18+ México</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- BARRA INFERIOR MÓVIL (< 768px) -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 ios-tab-bar z-50 flex justify-around items-center h-16 px-2" aria-label="Navegación móvil">
+    <button onclick="cambiarTab('tab-rankings')" id="mob-btn-tab-rankings" class="mob-tab-btn flex flex-col items-center justify-center flex-1 py-1 text-[#703c1d] font-bold transition-colors cursor-pointer">
+      <span class="material-symbols-outlined text-[20px]">analytics</span>
+      <span class="font-mono text-[10px] mt-0.5">Catálogo</span>
     </button>
-    <button onclick="cambiarTab('tab-versus')" id="mob-btn-tab-versus" class="mob-tab-btn flex flex-col items-center justify-center flex-1 py-1 text-[#8A7B6B] font-medium transition-colors">
-      <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16M17 4v16M3 9h8M13 15h8"/></svg>
-      <span class="text-[10px] mt-1">Versus</span>
+    <button onclick="cambiarTab('tab-versus')" id="mob-btn-tab-versus" class="mob-tab-btn flex flex-col items-center justify-center flex-1 py-1 text-[#85746b] font-medium transition-colors cursor-pointer">
+      <span class="material-symbols-outlined text-[20px]">compare_arrows</span>
+      <span class="font-mono text-[10px] mt-0.5">Versus</span>
     </button>
-    <button onclick="cambiarTab('tab-carrito')" id="mob-btn-tab-carrito" class="mob-tab-btn flex flex-col items-center justify-center flex-1 py-1 text-[#8A7B6B] font-medium transition-colors relative">
-      <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.4 11.2a1 1 0 0 0 1 .8h9.2a1 1 0 0 0 1-.8L20 8H6"/><circle cx="9" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg>
-      <span class="text-[10px] mt-1">Carrito</span>
-      <span id="mob-badge-carrito" class="absolute top-0.5 right-5 bg-[#784516] text-white text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-full">0</span>
+    <button onclick="cambiarTab('tab-carrito')" id="mob-btn-tab-carrito" class="mob-tab-btn flex flex-col items-center justify-center flex-1 py-1 text-[#85746b] font-medium transition-colors relative cursor-pointer">
+      <span class="material-symbols-outlined text-[20px]">shopping_bag</span>
+      <span class="font-mono text-[10px] mt-0.5">Carrito</span>
+      <span id="mob-badge-carrito" class="absolute top-0.5 right-5 bg-primary text-on-primary text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-full">0</span>
     </button>
-    <button onclick="cambiarTab('tab-matriz')" id="mob-btn-tab-matriz" class="mob-tab-btn flex flex-col items-center justify-center flex-1 py-1 text-[#8A7B6B] font-medium transition-colors">
-      <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6zM9 10h6M9 14h6M9 18h4"/></svg>
-      <span class="text-[10px] mt-1">Guía</span>
+    <button onclick="cambiarTab('tab-matriz')" id="mob-btn-tab-matriz" class="mob-tab-btn flex flex-col items-center justify-center flex-1 py-1 text-[#85746b] font-medium transition-colors cursor-pointer">
+      <span class="material-symbols-outlined text-[20px]">menu_book</span>
+      <span class="font-mono text-[10px] mt-0.5">Guía</span>
     </button>
   </nav>
 
-  <!-- MODAL DE COMPARATIVA CROSS-TIENDA -->
-  <div id="modal-cross-tienda" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
-    <div class="bg-[#FAF6F0] rounded-xl sm:rounded-2xl border border-[#DFD5C7] max-w-2xl w-full p-4 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-start border-b border-[#DFD5C7] pb-3 gap-2">
+  <!-- MODAL DE COMPARATIVA CROSS-TIENDA (STITCH ARCHIVAL DOSSIER MODAL) -->
+  <div id="modal-cross-tienda" class="fixed inset-0 z-50 bg-black/55 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-surface rounded-lg border border-outline-variant max-w-2xl w-full p-4 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-start border-b border-outline-variant/80 pb-3.5 gap-3">
         <div class="min-w-0 flex-1">
-          <span class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] text-[10px] uppercase font-bold" id="modal-cross-badge-cat">Categoría</span>
-          <h3 class="text-base sm:text-lg font-bold font-display-md3 text-[#1F1B16] mt-1 break-words leading-snug" id="modal-cross-titulo">Nombre de la Botella</h3>
-          <p class="text-[11px] sm:text-xs text-[#574A3D] mt-0.5" id="modal-cross-subtitulo">Comparativa de precios verificados entre tiendas</p>
+          <span class="badge bg-secondary-container text-on-secondary-fixed border border-outline-variant/70 text-[10px] uppercase font-bold" id="modal-cross-badge-cat">Categoría</span>
+          <h3 class="text-base sm:text-xl font-bold font-headline text-on-surface mt-1.5 break-words leading-snug" id="modal-cross-titulo">Nombre de la Botella</h3>
+          <p class="text-[11px] sm:text-xs font-mono text-on-surface-variant mt-1" id="modal-cross-subtitulo">Comparativa de precios verificados entre tiendas</p>
         </div>
-        <button onclick="cerrarModalCrossTienda()" class="w-8 h-8 rounded-lg bg-[#EFE8DC] hover:bg-[#E6DDD0] text-[#1F1B16] font-bold flex items-center justify-center cursor-pointer transition-colors flex-shrink-0" title="Cerrar modal">
+        <button onclick="cerrarModalCrossTienda()" class="w-8 h-8 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant text-on-surface font-bold flex items-center justify-center cursor-pointer transition-colors flex-shrink-0" title="Cerrar modal">
           ✕
         </button>
       </div>
 
-      <div id="modal-cross-contenido" class="space-y-3">
+      <div id="modal-cross-contenido" class="space-y-2.5">
         <!-- Tarjetas de tiendas generadas dinámicamente -->
       </div>
 
-      <div class="flex flex-col sm:flex-row justify-between items-center gap-2 pt-3 border-t border-[#DFD5C7] text-center sm:text-left">
-        <span class="text-[11px] sm:text-xs text-[#574A3D]">Precios auditados en tiempo real · Octubre 2026</span>
+      <div class="flex flex-col sm:flex-row justify-between items-center gap-2 pt-3 border-t border-outline-variant/80 text-center sm:text-left">
+        <span class="font-mono text-[11px] text-on-surface-variant">Registro auditado en 6 cadenas • Octubre 2026</span>
         <button onclick="cerrarModalCrossTienda()" class="w-full sm:w-auto px-5 py-2 md3-btn-tonal text-xs font-semibold cursor-pointer">
-          Cerrar
+          Cerrar Registro
         </button>
       </div>
     </div>

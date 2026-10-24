@@ -1,65 +1,133 @@
     :root {
-      /* Material 3 Expressive · Warm Almond & Alabaster Tonal Palette */
-      --md-bg: #FAF6F0;
-      --md-surface: #F4EFE6;
-      --md-surface-lowest: #FFFFFF;
-      --md-surface-low: #F7F2EA;
-      --md-surface-container: #EFE8DC;
-      --md-surface-high: #E6DDD0;
-      --md-on-surface: #1F1B16;
-      --md-on-surface-variant: #574A3D;
-      --md-outline: #8A7B6B;
-      --md-outline-variant: #DFD5C7;
+      /* Stitch Design System · Editorial Traditionalism & Archival Spirits Register */
+      --md-bg: #fff8f3;
+      --md-surface: #fff8f3;
+      --md-surface-dim: #e6d8c5;
+      --md-surface-bright: #fff8f3;
+      --md-surface-lowest: #ffffff;
+      --md-surface-low: #fff2e1;
+      --md-surface-container: #faecd8;
+      --md-surface-high: #f4e6d3;
+      --md-surface-highest: #efe1cd;
+      --md-on-surface: #211b0f;
+      --md-on-surface-variant: #52443c;
+      --md-outline: #85746b;
+      --md-outline-variant: #d7c2b9;
 
-      /* Tonal Accents (Soft, low-saturation expressive containers) */
-      --md-primary: #784516;
-      --md-on-primary: #FFFFFF;
-      --md-primary-container: #F8E2C8;
-      --md-on-primary-container: #2B1500;
+      /* Inverse / Dark Espresso Forensic Ledger */
+      --md-inverse-surface: #372f22;
+      --md-inverse-on-surface: #fdefdb;
+      --md-inverse-primary: #ffb68f;
 
-      --md-secondary: #486355;
-      --md-secondary-container: #D3E8DC;
-      --md-on-secondary-container: #0B2016;
+      /* Primary · Toasted Oak & Terracotta */
+      --md-primary: #703c1d;
+      --md-on-primary: #ffffff;
+      --md-primary-container: #8c5332;
+      --md-on-primary-container: #ffd4bf;
+      --md-primary-fixed: #ffdbca;
+      --md-on-primary-fixed: #331200;
 
-      --md-tertiary: #753B47;
-      --md-tertiary-container: #FAD9DF;
-      --md-on-tertiary-container: #2C0811;
+      /* Secondary · Milled Brass & Warm Umber */
+      --md-secondary: #775836;
+      --md-on-secondary: #ffffff;
+      --md-secondary-container: #ffd6ab;
+      --md-on-secondary-container: #7a5b38;
+      --md-on-secondary-fixed: #2b1700;
+
+      /* Tertiary · Aged Walnut */
+      --md-tertiary: #57463d;
+      --md-on-tertiary: #ffffff;
+      --md-tertiary-container: #705e54;
+      --md-on-tertiary-container: #f1d9cc;
+
+      /* Error & Botanical Savings Accents */
+      --md-error: #ba1a1a;
+      --md-error-container: #ffdad6;
+      --md-on-error-container: #93000a;
+      --md-savings-green: #2d6a36;
+      --md-savings-bg: #eaf4ec;
+      --md-savings-border: #c5dfc9;
 
       --md-ease-expressive: cubic-bezier(0.2, 0, 0, 1);
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', 'SF Pro Text', sans-serif;
+      font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
       background-color: var(--md-bg);
       color: var(--md-on-surface);
       -webkit-font-smoothing: antialiased;
-      padding-bottom: 5.5rem; /* Espacio para iOS Bottom Tab Bar en móvil */
     }
 
-    @media (min-width: 768px) {
-      body {
-        padding-bottom: 2.5rem;
-      }
-    }
-
+    .font-headline,
     .font-display-md3 {
-      font-family: 'Fraunces', Georgia, serif;
-      letter-spacing: -0.022em;
+      font-family: 'Playfair Display', Georgia, serif;
+      letter-spacing: -0.015em;
     }
 
-    .font-mono {
+    .font-body {
+      font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    .font-mono,
+    .font-label {
       font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
       font-variant-numeric: tabular-nums;
+    }
+
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      vertical-align: middle;
+      line-height: 1;
+      user-select: none;
     }
 
     table {
       font-variant-numeric: tabular-nums;
     }
 
+    /* Utilidades semánticas de Stitch para compatibilidad determinista */
+    .bg-surface { background-color: #fff8f3; }
+    .bg-surface-dim { background-color: #e6d8c5; }
+    .bg-surface-container-lowest { background-color: #ffffff; }
+    .bg-surface-container-low { background-color: #fff2e1; }
+    .bg-surface-container { background-color: #faecd8; }
+    .bg-surface-container-high { background-color: #f4e6d3; }
+    .bg-surface-container-highest { background-color: #efe1cd; }
+    .bg-inverse-surface { background-color: #372f22; }
+    .bg-primary { background-color: #703c1d; }
+    .bg-primary-container { background-color: #8c5332; }
+    .bg-primary-fixed { background-color: #ffdbca; }
+    .bg-secondary { background-color: #775836; }
+    .bg-secondary-container { background-color: #ffd6ab; }
+    .bg-tertiary { background-color: #57463d; }
+    .bg-tertiary-container { background-color: #705e54; }
+    .bg-error-container { background-color: #ffdad6; }
+
+    .text-on-surface { color: #211b0f; }
+    .text-on-surface-variant { color: #52443c; }
+    .text-inverse-on-surface { color: #fdefdb; }
+    .text-inverse-primary { color: #ffb68f; }
+    .text-primary { color: #703c1d; }
+    .text-on-primary { color: #ffffff; }
+    .text-on-primary-container { color: #ffd4bf; }
+    .text-on-primary-fixed { color: #331200; }
+    .text-secondary { color: #775836; }
+    .text-on-secondary-container { color: #7a5b38; }
+    .text-on-secondary-fixed { color: #2b1700; }
+    .text-tertiary { color: #57463d; }
+    .text-outline { color: #85746b; }
+    .text-error { color: #ba1a1a; }
+    .text-on-error-container { color: #93000a; }
+
+    .border-outline { border-color: #85746b; }
+    .border-outline-variant { border-color: #d7c2b9; }
+    .border-primary { border-color: #703c1d; }
+    .border-secondary { border-color: #775836; }
+
     /* Iconografía lineal SVG minimalista */
     .ico {
-      width: 1.2rem;
-      height: 1.2rem;
+      width: 1.15rem;
+      height: 1.15rem;
       stroke: currentColor;
       stroke-width: 1.75;
       fill: none;
@@ -79,7 +147,7 @@
       flex-shrink: 0;
     }
 
-    /* Indicador cromático discreto por cadena comercial */
+    /* Indicador cromático por cadena comercial */
     .store-dot {
       display: inline-block;
       width: 6px;
@@ -88,29 +156,30 @@
       flex-shrink: 0;
     }
 
-    /* Kicker editorial de cabecera */
+    /* Insignia tipográfica de registro Stitch */
+    .archival-badge,
     .editorial-kicker {
       font-family: 'JetBrains Mono', ui-monospace, monospace;
-      font-size: 0.68rem;
+      font-size: 0.6875rem;
       font-weight: 700;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--md-primary);
     }
 
-    /* Scrollbar sutil tono almendra */
+    /* Scrollbar sutil tono pergamino */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #F4EFE6; }
-    ::-webkit-scrollbar-thumb { background: #C8B9A6; border-radius: 9999px; }
-    ::-webkit-scrollbar-thumb:hover { background: #9C8A74; }
+    ::-webkit-scrollbar-track { background: #faecd8; }
+    ::-webkit-scrollbar-thumb { background: #d7c2b9; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #85746b; }
 
-    /* Superficies Editoriales Cálidas */
+    /* Superficies Editoriales de Registro (Bordes nítidos estilo archivo Stitch) */
     .md3-card {
       background-color: var(--md-surface-lowest);
-      border: 1px solid var(--md-outline-variant);
-      border-radius: 14px;
-      box-shadow: 0 1px 3px rgba(31, 27, 22, 0.04), 0 4px 14px rgba(31, 27, 22, 0.025);
-      transition: transform 0.25s var(--md-ease-expressive), box-shadow 0.25s var(--md-ease-expressive);
+      border: 1px solid rgba(215, 194, 185, 0.7);
+      border-radius: 0.375rem;
+      box-shadow: 0 2px 12px rgba(33, 27, 15, 0.04);
+      transition: transform 0.2s var(--md-ease-expressive), box-shadow 0.2s var(--md-ease-expressive);
       min-width: 0;
       max-width: 100%;
       box-sizing: border-box;
@@ -118,8 +187,8 @@
 
     .md3-surface-tonal {
       background-color: var(--md-surface-container);
-      border: 1px solid var(--md-outline-variant);
-      border-radius: 10px;
+      border: 1px solid rgba(215, 194, 185, 0.75);
+      border-radius: 0.375rem;
       min-width: 0;
       max-width: 100%;
       box-sizing: border-box;
@@ -127,42 +196,41 @@
 
     .md3-surface-low {
       background-color: var(--md-surface-low);
-      border: 1px solid var(--md-outline-variant);
-      border-radius: 10px;
+      border: 1px solid rgba(215, 194, 185, 0.65);
+      border-radius: 0.375rem;
       min-width: 0;
       max-width: 100%;
       box-sizing: border-box;
     }
 
-    /* Inputs con soporte Apple HIG (16px en móvil para evitar auto-zoom de iOS Safari, 44px altura táctil) */
+    /* Inputs de Registro Auditado */
     .md3-input {
       background-color: var(--md-surface-lowest);
-      border: 1px solid #C8B9A6;
-      border-radius: 8px;
+      border: 1px solid var(--md-outline-variant);
+      border-radius: 0.25rem;
       color: var(--md-on-surface);
-      min-height: 44px;
+      min-height: 42px;
       font-size: 16px;
-      transition: all 0.2s var(--md-ease-expressive);
+      transition: all 0.18s var(--md-ease-expressive);
       min-width: 0;
       max-width: 100%;
       box-sizing: border-box;
     }
     @media (min-width: 640px) {
       .md3-input {
-        font-size: 0.875rem;
-        min-height: 40px;
+        font-size: 0.8125rem;
+        min-height: 38px;
       }
     }
     .md3-input:focus {
       outline: none;
       border-color: var(--md-primary);
-      box-shadow: 0 0 0 3px rgba(120, 69, 22, 0.12);
+      box-shadow: 0 0 0 2px rgba(112, 60, 29, 0.15);
     }
     .md3-input::placeholder {
-      color: #9A8B7A;
+      color: #85746b;
     }
 
-    /* Regla para evitar que los select y picklists desborden tarjetas */
     select.md3-input {
       text-overflow: ellipsis;
       overflow: hidden;
@@ -172,19 +240,22 @@
     }
     select.md3-input option {
       font-size: 13px;
-      color: #1F1B16;
-      background-color: #FFFFFF;
+      color: #211b0f;
+      background-color: #ffffff;
     }
 
-    /* Botones Editoriales Arquitectónicos */
+    /* Botones de Registro (Toasted Oak & Milled Brass) */
     .md3-btn-filled {
-      background-color: var(--md-primary);
+      background: linear-gradient(180deg, #8c5332 0%, #703c1d 100%);
       color: var(--md-on-primary);
-      border-radius: 8px;
-      min-height: 44px;
+      border: 1px solid #5c3016;
+      border-radius: 0.25rem;
+      min-height: 42px;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
       font-weight: 600;
-      transition: all 0.2s var(--md-ease-expressive);
-      box-shadow: 0 1px 3px rgba(120, 69, 22, 0.18);
+      letter-spacing: 0.02em;
+      transition: all 0.18s var(--md-ease-expressive);
+      box-shadow: 0 1px 3px rgba(112, 60, 29, 0.2);
     }
     @media (min-width: 640px) {
       .md3-btn-filled {
@@ -192,22 +263,22 @@
       }
     }
     .md3-btn-filled:hover {
-      background-color: #63370F;
-      box-shadow: 0 3px 8px rgba(120, 69, 22, 0.24);
-      transform: translateY(-0.5px);
+      background: linear-gradient(180deg, #703c1d 0%, #582e15 100%);
+      box-shadow: 0 3px 8px rgba(112, 60, 29, 0.28);
     }
     .md3-btn-filled:active {
       transform: scale(0.98);
     }
 
     .md3-btn-tonal {
-      background-color: var(--md-primary-container);
-      color: var(--md-on-primary-container);
-      border: 1px solid #E5C8A3;
-      border-radius: 8px;
-      min-height: 44px;
+      background-color: var(--md-secondary-container);
+      color: var(--md-on-secondary-fixed);
+      border: 1px solid #e0b98d;
+      border-radius: 0.25rem;
+      min-height: 40px;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
       font-weight: 600;
-      transition: all 0.2s var(--md-ease-expressive);
+      transition: all 0.18s var(--md-ease-expressive);
     }
     @media (min-width: 640px) {
       .md3-btn-tonal {
@@ -215,55 +286,65 @@
       }
     }
     .md3-btn-tonal:hover {
-      background-color: #F2D5B3;
+      background-color: #f3c491;
+      border-color: #775836;
     }
 
-    /* Etiquetas Tonales Editoriales */
+    /* Etiquetas Tonales de Registro */
     .badge {
       display: inline-flex;
       align-items: center;
-      gap: 0.35rem;
-      padding: 0.18rem 0.55rem;
-      border-radius: 6px;
-      font-size: 0.7rem;
+      gap: 0.3rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 0.25rem;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 0.68rem;
       font-weight: 600;
-      letter-spacing: 0.01em;
+      letter-spacing: 0.02em;
       white-space: nowrap;
       max-width: 100%;
     }
 
-    /* Insignias de Arbitraje Cross-Tienda Adaptativas (H38 / H40) */
+    /* Insignias de Arbitraje Cross-Tienda Adaptativas */
     .btn-cross-badge {
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
-      padding: 0.22rem 0.6rem;
-      border-radius: 6px;
-      font-size: 0.68rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 0.25rem;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 0.66rem;
       font-weight: 700;
       line-height: 1.25;
       white-space: nowrap;
       max-width: 100%;
-      transition: all 0.2s var(--md-ease-expressive);
+      transition: all 0.18s var(--md-ease-expressive);
     }
     @media (max-width: 639px) {
       .btn-cross-badge {
         white-space: normal;
-        border-radius: 8px;
-        padding: 0.38rem 0.65rem;
+        border-radius: 0.25rem;
+        padding: 0.35rem 0.6rem;
       }
     }
 
-    /* Apple HIG Frosted Glass Bottom Bar en Móvil */
+    .ledger-row {
+      transition: background-color 150ms ease;
+    }
+    .ledger-row:hover {
+      background-color: #f4e6d3;
+    }
+
+    /* Barra inferior móvil estilo pergamino esmerilado */
     .ios-tab-bar {
-      background: rgba(250, 246, 240, 0.9);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
-      backdrop-filter: blur(20px) saturate(180%);
-      border-top: 1px solid rgba(138, 123, 107, 0.25);
+      background: rgba(255, 248, 243, 0.94);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      backdrop-filter: blur(16px) saturate(180%);
+      border-top: 1px solid #d7c2b9;
       padding-bottom: env(safe-area-inset-bottom, 0px);
     }
 
-    /* Toast Editorial */
+    /* Toast de Registro */
     .toast {
       position: fixed;
       bottom: 5.25rem;
@@ -272,17 +353,18 @@
       max-width: 24rem;
       margin: 0 auto;
       padding: 0.8rem 1.15rem;
-      background: #1F1B16;
-      color: #FAF6F0;
-      border: 1px solid #4A3F35;
-      border-radius: 10px;
-      font-size: 0.82rem;
+      background: #372f22;
+      color: #fdefdb;
+      border: 1px solid #775836;
+      border-radius: 0.375rem;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 0.78rem;
       font-weight: 600;
-      box-shadow: 0 10px 25px -5px rgba(31, 27, 22, 0.3);
+      box-shadow: 0 10px 25px -5px rgba(33, 27, 15, 0.35);
       z-index: 9999;
       opacity: 0;
       transform: translateY(1rem);
-      transition: all 0.3s var(--md-ease-expressive);
+      transition: all 0.25s var(--md-ease-expressive);
       pointer-events: none;
     }
     @media (min-width: 768px) {

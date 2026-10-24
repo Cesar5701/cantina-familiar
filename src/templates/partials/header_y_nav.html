@@ -1,124 +1,106 @@
-    <!-- CABECERA EDITORIAL CÁLIDA (INPUTS EN BLANCO AL INICIAR) -->
-    <header class="md3-card p-5 sm:p-7 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-5 border-t-4 border-t-[#784516]">
-      <div class="space-y-1.5">
-        <div class="flex items-center gap-3.5">
-          <div class="w-11 h-11 rounded-xl bg-[#F8E2C8] border border-[#E5C8A3] flex items-center justify-center text-[#784516] shadow-xs flex-shrink-0">
-            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M8 22h8M12 15v7M12 15a5 5 0 0 0 5-5c0-2-.5-4-2-8H9c-1.5 4-2 6-2 8a5 5 0 0 0 5 5Z"/>
-              <path d="M7.5 10h9"/>
-            </svg>
+  <!-- CABECERA EDITORIAL Y BARRA DE NAVEGACIÓN DE REGISTRO (STITCH ARCHIVAL LEDGER) -->
+  <header class="sticky top-0 z-50 w-full bg-[#fff8f3]/95 backdrop-blur-md shadow-[0_1px_8px_rgba(0,0,0,0.04)] border-b border-[#efe1cd]">
+    <div class="max-w-[1440px] mx-auto px-4 lg:px-8">
+      <!-- Fila Superior: Identidad Editorial & Parámetros Globales Reactivos -->
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between py-3 gap-3.5 border-b border-[#d7c2b9]/40">
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded bg-primary-container flex items-center justify-center text-on-primary shadow-sm flex-shrink-0">
+              <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">liquor</span>
+            </div>
+            <div>
+              <h1 class="font-headline text-2xl font-bold tracking-tight text-[#211b0f] leading-none">Cantina Familiar</h1>
+              <p class="font-mono text-[10px] uppercase tracking-[0.16em] text-[#52443c] mt-1">Registro Auditado de Destilados y Vinos · Ed. 2026</p>
+            </div>
           </div>
-          <div>
-            <div class="editorial-kicker">Guía de Compra &amp; Arbitraje Multitienda</div>
-            <h1 class="text-2xl sm:text-3xl font-bold font-display-md3 text-[#1F1B16] leading-tight">
-              Cantina Familiar 2026
-            </h1>
+          <div class="hidden xl:flex items-center gap-2 pl-4 border-l border-[#d7c2b9]/50">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-surface-container text-[#52443c] font-mono text-[11px] font-medium border border-[#d7c2b9]/60">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#3d7042]"></span>
+              Auditado • 6 Cadenas Verificadas • 827 SKUs
+            </span>
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#eaf4ec] text-[#24592a] font-mono text-[10px] font-bold border border-[#c5dfc9]">
+              Corte: __CORTE_AUDITORIA__
+            </span>
           </div>
         </div>
-        <p class="text-[#574A3D] text-xs sm:text-sm max-w-2xl pt-0.5 leading-relaxed">
-          Comparador auditado de tequilas, mezcales, whiskies y vinos en 6 cadenas con cálculo estandarizado por litro y cuota individual.
-        </p>
+
+        <!-- Controles Interactivos Globales: Presupuesto & Cooperadores -->
+        <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2.5 sm:gap-3">
+          <div class="flex items-center bg-surface-container border border-outline-variant/80 rounded px-3 py-1.5 gap-2.5">
+            <span class="material-symbols-outlined text-primary text-[18px] hidden sm:inline">payments</span>
+            <div class="flex flex-col min-w-0 flex-1">
+              <label for="input-presupuesto-global" class="font-mono text-[10px] uppercase tracking-wider text-on-surface-variant leading-none mb-1 cursor-pointer">
+                Presupuesto ($ MXN)
+              </label>
+              <div class="flex items-center gap-1">
+                <span class="font-mono text-xs font-bold text-primary select-none">$</span>
+                <input type="number" id="input-presupuesto-global" value="" min="0" max="200000" step="100"
+                       placeholder="Ej. 8500"
+                       oninput="actualizarParametrosGlobales()"
+                       class="w-full sm:w-28 bg-white/80 border border-[#d7c2b9] rounded px-2 py-0.5 font-mono text-xs sm:text-sm font-bold text-[#211b0f] focus:outline-none focus:border-primary">
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center bg-surface-container border border-outline-variant/80 rounded px-3 py-1.5 gap-2.5">
+            <span class="material-symbols-outlined text-secondary text-[18px] hidden sm:inline">groups</span>
+            <div class="flex flex-col min-w-0 flex-1">
+              <label for="input-cooperadores-global" class="font-mono text-[10px] uppercase tracking-wider text-on-surface-variant leading-none mb-1 cursor-pointer">
+                Personas (N)
+              </label>
+              <div class="flex items-center gap-1">
+                <input type="number" id="input-cooperadores-global" value="" min="1" max="200" step="1"
+                       placeholder="Ej. 14"
+                       oninput="actualizarParametrosGlobales()"
+                       class="w-full sm:w-20 bg-white/80 border border-[#d7c2b9] rounded px-2 py-0.5 font-mono text-xs sm:text-sm font-bold text-[#211b0f] text-center focus:outline-none focus:border-primary">
+                <span class="font-mono text-[10px] text-on-surface-variant hidden sm:inline">pers.</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <!-- CONTROLES GLOBALES EN BLANCO AL INICIAR -->
-      <div class="grid grid-cols-2 sm:flex sm:flex-nowrap items-end gap-3 sm:gap-4 md3-surface-tonal p-3.5 sm:p-4 w-full lg:w-auto">
-        <div class="flex-1 sm:flex-initial min-w-0">
-          <label for="input-presupuesto-global" class="h-7 flex items-end pb-1 text-[11px] font-bold text-[#784516] uppercase tracking-wider leading-tight">
-            Presupuesto ($ MXN)
-          </label>
-          <div class="relative flex items-center w-full">
-            <span class="absolute left-3 text-sm font-bold text-[#784516] font-mono pointer-events-none select-none">$</span>
-            <input type="number" id="input-presupuesto-global" value="" min="0" max="200000" step="100"
-                   placeholder="Ej. 8500"
-                   oninput="actualizarParametrosGlobales()"
-                   class="w-full sm:w-36 md3-input pl-7 pr-3 py-2 font-mono font-bold text-[#1F1B16] text-sm h-10">
-          </div>
-        </div>
+      <!-- Fila Inferior: Pestañas de Navegación Desktop & Estado de las 6 Cadenas -->
+      <div class="hidden md:flex items-center justify-between overflow-x-auto">
+        <nav class="flex items-center gap-1 py-1.5" aria-label="Navegación principal del registro">
+          <button onclick="cambiarTab('tab-rankings')" id="btn-tab-rankings" class="tab-btn px-4 py-2 rounded bg-[#8c5332] text-white font-semibold shadow-sm text-sm transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer">
+            <span class="material-symbols-outlined text-[18px]">analytics</span>
+            <span class="font-mono text-[11px] opacity-80">01</span>
+            <span>Catálogo &amp; Rankings $/L</span>
+          </button>
 
-        <div class="h-10 w-px bg-[#D6C8B8] hidden sm:block mb-0.5"></div>
+          <button onclick="cambiarTab('tab-versus')" id="btn-tab-versus" class="tab-btn px-4 py-2 rounded text-[#52443c] hover:text-[#211b0f] hover:bg-[#faecd8] text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap cursor-pointer">
+            <span class="material-symbols-outlined text-[18px]">compare_arrows</span>
+            <span class="font-mono text-[11px] text-primary font-bold">02</span>
+            <span>Duelo Head-to-Head</span>
+          </button>
 
-        <div class="flex-1 sm:flex-initial min-w-0">
-          <label for="input-cooperadores-global" class="h-7 flex items-end pb-1 text-[11px] font-bold text-[#486355] uppercase tracking-wider leading-tight">
-            Personas (N)
-          </label>
-          <div class="relative flex items-center w-full">
-            <input type="number" id="input-cooperadores-global" value="" min="1" max="200" step="1"
-                   placeholder="Ej. 14"
-                   oninput="actualizarParametrosGlobales()"
-                   class="w-full sm:w-28 md3-input px-3 py-2 font-mono font-bold text-[#1F1B16] text-center text-sm h-10">
-          </div>
-        </div>
-      </div>
-    </header>
+          <button onclick="cambiarTab('tab-carrito')" id="btn-tab-carrito" class="tab-btn px-4 py-2 rounded text-[#52443c] hover:text-[#211b0f] hover:bg-[#faecd8] text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap cursor-pointer">
+            <span class="material-symbols-outlined text-[18px]">shopping_bag</span>
+            <span class="font-mono text-[11px] text-primary font-bold">03</span>
+            <span>Carrito &amp; Armador</span>
+            <span class="ml-0.5 px-1.5 py-0.5 rounded bg-secondary-container text-on-secondary-fixed font-mono text-[10px] font-bold border border-[#d7c2b9]" id="badge-nav-carrito-count">0</span>
+          </button>
 
-    <!-- BANNER MULTITIENDA DE VIGENCIAS Y AUDITORÍA DE PROMOCIONES -->
-    <div class="md3-surface-tonal p-3.5 sm:p-4 space-y-2.5 text-xs border border-[#DFD5C7]">
-      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-[#DFD5C7]/80 pb-2">
-        <div class="flex items-center gap-2 font-bold text-[#1F1B16]">
-          <svg class="ico-sm text-[#784516]" viewBox="0 0 24 24" aria-hidden="true">
-            <rect x="3" y="4" width="18" height="18" rx="2"/>
-            <path d="M16 2v4M8 2v4M3 10h18"/>
-          </svg>
-          <span>Vigencias de Ofertas y Promociones por Cadena (Octubre 2026)</span>
-        </div>
-        <span class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] font-mono text-[11px]">
-          Corte de precios: __CORTE_AUDITORIA__
-        </span>
-      </div>
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 font-mono text-[11px]">
-        <div class="p-2.5 rounded-lg bg-white/95 border border-[#E5C8A3] flex flex-col justify-between">
-          <span class="font-bold text-[#784516] flex items-center gap-1.5"><span class="store-dot bg-[#784516]"></span>Bodegas Alianza</span>
-          <span class="text-[10px] text-[#574A3D] truncate mt-0.5">Aniversario Web</span>
-          <span class="font-extrabold text-[#1F1B16] mt-0.5">Hasta 25 Oct 2026</span>
-        </div>
-        <div class="p-2.5 rounded-lg bg-white/95 border border-[#BFDBFE] flex flex-col justify-between">
-          <span class="font-bold text-[#1E3A8A] flex items-center gap-1.5"><span class="store-dot bg-[#1E3A8A]"></span>Sam's Club</span>
-          <span class="text-[10px] text-[#574A3D] truncate mt-0.5">Cuponera de Octubre</span>
-          <span class="font-extrabold text-[#1F1B16] mt-0.5">Hasta 2 Nov 2026</span>
-        </div>
-        <div class="p-2.5 rounded-lg bg-white/95 border border-[#FECACA] flex flex-col justify-between">
-          <span class="font-bold text-[#991B1B] flex items-center gap-1.5"><span class="store-dot bg-[#991B1B]"></span>Costco</span>
-          <span class="text-[10px] text-[#574A3D] truncate mt-0.5">Cuponera Ahorros</span>
-          <span class="font-extrabold text-[#1F1B16] mt-0.5">Hasta 31 Oct 2026</span>
-        </div>
-        <div class="p-2.5 rounded-lg bg-white/95 border border-[#FED7AA] flex flex-col justify-between">
-          <span class="font-bold text-[#9A3412] flex items-center gap-1.5"><span class="store-dot bg-[#C2410C]"></span>Chedraui</span>
-          <span class="text-[10px] text-[#574A3D] truncate mt-0.5">Quincena MiChedraui</span>
-          <span class="font-extrabold text-[#1F1B16] mt-0.5">Hasta 31 Oct 2026</span>
-        </div>
-        <div class="p-2.5 rounded-lg bg-white/95 border border-[#FECDD3] flex flex-col justify-between">
-          <span class="font-bold text-[#881337] flex items-center gap-1.5"><span class="store-dot bg-[#881337]"></span>Soriana</span>
-          <span class="text-[10px] text-[#574A3D] truncate mt-0.5">Folleto Licores</span>
-          <span class="font-extrabold text-[#1F1B16] mt-0.5">Hasta 22 Oct 2026</span>
-        </div>
-        <div class="p-2.5 rounded-lg bg-white/95 border border-[#BAE6FD] flex flex-col justify-between">
-          <span class="font-bold text-[#0C4A6E] flex items-center gap-1.5"><span class="store-dot bg-[#0369A1]"></span>Walmart</span>
-          <span class="text-[10px] text-[#574A3D] truncate mt-0.5">Rebajas en Línea</span>
-          <span class="font-extrabold text-[#1F1B16] mt-0.5">Hasta 31 Oct 2026</span>
+          <button onclick="cambiarTab('tab-matriz')" id="btn-tab-matriz" class="tab-btn px-4 py-2 rounded text-[#52443c] hover:text-[#211b0f] hover:bg-[#faecd8] text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap cursor-pointer">
+            <span class="material-symbols-outlined text-[18px]">menu_book</span>
+            <span class="font-mono text-[11px] text-primary font-bold">04</span>
+            <span>Guía de Barricas</span>
+          </button>
+        </nav>
+
+        <!-- Tira de Vigencias y Estado de las 6 Cadenas Auditadas -->
+        <div class="hidden lg:flex items-center gap-3 font-mono text-[11px] text-on-surface-variant">
+          <span class="uppercase tracking-wider text-[10px] text-outline">Vigencias:</span>
+          <span class="inline-flex items-center gap-1" title="Bodegas Alianza: Aniversario Web hasta 25 Oct 2026"><span class="w-1.5 h-1.5 rounded-full bg-[#3d7042]"></span>Alianza (25 Oct)</span>
+          <span class="inline-flex items-center gap-1" title="Sam's Club: Cuponera hasta 2 Nov 2026"><span class="w-1.5 h-1.5 rounded-full bg-[#3d7042]"></span>Sam's (2 Nov)</span>
+          <span class="inline-flex items-center gap-1" title="Costco: Cuponera Ahorros hasta 31 Oct 2026"><span class="w-1.5 h-1.5 rounded-full bg-[#3d7042]"></span>Costco (31 Oct)</span>
+          <span class="inline-flex items-center gap-1" title="Chedraui: Quincena MiChedraui hasta 31 Oct 2026"><span class="w-1.5 h-1.5 rounded-full bg-[#3d7042]"></span>Chedraui (31 Oct)</span>
+          <span class="inline-flex items-center gap-1" title="Soriana: Folleto Licores hasta 22 Oct 2026"><span class="w-1.5 h-1.5 rounded-full bg-[#3d7042]"></span>Soriana (22 Oct)</span>
+          <span class="inline-flex items-center gap-1" title="Walmart: Rebajas en Línea hasta 31 Oct 2026"><span class="w-1.5 h-1.5 rounded-full bg-[#3d7042]"></span>Walmart (31 Oct)</span>
         </div>
       </div>
     </div>
+  </header>
 
-    <!-- NAVEGACIÓN DESKTOP EDITORIAL (OCULTA EN MÓVIL, VISIBLE EN >=768px) -->
-    <nav class="hidden md:flex md3-surface-tonal p-1.5 gap-1.5 text-sm font-semibold">
-      <button onclick="cambiarTab('tab-rankings')" id="btn-tab-rankings" class="tab-btn flex-1 py-2.5 px-4 rounded-lg bg-white text-[#1F1B16] shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer">
-        <span class="font-mono text-[11px] text-[#784516] font-bold">01</span>
-        <span>Catálogo &amp; Rankings $/L</span>
-      </button>
-
-      <button onclick="cambiarTab('tab-versus')" id="btn-tab-versus" class="tab-btn flex-1 py-2.5 px-4 rounded-lg text-[#574A3D] hover:text-[#1F1B16] hover:bg-white/60 flex items-center justify-center gap-2 transition-all cursor-pointer">
-        <span class="font-mono text-[11px] text-[#784516] font-bold">02</span>
-        <span>Duelo Head-to-Head</span>
-      </button>
-
-      <button onclick="cambiarTab('tab-carrito')" id="btn-tab-carrito" class="tab-btn flex-1 py-2.5 px-4 rounded-lg text-[#574A3D] hover:text-[#1F1B16] hover:bg-white/60 flex items-center justify-center gap-2 transition-all cursor-pointer">
-        <span class="font-mono text-[11px] text-[#784516] font-bold">03</span>
-        <span>Carrito &amp; Armador</span>
-        <span class="badge bg-[#F8E2C8] text-[#784516] border border-[#E5C8A3] text-[11px] ml-1 font-mono" id="badge-nav-carrito-count">0</span>
-      </button>
-
-      <button onclick="cambiarTab('tab-matriz')" id="btn-tab-matriz" class="tab-btn flex-1 py-2.5 px-4 rounded-lg text-[#574A3D] hover:text-[#1F1B16] hover:bg-white/60 flex items-center justify-center gap-2 transition-all cursor-pointer">
-        <span class="font-mono text-[11px] text-[#784516] font-bold">04</span>
-        <span>Guía de Barricas</span>
-      </button>
-    </nav>
+  <div class="max-w-[1440px] mx-auto px-4 lg:px-8 pt-6 pb-12 space-y-6">
