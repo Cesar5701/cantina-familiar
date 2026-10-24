@@ -51,7 +51,7 @@
 
       lista.forEach(duelo => {
         const btn = document.createElement("button");
-        btn.className = "w-full sm:w-auto text-left whitespace-normal break-words rounded-xl px-3.5 py-2 text-xs font-semibold border border-[#E5C8A3] bg-[#F8E2C8] text-[#2B1500] hover:bg-[#F2D5B3] transition-all cursor-pointer shadow-xs leading-snug";
+        btn.className = "w-full sm:w-auto text-left whitespace-normal break-words rounded px-3 py-1.5 text-xs font-mono font-semibold border border-outline-variant bg-surface-container-lowest text-on-surface hover:bg-secondary-container/70 hover:border-secondary transition-all cursor-pointer shadow-2xs leading-snug";
         btn.innerText = duelo.label;
         btn.onclick = () => cargarDueloDirecto(duelo.a, duelo.b, duelo.storeA, duelo.storeB);
         cont.appendChild(btn);
@@ -128,12 +128,12 @@
 
       if (catA.includes("Añejo Cristalino") && catB.includes("Añejo Cristalino")) {
         return `
-          <div class="md3-surface-tonal p-4 text-xs space-y-1.5 text-[#1F1B16]">
-            <div class="font-bold text-[#784516]">
-              Nota de Arbitraje en Añejo Cristalino:
+          <div class="bg-surface-container p-4 rounded border border-outline-variant/70 text-xs space-y-1.5 text-on-surface">
+            <div class="font-mono font-bold text-primary uppercase tracking-wider text-[11px]">
+              Nota Forense de Arbitraje · Añejo Cristalino
             </div>
-            <p class="text-[#574A3D]">
-              <strong>Maestro Dobel Diamante en Sam's Club ($574.93)</strong>, <strong>1800 Cristalino en Alianza ($600)</strong> y <strong>Don Julio 70 en Walmart ($699)</strong> lideran cada segmento. Elegir la opción de mejor precio en ${cantBotellas} botellas representa un ahorro directo de <strong class="text-[#1F1B16]">$${ahorroTotal.toFixed(2)} MXN</strong> ${textoCuota}.
+            <p class="text-on-surface-variant leading-relaxed">
+              <strong>Maestro Dobel Diamante en Sam's Club ($574.93)</strong>, <strong>1800 Cristalino en Alianza ($600)</strong> y <strong>Don Julio 70 en Walmart ($699)</strong> lideran cada segmento. Elegir la opción de mejor precio en ${cantBotellas} botellas representa un ahorro directo de <strong class="text-on-surface">$${ahorroTotal.toFixed(2)} MXN</strong> ${textoCuota}.
             </p>
           </div>
         `;
@@ -141,11 +141,11 @@
 
       if (catA.includes("Mezcal") && catB.includes("Mezcal")) {
         return `
-          <div class="md3-surface-tonal p-4 text-xs space-y-1.5 text-[#1F1B16]">
-            <div class="font-bold text-[#486355]">
-              Nota de Arbitraje en Mezcal:
+          <div class="bg-surface-container p-4 rounded border border-outline-variant/70 text-xs space-y-1.5 text-on-surface">
+            <div class="font-mono font-bold text-[#2d6a36] uppercase tracking-wider text-[11px]">
+              Nota Forense de Arbitraje · Mezcal Artesanal
             </div>
-            <p class="text-[#574A3D]">
+            <p class="text-on-surface-variant leading-relaxed">
               La línea <strong>400 Conejos en Chedraui ($520 en Reposado, Tobalá y Cuishe)</strong> tiene un descuento de $130 por botella frente a Bodegas Alianza ($650), mientras que <strong>Amarás Reposado en Alianza ($503.30)</strong> es el campeón en relación suavidad-precio.
             </p>
           </div>
@@ -153,8 +153,8 @@
       }
 
       return `
-        <div class="md3-surface-tonal p-4 text-xs text-[#574A3D]">
-          <strong class="text-[#1F1B16]">Nota de Compra:</strong> Optar por la presentación de menor $/Litro dentro del mismo tipo de bebida ahorra <strong class="text-[#784516]">$${ahorroTotal.toFixed(2)} MXN</strong> en una compra de ${cantBotellas} unidades ${textoCuota}.
+        <div class="bg-surface-container p-4 rounded border border-outline-variant/70 text-xs text-on-surface-variant leading-relaxed">
+          <strong class="text-on-surface font-mono uppercase text-[11px]">Dictamen de Volumen:</strong> Optar por la presentación de menor $/Litro dentro del mismo tipo de bebida ahorra <strong class="text-primary">$${ahorroTotal.toFixed(2)} MXN</strong> en una compra de ${cantBotellas} unidades ${textoCuota}.
         </div>
       `;
     }
@@ -175,20 +175,22 @@
 
       if (!compatible) {
         alertaCompat.innerHTML = `
-          <div class="bg-[#FAD9DF] border border-[#E5B3BC] rounded-xl p-4 flex items-start gap-3 text-xs text-[#2C0811]">
+          <div class="bg-error-container border border-[#e0a8a1] rounded-lg p-3.5 flex items-start gap-2.5 text-xs text-on-error-container">
+            <span class="material-symbols-outlined text-[18px] mt-0.5">warning</span>
             <div>
-              <strong class="font-bold text-[#753B47]">Comparando Tipos de Bebida Distintos:</strong>
-              <p class="mt-1">
+              <strong class="font-mono font-bold uppercase text-[11px]">Comparando Escalafones de Maduración Distintos:</strong>
+              <p class="mt-0.5">
                 Estás enfrentando <strong>${prodA.categoria_comparable}</strong> contra <strong>${prodB.categoria_comparable}</strong>.
-                Para una comparativa equivalente en tiempo de barrica, selecciona un tipo específico arriba.
+                Para una comparativa equivalente en tiempo de barrica, selecciona un subtipo específico arriba.
               </p>
             </div>
           </div>
         `;
       } else {
         alertaCompat.innerHTML = `
-          <div class="bg-[#D3E8DC] border border-[#B7D6C5] rounded-xl p-3.5 flex items-center gap-2 text-xs text-[#0B2016]">
-            <span><strong>Mismo Tipo de Bebida:</strong> Ambos contendientes pertenecen a <strong>${prodA.categoria_comparable}</strong>.</span>
+          <div class="bg-[#eaf4ec] border border-[#c5dfc9] rounded-lg p-3 flex items-center gap-2 text-xs text-[#24592a]">
+            <span class="material-symbols-outlined text-[18px]">verified</span>
+            <span class="font-mono text-[11px]"><strong>Paridad Categórica Verificada:</strong> Ambos contendientes pertenecen al escalafón <strong>${prodA.categoria_comparable}</strong>.</span>
           </div>
         `;
       }
@@ -197,62 +199,72 @@
       const esVinoB = prodB.categoria_comparable.includes("Vino");
       const dosisA = esVinoA ? 150 : 45;
       const dosisB = esVinoB ? 150 : 45;
-      const labelDosisA = esVinoA ? "Copa (150 ml)" : "Trago (45 ml)";
-      const labelDosisB = esVinoB ? "Copa (150 ml)" : "Trago (45 ml)";
+      const labelDosisA = esVinoA ? "Copa (150 mL)" : "Trago (45 mL)";
+      const labelDosisB = esVinoB ? "Copa (150 mL)" : "Trago (45 mL)";
 
       const costoTragoA = (prodA.precio_promo / prodA.ml) * dosisA;
       const costoTragoB = (prodB.precio_promo / prodB.ml) * dosisB;
       const tragosA = Math.floor(prodA.ml / dosisA);
       const tragosB = Math.floor(prodB.ml / dosisB);
+      const ganadorLitro = prodA.precio_por_litro <= prodB.precio_por_litro ? prodA : prodB;
+      const perdedorLitro = prodA.precio_por_litro <= prodB.precio_por_litro ? prodB : prodA;
 
       function generarTarjetaProd(p, colorBorder, letra, costoTrago, tragosTotales, labelDosis) {
+        const esGanador = p === ganadorLitro;
         const ahorro = p.ahorro_verificable > 0
-          ? `<span class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] whitespace-normal text-left">Ahorro: -$${p.ahorro_verificable.toFixed(2)} (${p.porcentaje_ahorro}%)</span>`
-          : `<span class="text-xs text-[#8A7B6B]">Precio Regular</span>`;
+          ? `<span class="badge bg-[#eaf4ec] text-[#24592a] border border-[#c5dfc9] whitespace-normal text-left">-$${p.ahorro_verificable.toFixed(2)} (${p.porcentaje_ahorro}%)</span>`
+          : `<span class="font-mono text-[11px] text-outline">Precio Regular</span>`;
 
         const tiendaBadge = getBadgeTienda(p.tienda, false);
 
         return `
-          <div class="md3-card border-t-4 ${colorBorder} p-4 sm:p-5 space-y-4 min-w-0 overflow-hidden">
-            <div class="flex flex-wrap justify-between items-start gap-2">
-              <span class="badge bg-[#EFE8DC] border border-[#D6C8B8] font-bold text-xs text-[#1F1B16]">Contendiente ${letra}</span>
+          <div class="bg-surface-container-lowest rounded-lg border border-outline-variant/80 border-t-4 ${colorBorder} p-5 space-y-4 min-w-0 overflow-hidden shadow-xs">
+            <div class="flex flex-wrap justify-between items-start gap-2 pb-3 border-b border-outline-variant/50">
+              <div class="flex items-center gap-2">
+                <span class="badge bg-surface-container border border-outline-variant/80 font-bold text-xs text-on-surface">Contendiente ${letra}</span>
+                ${esGanador ? `<span class="badge bg-[#eaf4ec] text-[#24592a] border border-[#c5dfc9] text-[10px]">★ Óptimo $/L</span>` : ''}
+              </div>
               <div class="flex flex-wrap gap-1.5 items-center">${tiendaBadge}${ahorro}</div>
             </div>
 
             <div class="min-w-0">
-              <span class="text-xs font-mono text-[#784516] font-bold">${p.categoria_comparable}</span>
-              <h4 class="text-base sm:text-lg font-bold font-display-md3 text-[#1F1B16] mt-0.5 leading-snug break-words">${p.producto}</h4>
-              <p class="text-xs text-[#574A3D] break-words">${p.marca} · ${p.ml} ml · ${getABV(p)}</p>
+              <span class="archival-badge text-primary">${p.categoria_comparable}</span>
+              <h4 class="text-lg sm:text-xl font-bold font-headline text-on-surface mt-1 leading-snug break-words">${p.producto}</h4>
+              <p class="font-mono text-xs text-on-surface-variant mt-1 break-words">${p.marca} · ${p.ml} mL · ${getABV(p)}</p>
             </div>
 
-            <div class="grid grid-cols-2 gap-3 md3-surface-low p-3.5">
+            <!-- Métricas Volumétricas Primarias -->
+            <div class="grid grid-cols-2 gap-3 bg-surface-container-low p-3.5 rounded border border-outline-variant/50">
               <div>
-                <span class="text-[11px] text-[#574A3D]">Precio Botella:</span>
-                <div class="text-lg sm:text-xl font-bold font-mono text-[#1F1B16]">$${p.precio_promo.toFixed(2)}</div>
+                <span class="font-mono text-[10px] uppercase tracking-wider text-on-surface-variant block">Precio Botella</span>
+                <div class="text-xl sm:text-2xl font-bold font-mono text-on-surface mt-0.5">$${p.precio_promo.toFixed(2)}</div>
               </div>
-              <div>
-                <span class="text-[11px] text-[#574A3D]">Precio / Litro:</span>
-                <div class="text-lg sm:text-xl font-bold font-mono text-[#784516]">$${p.precio_por_litro.toFixed(2)}</div>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3 md3-surface-low p-3 text-xs">
-              <div>
-                <span class="text-[11px] text-[#574A3D]">Costo por ${labelDosis}:</span>
-                <div class="text-sm sm:text-base font-bold font-mono text-[#486355] mt-0.5">$${costoTrago.toFixed(2)}</div>
-              </div>
-              <div>
-                <span class="text-[11px] text-[#574A3D]">Rendimiento por Envase:</span>
-                <div class="text-sm sm:text-base font-bold font-mono text-[#784516] mt-0.5">~${tragosTotales} ${p.categoria_comparable.includes("Vino") ? "copas" : "tragos"}</div>
+              <div class="border-l border-outline-variant/50 pl-3">
+                <span class="font-mono text-[10px] uppercase tracking-wider text-primary font-bold block">$/Litro Auditado</span>
+                <div class="text-xl sm:text-2xl font-bold font-mono text-primary mt-0.5">$${p.precio_por_litro.toFixed(2)}</div>
               </div>
             </div>
 
-            <div class="text-xs md3-surface-tonal p-3 text-[#574A3D] leading-relaxed break-words">
-              <strong class="text-[#1F1B16]">Perfil de Barrica:</strong> ${getMaduracionInfo(p)}
+            <!-- Rendimiento por Servicio -->
+            <div class="grid grid-cols-2 gap-3 bg-surface-container p-3 rounded border border-outline-variant/50 text-xs">
+              <div>
+                <span class="font-mono text-[10px] uppercase text-on-surface-variant block">Costo / ${labelDosis}</span>
+                <div class="text-sm sm:text-base font-bold font-mono text-[#2d6a36] mt-0.5">$${costoTrago.toFixed(2)} MXN</div>
+              </div>
+              <div class="border-l border-outline-variant/50 pl-3">
+                <span class="font-mono text-[10px] uppercase text-on-surface-variant block">Servicios / Envase</span>
+                <div class="text-sm sm:text-base font-bold font-mono text-on-surface mt-0.5">~${tragosTotales} ${p.categoria_comparable.includes("Vino") ? "copas" : "tragos"}</div>
+              </div>
             </div>
 
-            <div class="pt-2 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2 text-xs border-t border-[#DFD5C7]">
-              <a href="${p.url}" target="_blank" rel="noopener noreferrer" class="text-xs font-semibold text-[#784516] hover:underline text-center sm:text-left py-1">Ver en tienda en línea ↗</a>
+            <div class="text-xs bg-surface-container-low p-3 rounded border border-outline-variant/40 text-on-surface-variant leading-relaxed break-words">
+              <strong class="font-mono text-[11px] uppercase text-on-surface">Nota de Guarda:</strong> ${getMaduracionInfo(p)}
+            </div>
+
+            <div class="pt-3 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2.5 text-xs border-t border-outline-variant/60">
+              <a href="${p.url}" target="_blank" rel="noopener noreferrer" class="font-mono text-xs font-semibold text-primary hover:underline text-center sm:text-left py-1">
+                Ficha en ${p.tienda} ↗
+              </a>
               <button onclick="modificarCantidad(${DATOS_COMPLETOS.indexOf(p)}, 1); mostrarToast('Añadido al carrito: ${p.producto.replace(/'/g, "\\'")}');" class="w-full sm:w-auto px-4 py-2 md3-btn-filled text-xs cursor-pointer text-center">
                 + Añadir al Carrito
               </button>
@@ -262,8 +274,8 @@
       }
 
       contTarjetas.innerHTML = `
-        ${generarTarjetaProd(prodA, "border-t-[#784516]", "A", costoTragoA, tragosA, labelDosisA)}
-        ${generarTarjetaProd(prodB, "border-t-[#753B47]", "B", costoTragoB, tragosB, labelDosisB)}
+        ${generarTarjetaProd(prodA, "border-t-primary", "Alpha [A]", costoTragoA, tragosA, labelDosisA)}
+        ${generarTarjetaProd(prodB, "border-t-secondary", "Beta [B]", costoTragoB, tragosB, labelDosisB)}
       `;
 
       const nPersEfectivo = COOPERADORES_TOTAL > 0 ? COOPERADORES_TOTAL : 12;
@@ -282,30 +294,30 @@
 
       impactoBox.innerHTML = `
         <div class="space-y-4 min-w-0">
-          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-[#DFD5C7] pb-4">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-outline-variant/60 pb-4">
             <div class="space-y-1 min-w-0">
               <div class="flex items-center gap-2 flex-wrap">
-                <span class="badge bg-[#F8E2C8] text-[#784516] border border-[#E5C8A3] text-xs whitespace-normal text-left">
+                <span class="badge bg-secondary-container text-on-secondary-fixed border border-outline-variant/70 text-xs whitespace-normal text-left">
                   ${badgePersonasTexto}
                 </span>
               </div>
-              <h4 class="text-base font-bold font-display-md3 text-[#1F1B16] mt-1 break-words">
-                Simulación de Impacto en la Cuenta
+              <h4 class="text-lg font-bold font-headline text-on-surface mt-1 break-words">
+                Proyección de Impacto en Cooperación Familiar
               </h4>
             </div>
 
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full sm:w-auto text-center">
-              <div class="md3-surface-low p-2.5">
-                <div class="text-[10px] text-[#574A3D] uppercase">${cantSimulada}× Opción A vs B</div>
-                <div class="text-xs font-mono font-bold text-[#1F1B16] mt-0.5">$${costoSimA.toFixed(0)} vs $${costoSimB.toFixed(0)}</div>
+              <div class="bg-surface-container-lowest p-3 rounded border border-outline-variant/60">
+                <div class="font-mono text-[10px] text-on-surface-variant uppercase">${cantSimulada}× Alpha vs Beta</div>
+                <div class="text-xs font-mono font-bold text-on-surface mt-0.5">$${costoSimA.toFixed(0)} vs $${costoSimB.toFixed(0)}</div>
               </div>
-              <div class="md3-surface-low p-2.5">
-                <div class="text-[10px] text-[#486355] uppercase font-bold">Ahorro Total</div>
-                <div class="text-sm font-mono font-black text-[#486355] mt-0.5">$${ahorroTotalSim.toFixed(2)}</div>
+              <div class="bg-surface-container-lowest p-3 rounded border border-outline-variant/60">
+                <div class="font-mono text-[10px] text-[#2d6a36] uppercase font-bold">Ahorro Total</div>
+                <div class="text-sm font-mono font-black text-[#2d6a36] mt-0.5">$${ahorroTotalSim.toFixed(2)}</div>
               </div>
-              <div class="md3-surface-low p-2.5 col-span-2 sm:col-span-1">
-                <div class="text-[10px] text-[#784516] uppercase font-bold">Ahorro / Persona</div>
-                <div class="text-sm font-mono font-black text-[#784516] mt-0.5">${COOPERADORES_TOTAL > 0 ? '-$' + ahorroPorPersona.toFixed(2) + ' c/u' : 'Ingresa personas'}</div>
+              <div class="bg-surface-container-lowest p-3 rounded border border-outline-variant/60 col-span-2 sm:col-span-1">
+                <div class="font-mono text-[10px] text-primary uppercase font-bold">Ahorro / Persona</div>
+                <div class="text-sm font-mono font-black text-primary mt-0.5">${COOPERADORES_TOTAL > 0 ? '-$' + ahorroPorPersona.toFixed(2) + ' c/u' : 'Ingresa personas'}</div>
               </div>
             </div>
           </div>
@@ -314,31 +326,34 @@
         </div>
       `;
 
-      const ganadorLitro = prodA.precio_por_litro <= prodB.precio_por_litro ? prodA : prodB;
-      const perdedorLitro = prodA.precio_por_litro <= prodB.precio_por_litro ? prodB : prodA;
       const difLitro = Math.abs(prodA.precio_por_litro - prodB.precio_por_litro);
       const pctLitro = ((difLitro / perdedorLitro.precio_por_litro) * 100).toFixed(1);
 
       veredictoBox.innerHTML = `
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div class="space-y-1.5 min-w-0 flex-1">
-            <span class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] uppercase">Veredicto de Compra</span>
-            <h3 class="text-lg sm:text-xl font-bold font-display-md3 text-[#1F1B16] break-words">
-              Mejor Rendimiento $/Litro: <span class="text-[#784516]">${ganadorLitro.producto} (${ganadorLitro.tienda})</span>
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-5 relative z-10">
+          <div class="space-y-2 min-w-0 flex-1">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[#ffd6ab] text-[20px]">gavel</span>
+              <span class="px-2 py-0.5 rounded bg-[#52443c] text-[#ffd6ab] font-mono text-[10px] font-bold uppercase tracking-widest">
+                Veredicto Forense de Compra
+              </span>
+            </div>
+            <h3 class="text-xl sm:text-2xl font-bold font-headline text-[#fdefdb] break-words leading-snug">
+              Campeón Volumétrico $/Litro: <span class="text-[#ffd6ab]">${ganadorLitro.producto} (${ganadorLitro.tienda})</span>
             </h3>
-            <p class="text-xs text-[#574A3D] max-w-3xl leading-relaxed break-words">
-              Ofrece un costo estandarizado de <strong class="text-[#1F1B16]">$${ganadorLitro.precio_por_litro.toFixed(2)} por litro</strong> frente a
-              <strong>$${perdedorLitro.precio_por_litro.toFixed(2)}/L</strong> de ${perdedorLitro.producto} (${perdedorLitro.tienda}),
-              lo que equivale a un ahorro real de <strong class="text-[#486355]">$${difLitro.toFixed(2)} por cada litro (${pctLitro}%)</strong>.
+            <p class="text-xs sm:text-sm text-[#fdefdb]/85 max-w-3xl leading-relaxed break-words">
+              Registra un costo estandarizado de <strong class="text-white font-mono">$${ganadorLitro.precio_por_litro.toFixed(2)} / L</strong> frente a
+              <strong class="font-mono">$${perdedorLitro.precio_por_litro.toFixed(2)} / L</strong> de ${perdedorLitro.producto} (${perdedorLitro.tienda}),
+              generando un diferencial verificable de <strong class="text-[#ffd6ab] font-mono">$${difLitro.toFixed(2)} por litro (${pctLitro}% de ahorro)</strong>.
             </p>
           </div>
-          <div class="flex items-center gap-2 flex-wrap w-full sm:w-auto pt-2 sm:pt-0">
+          <div class="flex items-center gap-2.5 flex-wrap w-full lg:w-auto pt-2 lg:pt-0">
             <a href="${ganadorLitro.url}" target="_blank" rel="noopener noreferrer"
-               class="flex-1 sm:flex-initial px-4 py-2.5 md3-btn-tonal text-xs whitespace-normal sm:whitespace-nowrap inline-flex items-center justify-center gap-1.5 text-center"
+               class="flex-1 sm:flex-initial px-4 py-2.5 rounded bg-[#52443c] hover:bg-[#67574d] text-[#fdefdb] border border-[#85746b] font-mono text-xs font-semibold whitespace-normal sm:whitespace-nowrap inline-flex items-center justify-center gap-1.5 text-center transition-colors"
                title="Abrir ${ganadorLitro.producto} en ${ganadorLitro.tienda}">
               <span>Ver en ${ganadorLitro.tienda}</span> <span>↗</span>
             </a>
-            <button onclick="modificarCantidad(${DATOS_COMPLETOS.indexOf(ganadorLitro)}, 1); mostrarToast('Ganador añadido al carrito: ${ganadorLitro.producto.replace(/'/g, "\\'")}');" class="flex-1 sm:flex-initial px-5 py-2.5 md3-btn-filled text-xs whitespace-normal sm:whitespace-nowrap cursor-pointer text-center">
+            <button onclick="modificarCantidad(${DATOS_COMPLETOS.indexOf(ganadorLitro)}, 1); mostrarToast('Ganador añadido al carrito: ${ganadorLitro.producto.replace(/'/g, "\\'")}');" class="flex-1 sm:flex-initial px-5 py-2.5 rounded bg-[#ffd6ab] hover:bg-[#f3c491] text-[#2b1700] font-mono font-bold text-xs whitespace-normal sm:whitespace-nowrap cursor-pointer text-center transition-colors shadow-sm">
               + Agregar Ganador al Carrito
             </button>
           </div>

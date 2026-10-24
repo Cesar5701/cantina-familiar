@@ -26,7 +26,7 @@
 
     let esCargaInicialTab = true;
 
-    // CAMBIAR PESTAÑA (SINCRONIZA BARRA DESKTOP MD3 Y TAB BAR MÓVIL APPLE HIG)
+    // CAMBIAR PESTAÑA (SINCRONIZA BARRA DESKTOP STITCH Y TAB BAR MÓVIL)
     function cambiarTab(idTab) {
       // Limpiar estilo temporal anti-flicker si fue inyectado en el pre-render
       const preloadStyle = document.getElementById("tab-preload-style");
@@ -36,26 +36,26 @@
       const tabTarget = document.getElementById(idTab);
       if (tabTarget) tabTarget.classList.remove("hidden");
 
-      // Desktop MD3 Segmented Bar
+      // Desktop Stitch Archival Bar
       document.querySelectorAll(".tab-btn").forEach(el => {
-        el.classList.remove("bg-white", "text-[#1F1B16]", "shadow-sm");
-        el.classList.add("text-[#574A3D]");
+        el.classList.remove("bg-[#8c5332]", "text-white", "font-semibold", "shadow-sm");
+        el.classList.add("text-[#52443c]", "font-medium");
       });
       const btn = document.getElementById("btn-" + idTab);
       if (btn) {
-        btn.classList.add("bg-white", "text-[#1F1B16]", "shadow-sm");
-        btn.classList.remove("text-[#574A3D]");
+        btn.classList.add("bg-[#8c5332]", "text-white", "font-semibold", "shadow-sm");
+        btn.classList.remove("text-[#52443c]", "font-medium");
       }
 
-      // Mobile iOS HIG Bottom Tab Bar
+      // Mobile Bottom Tab Bar
       document.querySelectorAll(".mob-tab-btn").forEach(el => {
-        el.classList.remove("text-[#784516]", "font-bold");
-        el.classList.add("text-[#8A7B6B]", "font-medium");
+        el.classList.remove("text-[#703c1d]", "font-bold");
+        el.classList.add("text-[#85746b]", "font-medium");
       });
       const mobBtn = document.getElementById("mob-btn-" + idTab);
       if (mobBtn) {
-        mobBtn.classList.add("text-[#784516]", "font-bold");
-        mobBtn.classList.remove("text-[#8A7B6B]", "font-medium");
+        mobBtn.classList.add("text-[#703c1d]", "font-bold");
+        mobBtn.classList.remove("text-[#85746b]", "font-medium");
       }
 
       if (idTab === 'tab-rankings') {
@@ -160,11 +160,21 @@
       document.getElementById("contador-filtrados").innerText = `${datosFiltrados.length} botellas verificadas`;
       const tituloG = (subCat !== 'Todas' && subCat !== 'Todos_Macro') ? subCat : (macroCat !== 'Todas' ? macroCat : 'Catálogo General');
       document.getElementById("chart-titulo").innerText = `Top 10 Rendimiento $/Litro: ${tituloG}`;
+
+      const elKpiVal = document.getElementById("kpi-mejor-litro-valor");
+      const elKpiDet = document.getElementById("kpi-mejor-litro-detalle");
+      if (elKpiVal && elKpiDet && datosFiltrados.length > 0) {
+        const candidatosDest = datosFiltrados.filter(d => d.categoria !== 'Vino');
+        const poolKpi = candidatosDest.length > 0 ? candidatosDest : datosFiltrados;
+        const mejor = [...poolKpi].sort((a, b) => a.precio_por_litro - b.precio_por_litro)[0];
+        elKpiVal.innerText = `$${mejor.precio_por_litro.toFixed(2)}`;
+        elKpiDet.innerText = `${nombreSinCategoria(mejor)} · ${mejor.tienda}`;
+      }
     }
 
-    const CLASE_ORDEN_BASE = "px-3 py-1.5 rounded-lg font-semibold text-xs transition-colors cursor-pointer min-h-[36px]";
-    const CLASE_ORDEN_ACTIVO = "md3-btn-tonal border border-transparent";
-    const CLASE_ORDEN_INACTIVO = "bg-white border border-[#D6C8B8] text-[#1F1B16] hover:bg-[#EFE8DC]";
+    const CLASE_ORDEN_BASE = "px-3 py-1.5 rounded font-mono font-semibold text-xs transition-colors cursor-pointer min-h-[34px]";
+    const CLASE_ORDEN_ACTIVO = "bg-[#8c5332] text-white border border-[#703c1d] shadow-xs";
+    const CLASE_ORDEN_INACTIVO = "bg-surface-container-lowest border border-outline-variant text-on-surface hover:bg-surface-container-high";
 
     function actualizarEstadoOrden() {
       document.querySelectorAll("[data-orden]").forEach(btn => {
@@ -180,9 +190,9 @@
         const f = th.querySelector(".orden-flecha");
         if (f) f.textContent = activo ? (ordenAsc ? "↑" : "↓") : "";
         if (activo) {
-          th.classList.add("text-[#784516]", "font-bold");
+          th.classList.add("text-primary", "font-bold");
         } else {
-          th.classList.remove("text-[#784516]", "font-bold");
+          th.classList.remove("text-primary", "font-bold");
         }
       });
     }
@@ -224,10 +234,10 @@
 
       if (paginaItems.length === 0) {
         if (tbody) {
-          tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-[#574A3D]">No se encontraron botellas con los filtros seleccionados.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center font-mono text-xs text-on-surface-variant">No se encontraron botellas con los filtros seleccionados.</td></tr>`;
         }
         if (contMovil) {
-          contMovil.innerHTML = `<div class="p-8 text-center text-xs text-[#574A3D]">No se encontraron botellas con los filtros seleccionados.</div>`;
+          contMovil.innerHTML = `<div class="p-8 text-center font-mono text-xs text-on-surface-variant">No se encontraron botellas con los filtros seleccionados.</div>`;
         }
         return;
       }
@@ -236,8 +246,8 @@
 
       paginaItems.forEach(item => {
         const ahorroBadge = item.ahorro_verificable > 0
-          ? `<span class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5]">-$${item.ahorro_verificable.toFixed(2)} (${item.porcentaje_ahorro}%)</span>`
-          : `<span class="text-[#8A7B6B] text-xs">Precio regular</span>`;
+          ? `<span class="badge bg-[#eaf4ec] text-[#24592a] border border-[#c5dfc9]">-$${item.ahorro_verificable.toFixed(2)} (${item.porcentaje_ahorro}%)</span>`
+          : `<span class="text-outline font-mono text-[11px]">Precio regular</span>`;
 
         const tiendaBadge = getBadgeTienda(item.tienda, false);
         const tiendaBadgeCorto = getBadgeTienda(item.tienda, true);
@@ -249,7 +259,7 @@
           if (item.es_precio_mas_bajo) {
             crossBadgeDesktop = `
               <div class="mt-1">
-                <button type="button" onclick="toggleModalCrossTienda(${originalIndex})" class="btn-cross-badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] hover:bg-[#B7D6C5] cursor-pointer" title="Ver comparativa de precios en ${item.num_tiendas_cross} tiendas">
+                <button type="button" onclick="toggleModalCrossTienda(${originalIndex})" class="btn-cross-badge bg-[#eaf4ec] text-[#24592a] border border-[#c5dfc9] hover:bg-[#d5ebd8] cursor-pointer" title="Ver comparativa de precios en ${item.num_tiendas_cross} tiendas">
                   <span>Mejor precio de ${item.num_tiendas_cross} tiendas</span>
                   <span class="text-[9px] underline font-normal">Comparar →</span>
                 </button>
@@ -257,7 +267,7 @@
             `;
             crossBadgeMovil = `
               <div class="pt-0.5">
-                <button type="button" onclick="toggleModalCrossTienda(${originalIndex})" class="btn-cross-badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] active:bg-[#B7D6C5] cursor-pointer w-full justify-between" title="Ver comparativa de precios en ${item.num_tiendas_cross} tiendas">
+                <button type="button" onclick="toggleModalCrossTienda(${originalIndex})" class="btn-cross-badge bg-[#eaf4ec] text-[#24592a] border border-[#c5dfc9] active:bg-[#d5ebd8] cursor-pointer w-full justify-between" title="Ver comparativa de precios en ${item.num_tiendas_cross} tiendas">
                   <span>Mejor precio de ${item.num_tiendas_cross} tiendas</span>
                   <span class="text-[10px] underline font-normal">Comparar →</span>
                 </button>
@@ -266,7 +276,7 @@
           } else {
             crossBadgeDesktop = `
               <div class="mt-1">
-                <button type="button" onclick="toggleModalCrossTienda(${originalIndex})" class="btn-cross-badge bg-[#FDE8E8] text-[#9B1C1C] border border-[#F8B4B4] hover:bg-[#FCD9BD] cursor-pointer" title="Ver comparativa de precios en ${item.num_tiendas_cross} tiendas">
+                <button type="button" onclick="toggleModalCrossTienda(${originalIndex})" class="btn-cross-badge bg-error-container text-on-error-container border border-[#e0a8a1] hover:bg-[#f9c6c0] cursor-pointer" title="Ver comparativa de precios en ${item.num_tiendas_cross} tiendas">
                   <span>Más barato en ${item.tienda_mas_barata} ($${item.precio_minimo_cross.toFixed(2)})</span>
                   <span class="text-[9px] underline font-bold">Ahorra $${item.diferencia_vs_minimo.toFixed(2)} →</span>
                 </button>
@@ -274,7 +284,7 @@
             `;
             crossBadgeMovil = `
               <div class="pt-0.5">
-                <button type="button" onclick="toggleModalCrossTienda(${originalIndex})" class="btn-cross-badge bg-[#FDE8E8] text-[#9B1C1C] border border-[#F8B4B4] active:bg-[#FCD9BD] cursor-pointer w-full justify-between" title="Ver comparativa de precios en ${item.num_tiendas_cross} tiendas">
+                <button type="button" onclick="toggleModalCrossTienda(${originalIndex})" class="btn-cross-badge bg-error-container text-on-error-container border border-[#e0a8a1] active:bg-[#f9c6c0] cursor-pointer w-full justify-between" title="Ver comparativa de precios en ${item.num_tiendas_cross} tiendas">
                   <span>Más barato en ${item.tienda_mas_barata} ($${item.precio_minimo_cross.toFixed(2)})</span>
                   <span class="text-[10px] underline font-bold">Ahorra $${item.diferencia_vs_minimo.toFixed(2)} →</span>
                 </button>
@@ -291,44 +301,44 @@
             : "Paquete / Combo";
           paqueteBadgeDesktop = `
             <div class="mt-1">
-              <span class="badge bg-[#FDE8E8] text-[#9B1C1C] border border-[#F8B4B4]" title="Presentación en paquete o con obsequios incluidos">
+              <span class="badge bg-secondary-container text-on-secondary-fixed border border-outline-variant/80" title="Presentación en paquete o con obsequios incluidos">
                 <span>${textoPaq}</span>
               </span>
             </div>
           `;
           paqueteBadgeMovil = `
             <div>
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-[#FDE8E8] text-[#9B1C1C] border border-[#F8B4B4] leading-tight" title="Presentación en paquete o con obsequios incluidos">
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-mono font-bold bg-secondary-container text-on-secondary-fixed border border-outline-variant/80 leading-tight" title="Presentación en paquete o con obsequios incluidos">
                 <span>${textoPaq}</span>
               </span>
             </div>
           `;
         }
 
-        // 1. Fila Desktop (tr)
+        // 1. Fila Desktop (tr) — Stitch Archival Ledger Row
         if (tbody) {
           const tr = document.createElement("tr");
-          tr.className = "hover:bg-[#F7F2EA] transition-colors";
+          tr.className = "ledger-row transition-colors";
           tr.innerHTML = `
-            <td class="p-3.5 font-medium text-[#1F1B16] max-w-xs">
+            <td class="py-3.5 px-4 font-medium text-on-surface max-w-xs">
               <a href="${item.url}" target="_blank" rel="noopener noreferrer"
-                 class="hover:underline text-[#1F1B16] hover:text-[#784516] inline-flex items-center gap-1 group font-semibold leading-snug"
+                 class="hover:underline text-on-surface hover:text-primary inline-flex items-center gap-1 group font-semibold leading-snug"
                  title="Ver ${item.producto} en tienda oficial ${item.tienda}">
                 <span class="line-clamp-2">${nombreSinCategoria(item)}</span>
-                <span class="text-[10px] text-[#8A7B6B] group-hover:text-[#784516] flex-shrink-0">↗</span>
+                <span class="text-[10px] text-outline group-hover:text-primary flex-shrink-0">↗</span>
               </a>
               ${paqueteBadgeDesktop}
               ${crossBadgeDesktop}
             </td>
-            <td class="p-3.5 text-xs">
-              <span class="badge bg-[#EFE8DC] border border-[#D6C8B8] text-[#574A3D]">${item.categoria_comparable}</span>
+            <td class="py-3.5 px-3 text-xs">
+              <span class="badge bg-surface-container border border-outline-variant/70 text-on-surface-variant">${item.categoria_comparable}</span>
             </td>
-            <td class="p-3.5 text-xs font-mono text-[#574A3D] hidden md:table-cell whitespace-nowrap">${item.ml} ml</td>
-            <td class="p-3.5 font-bold text-[#1F1B16] font-mono whitespace-nowrap">$${item.precio_promo.toFixed(2)}</td>
-            <td class="p-3.5 font-extrabold text-[#784516] font-mono whitespace-nowrap">$${item.precio_por_litro.toFixed(2)}</td>
-            <td class="p-3.5 hidden lg:table-cell whitespace-nowrap">${ahorroBadge}</td>
-            <td class="p-3.5 whitespace-nowrap">${tiendaBadge}</td>
-            <td class="p-3.5 text-center whitespace-nowrap">
+            <td class="py-3.5 px-3 text-xs font-mono text-on-surface-variant text-right hidden md:table-cell whitespace-nowrap">${item.ml} mL</td>
+            <td class="py-3.5 px-3 font-bold text-on-surface font-mono text-right whitespace-nowrap">$${item.precio_promo.toFixed(2)}</td>
+            <td class="py-3.5 px-4 font-extrabold text-primary font-mono text-right bg-surface-container/60 border-x border-outline-variant/40 whitespace-nowrap">$${item.precio_por_litro.toFixed(2)}</td>
+            <td class="py-3.5 px-3 hidden lg:table-cell whitespace-nowrap">${ahorroBadge}</td>
+            <td class="py-3.5 px-3 whitespace-nowrap">${tiendaBadge}</td>
+            <td class="py-3.5 px-4 text-right whitespace-nowrap">
               <button onclick="agregarDesdeTabla(${originalIndex})" class="px-3 py-1.5 text-xs md3-btn-tonal cursor-pointer whitespace-nowrap">
                 + Carrito
               </button>
@@ -339,42 +349,38 @@
 
         // 2. Tarjeta Móvil (Mobile Card táctil sin desbordamiento)
         const ahorroBadgeMovil = item.ahorro_verificable > 0
-          ? `<span class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] text-[10px]">-$${item.ahorro_verificable.toFixed(2)} (${item.porcentaje_ahorro}%)</span>`
+          ? `<span class="badge bg-[#eaf4ec] text-[#24592a] border border-[#c5dfc9] text-[10px]">-$${item.ahorro_verificable.toFixed(2)} (${item.porcentaje_ahorro}%)</span>`
           : "";
 
         movilHtml += `
-          <div class="p-3.5 space-y-2 hover:bg-[#F7F2EA] transition-colors">
-            <!-- Fila Superior: Tienda + Categoría + Volumen -->
+          <div class="p-3.5 space-y-2 hover:bg-surface-container-low transition-colors">
             <div class="flex items-center justify-between gap-1.5 flex-wrap">
               <div class="flex items-center gap-1.5 flex-wrap">
                 ${tiendaBadgeCorto}
-                <span class="badge bg-[#EFE8DC] border border-[#D6C8B8] text-[#574A3D] text-[10px]">${item.categoria_comparable}</span>
+                <span class="badge bg-surface-container border border-outline-variant/70 text-on-surface-variant text-[10px]">${item.categoria_comparable}</span>
               </div>
-              <span class="text-xs font-mono font-bold text-[#574A3D]">${item.ml} ml</span>
+              <span class="text-xs font-mono font-bold text-on-surface-variant">${item.ml} mL</span>
             </div>
 
-            <!-- Nombre de Producto (Legible, sin recortar agresivamente) -->
-            <div class="font-bold text-sm text-[#1F1B16] leading-snug">
+            <div class="font-bold text-sm text-on-surface leading-snug">
               <a href="${item.url}" target="_blank" rel="noopener noreferrer"
-                 class="hover:underline hover:text-[#784516] inline-flex items-center gap-1 group"
+                 class="hover:underline hover:text-primary inline-flex items-center gap-1 group"
                  title="Ver ${item.producto} en tienda oficial ${item.tienda}">
                 <span>${nombreSinCategoria(item)}</span>
-                <span class="text-xs text-[#8A7B6B] group-hover:text-[#784516] flex-shrink-0">↗</span>
+                <span class="text-xs text-outline group-hover:text-primary flex-shrink-0">↗</span>
               </a>
             </div>
 
-            <!-- Badges de paquetes y arbitraje cross-tienda -->
             ${paqueteBadgeMovil}
             ${crossBadgeMovil}
 
-            <!-- Fila Inferior: Precios ($ y $/L) + Botón + Carrito -->
-            <div class="flex items-center justify-between pt-1.5 border-t border-[#DFD5C7]/60 mt-1">
+            <div class="flex items-center justify-between pt-1.5 border-t border-outline-variant/50 mt-1">
               <div class="flex items-baseline gap-2 flex-wrap">
-                <span class="font-extrabold text-base text-[#1F1B16] font-mono">$${item.precio_promo.toFixed(2)}</span>
-                <span class="text-xs font-extrabold text-[#784516] font-mono">$${item.precio_por_litro.toFixed(2)} <span class="font-normal text-[10px] text-[#574A3D]">/ L</span></span>
+                <span class="font-extrabold text-base text-on-surface font-mono">$${item.precio_promo.toFixed(2)}</span>
+                <span class="text-xs font-extrabold text-primary font-mono">$${item.precio_por_litro.toFixed(2)} <span class="font-normal text-[10px] text-on-surface-variant">/ L</span></span>
                 ${ahorroBadgeMovil}
               </div>
-              <button onclick="agregarDesdeTabla(${originalIndex})" class="px-3.5 py-1.5 text-xs font-bold md3-btn-tonal cursor-pointer whitespace-nowrap min-h-[36px] flex items-center gap-1 shadow-sm">
+              <button onclick="agregarDesdeTabla(${originalIndex})" class="px-3.5 py-1.5 text-xs font-bold md3-btn-tonal cursor-pointer whitespace-nowrap min-h-[36px] flex items-center gap-1 shadow-xs">
                 <span>+</span> Carrito
               </button>
             </div>
@@ -398,27 +404,27 @@
       const container = document.getElementById("chart-container");
       const top10 = datosFiltrados.slice(0, 10);
       if (top10.length === 0) {
-        container.innerHTML = "<div class='text-xs text-[#574A3D] p-4'>Sin datos para graficar</div>";
+        container.innerHTML = "<div class='text-xs font-mono text-on-surface-variant p-4'>Sin datos para graficar</div>";
         return;
       }
 
       const maxLitro = Math.max(...top10.map(d => d.precio_por_litro));
 
-      let svgHtml = `<div class="space-y-2.5 py-2">`;
+      let svgHtml = `<div class="space-y-3 py-1">`;
       top10.forEach((item, idx) => {
         const anchoPorcentaje = Math.max(15, (item.precio_por_litro / maxLitro) * 100);
         const colorBarra = idx === 0
-          ? "bg-[#486355]"
-          : (idx < 3 ? "bg-[#784516]" : "bg-[#B89F86]");
+          ? "bg-[#2d6a36]"
+          : (idx < 3 ? "bg-[#703c1d]" : "bg-[#775836]/80");
 
         svgHtml += `
           <div class="space-y-1">
             <div class="flex items-center justify-between gap-2 text-xs">
-              <span class="font-semibold text-[#1F1B16] truncate flex-1 min-w-0">${idx + 1}. ${item.producto} <span class="text-[#574A3D] font-normal">(${item.tienda})</span></span>
-              <span class="font-bold font-mono text-[#784516] flex-shrink-0 whitespace-nowrap">$${item.precio_por_litro.toFixed(2)} / L</span>
+              <span class="font-semibold text-on-surface truncate flex-1 min-w-0 font-mono text-[11px] sm:text-xs"><strong class="text-primary">#0${idx + 1}</strong> ${item.producto} <span class="text-on-surface-variant font-normal">(${item.tienda})</span></span>
+              <span class="font-bold font-mono text-primary flex-shrink-0 whitespace-nowrap">$${item.precio_por_litro.toFixed(2)} / L</span>
             </div>
-            <div class="w-full bg-[#EFE8DC] h-3 rounded-full overflow-hidden">
-              <div class="${colorBarra} h-full rounded-full transition-all duration-500" style="width: ${anchoPorcentaje}%"></div>
+            <div class="w-full bg-surface-container-highest h-2.5 rounded overflow-hidden border border-outline-variant/40">
+              <div class="${colorBarra} h-full rounded transition-all duration-500" style="width: ${anchoPorcentaje}%"></div>
             </div>
           </div>
         `;

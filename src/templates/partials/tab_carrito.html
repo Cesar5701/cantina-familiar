@@ -1,243 +1,313 @@
     <!-- ========================================================================================= -->
-    <!-- PESTAÑA 3: CARRITO DE COMPRAS & GENERADOR DINÁMICO DE CANASTAS -->
+    <!-- PESTAÑA 3: CARRITO MULTITIENDA & ARMADOR DE CANASTAS (STITCH MULTI-RETAILER CART BUILDER) -->
     <!-- ========================================================================================= -->
-    <div id="tab-carrito" class="tab-content space-y-5 hidden">
+    <div id="tab-carrito" class="tab-content space-y-6 hidden">
 
-      <!-- GENERADOR DINÁMICO DE CANASTA (CALCULADO EN TIEMPO REAL SEGÚN PRESUPUESTO Y PERSONAS) -->
-      <div class="md3-card p-5 space-y-4">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-[#DFD5C7] pb-3">
+      <!-- CABECERA EDITORIAL & GENERADOR DINÁMICO DE CANASTAS -->
+      <section class="bg-surface-container-low rounded-lg p-5 sm:p-6 border border-outline-variant/70 space-y-5">
+        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4 pb-4 border-b border-outline-variant/60">
           <div>
-            <h2 class="text-lg font-bold font-display-md3 text-[#1F1B16]">
-              Armador Dinámico de Canastas
+            <div class="flex items-center gap-2.5 mb-2">
+              <span class="px-2.5 py-0.5 rounded bg-secondary-container text-on-secondary-fixed font-mono text-[11px] font-semibold uppercase tracking-widest">
+                Folio #CF-2026-ARBITRAJE
+              </span>
+              <span class="text-xs font-mono text-on-surface-variant">• Optimizador de Compra Dividida en 6 Cadenas</span>
+            </div>
+            <h2 class="font-headline text-2xl sm:text-3xl lg:text-4xl font-bold text-on-surface tracking-tight leading-tight">
+              Armador de Carrito Multitienda y Cooperación
             </h2>
-            <p class="text-xs text-[#574A3D]" id="subtitulo-generador-dinamico">
+            <p class="text-xs sm:text-sm text-on-surface-variant mt-1 max-w-2xl leading-relaxed" id="subtitulo-generador-dinamico">
               Calcula automáticamente cuántas botellas comprar y en qué tienda según el presupuesto y número de personas que ingreses arriba.
             </p>
           </div>
-          <div class="flex items-center gap-2">
-            <button onclick="vaciarCarrito()" class="px-4 py-2 rounded-lg bg-[#FAD9DF] hover:bg-[#F5C2CB] border border-[#E5B3BC] text-xs font-bold text-[#753B47] transition-colors flex items-center gap-1.5 cursor-pointer min-h-[40px]">
+
+          <div class="flex flex-wrap items-center gap-2.5">
+            <button onclick="copiarListaCompra()" class="px-4 py-2 rounded md3-btn-filled text-xs font-mono font-semibold flex items-center gap-1.5 cursor-pointer">
+              <span class="material-symbols-outlined text-[16px]">content_copy</span>
+              <span>Copiar Lista de Compra</span>
+            </button>
+            <button onclick="vaciarCarrito()" class="px-3.5 py-2 rounded bg-error-container hover:bg-[#f9c6c0] border border-[#e0a8a1] text-xs font-mono font-bold text-on-error-container transition-colors flex items-center gap-1.5 cursor-pointer">
+              <span class="material-symbols-outlined text-[16px]">delete_sweep</span>
               <span>Vaciar Carrito</span>
             </button>
           </div>
         </div>
 
-        <!-- Contenedor de 3 propuestas generadas dinámicamente por JS -->
+        <!-- Contenedor de 3 Propuestas Dinámicas de Canasta -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="contenedor-canastas-dinamicas">
         </div>
-      </div>
+      </section>
 
-      <!-- CONSTRUCTOR GRANULAR DIVIDIDO POR CATEGORÍA CON BALANCE FINANCIERO -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 min-w-0">
+      <!-- BENTO GRID DE 5 MÉTRICAS FINANCIERAS MACRO (STITCH 5-METRIC MACRO BENTO GRID) -->
+      <section class="grid grid-cols-2 lg:grid-cols-5 gap-3 bg-surface-container p-3 rounded-lg border border-outline-variant/70">
+        <!-- Métrica 1: Volumen Embotellado -->
+        <div class="bg-surface-container-lowest p-4 rounded border border-outline-variant/50 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-on-surface-variant mb-1">
+            <span class="font-mono text-[10px] uppercase tracking-wider font-semibold">Volumen Líquido</span>
+            <span class="material-symbols-outlined text-[16px] text-secondary">water_bottle</span>
+          </div>
+          <div>
+            <div class="font-mono text-lg sm:text-xl font-bold text-on-surface" id="sim-total-volumen">0.00 Litros</div>
+            <div class="font-mono text-[11px] text-on-surface-variant mt-0.5" id="sim-total-piezas">0 unidades</div>
+          </div>
+        </div>
 
-        <!-- COLUMNA PRINCIPAL (2 COLUMNAS): CATEGORÍAS SEPARADAS -->
-        <div class="lg:col-span-2 space-y-4 min-w-0">
+        <!-- Métrica 2: Total Acumulado -->
+        <div class="bg-surface-container-lowest p-4 rounded border border-outline-variant/50 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-on-surface-variant mb-1">
+            <span class="font-mono text-[10px] uppercase tracking-wider font-semibold">Total Acumulado</span>
+            <span class="material-symbols-outlined text-[16px] text-primary">account_balance_wallet</span>
+          </div>
+          <div>
+            <div class="font-mono text-lg sm:text-xl font-bold text-primary" id="sim-gran-total">$0.00</div>
+            <div class="font-mono text-[11px] text-[#2d6a36] font-medium mt-0.5">Suma en 6 cadenas</div>
+          </div>
+        </div>
 
-          <!-- 1. CATEGORÍA: TEQUILAS -->
-          <div class="md3-card p-5 space-y-4 min-w-0 overflow-hidden">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-[#DFD5C7] pb-3">
-              <div class="flex items-center gap-3">
-                <span class="w-8 h-8 rounded-lg bg-[#F8E2C8] border border-[#E5C8A3] font-mono text-xs font-bold text-[#784516] flex items-center justify-center flex-shrink-0">01</span>
+        <!-- Métrica 3: Cooperación por Persona -->
+        <div class="bg-surface-container-lowest p-4 rounded border-2 border-primary/30 flex flex-col justify-between relative overflow-hidden">
+          <div class="flex items-center justify-between text-primary mb-1 gap-1">
+            <span class="font-mono text-[10px] uppercase tracking-wider font-bold">Cuota / Persona</span>
+            <span class="badge bg-secondary-container text-on-secondary-fixed border border-outline-variant/60 text-[10px]" id="badge-sidebar-cooperadores">Sin definir</span>
+          </div>
+          <div>
+            <div class="font-mono text-lg sm:text-xl font-bold text-primary" id="sim-cuota-persona">—</div>
+            <div class="font-mono text-[10px] text-on-surface-variant mt-0.5 truncate" id="sim-subtitulo-cuota">Ingresa el N° de personas arriba</div>
+          </div>
+        </div>
+
+        <!-- Métrica 4: Uso de Presupuesto -->
+        <div class="bg-surface-container-lowest p-4 rounded border border-outline-variant/50 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-on-surface-variant mb-1">
+            <span class="font-mono text-[10px] uppercase tracking-wider font-semibold">Uso Presupuesto</span>
+            <span class="font-mono text-xs font-bold text-primary" id="sim-porcentaje-barra">Sin tope</span>
+          </div>
+          <div class="space-y-1.5">
+            <div class="w-full bg-surface-container-highest h-2.5 rounded-full overflow-hidden border border-outline-variant/60">
+              <div id="sim-barra-dinamica" class="bg-primary h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+            <div class="font-mono text-[10px] text-on-surface-variant">Monitoreo reactivo</div>
+          </div>
+        </div>
+
+        <!-- Métrica 5: Balance contra Presupuesto -->
+        <div class="col-span-2 lg:col-span-1 bg-surface-container-lowest p-4 rounded border border-outline-variant/50 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-on-surface-variant mb-1">
+            <span class="font-mono text-[10px] uppercase tracking-wider font-semibold">Estado de Cuenta</span>
+            <span class="material-symbols-outlined text-[16px] text-[#2d6a36]">verified</span>
+          </div>
+          <div id="sim-alerta-sobrante" class="p-2 rounded flex flex-col justify-between text-xs md3-surface-low">
+            <span class="text-on-surface-variant font-medium text-[10px]" id="sim-label-sobrante">Presupuesto Objetivo:</span>
+            <span class="text-primary font-bold text-xs font-mono mt-0.5" id="sim-sobrante">Ingresa monto arriba</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ESPACIO DE TRABAJO DUAL (7 COLUMNAS REGISTRO POR CATEGORÍA + 5 COLUMNAS DESGLOSE MULTITIENDA) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start min-w-0">
+
+        <!-- COLUMNA IZQUIERDA (7 COLUMNAS): REGISTRO DE BOTELLAS POR CATEGORÍA -->
+        <div class="lg:col-span-7 space-y-4 min-w-0">
+
+          <!-- 01. TEQUILAS -->
+          <div class="bg-surface-container-lowest rounded-lg border border-outline-variant/80 shadow-xs overflow-hidden min-w-0">
+            <div class="bg-surface-container-high px-4 py-3 border-b border-outline-variant/70 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+              <div class="flex items-center gap-2.5">
+                <span class="w-7 h-7 rounded bg-primary-container text-on-primary font-mono text-xs font-bold flex items-center justify-center flex-shrink-0">01</span>
                 <div>
-                  <h3 class="font-bold text-base font-display-md3 text-[#1F1B16]">
+                  <h3 class="font-headline font-bold text-base text-on-surface leading-tight">
                     Tequilas (Añejo Cristalino, Reposado Cristalino, Añejo Tradicional)
                   </h3>
-                  <p class="text-xs text-[#574A3D]">Solo etiquetas con maduración en barrica o cristalinos</p>
+                  <p class="text-[11px] text-on-surface-variant">Solo etiquetas con maduración en barrica o cristalinos</p>
                 </div>
               </div>
               <div class="flex items-center gap-2 text-xs font-mono">
-                <span class="badge bg-[#F8E2C8] text-[#784516] border border-[#E5C8A3]" id="subtotal-cant-tequila">0 botellas</span>
-                <span class="font-bold text-[#784516] text-sm" id="subtotal-precio-tequila">$0.00</span>
+                <span class="badge bg-secondary-container text-on-secondary-fixed border border-outline-variant/60" id="subtotal-cant-tequila">0 botellas</span>
+                <span class="font-bold text-primary text-sm" id="subtotal-precio-tequila">$0.00</span>
               </div>
             </div>
-
-            <div id="lista-botellas-tequila" class="space-y-2.5"></div>
+            <div id="lista-botellas-tequila" class="p-4 space-y-2.5"></div>
           </div>
 
-          <!-- 2. CATEGORÍA: MEZCALES -->
-          <div class="md3-card p-5 space-y-4 min-w-0 overflow-hidden">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-[#DFD5C7] pb-3">
-              <div class="flex items-center gap-3">
-                <span class="w-8 h-8 rounded-lg bg-[#D3E8DC] border border-[#B7D6C5] font-mono text-xs font-bold text-[#0B2016] flex items-center justify-center flex-shrink-0">02</span>
+          <!-- 02. MEZCALES -->
+          <div class="bg-surface-container-lowest rounded-lg border border-outline-variant/80 shadow-xs overflow-hidden min-w-0">
+            <div class="bg-surface-container-high px-4 py-3 border-b border-outline-variant/70 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+              <div class="flex items-center gap-2.5">
+                <span class="w-7 h-7 rounded bg-[#2d6a36] text-white font-mono text-xs font-bold flex items-center justify-center flex-shrink-0">02</span>
                 <div>
-                  <h3 class="font-bold text-base font-display-md3 text-[#1F1B16]">
+                  <h3 class="font-headline font-bold text-base text-on-surface leading-tight">
                     Mezcales (Silvestres, Reposado, Reposado Cristalino, Añejo, Joven)
                   </h3>
-                  <p class="text-xs text-[#574A3D]">Agaves Tobalá, Cupreata, Cuishe y Espadín artesanal</p>
+                  <p class="text-[11px] text-on-surface-variant">Agaves Tobalá, Cupreata, Cuishe y Espadín artesanal</p>
                 </div>
               </div>
               <div class="flex items-center gap-2 text-xs font-mono">
-                <span class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5]" id="subtotal-cant-mezcal">0 botellas</span>
-                <span class="font-bold text-[#486355] text-sm" id="subtotal-precio-mezcal">$0.00</span>
+                <span class="badge bg-[#eaf4ec] text-[#24592a] border border-[#c5dfc9]" id="subtotal-cant-mezcal">0 botellas</span>
+                <span class="font-bold text-[#2d6a36] text-sm" id="subtotal-precio-mezcal">$0.00</span>
               </div>
             </div>
-
-            <div id="lista-botellas-mezcal" class="space-y-2.5"></div>
+            <div id="lista-botellas-mezcal" class="p-4 space-y-2.5"></div>
           </div>
 
-          <!-- 3. CATEGORÍA: WHISKIES -->
-          <div class="md3-card p-5 space-y-4 min-w-0 overflow-hidden">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-[#DFD5C7] pb-3">
-              <div class="flex items-center gap-3">
-                <span class="w-8 h-8 rounded-lg bg-[#F8E2C8] border border-[#E5C8A3] font-mono text-xs font-bold text-[#784516] flex items-center justify-center flex-shrink-0">03</span>
+          <!-- 03. WHISKIES -->
+          <div class="bg-surface-container-lowest rounded-lg border border-outline-variant/80 shadow-xs overflow-hidden min-w-0">
+            <div class="bg-surface-container-high px-4 py-3 border-b border-outline-variant/70 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+              <div class="flex items-center gap-2.5">
+                <span class="w-7 h-7 rounded bg-secondary text-on-secondary font-mono text-xs font-bold flex items-center justify-center flex-shrink-0">03</span>
                 <div>
-                  <h3 class="font-bold text-base font-display-md3 text-[#1F1B16]">
+                  <h3 class="font-headline font-bold text-base text-on-surface leading-tight">
                     Whisky Blended Scotch
                   </h3>
-                  <p class="text-xs text-[#574A3D]">Formatos de 700 ml, 1 L y presentaciones de 1.75 L</p>
+                  <p class="text-[11px] text-on-surface-variant">Formatos de 700 mL, 1,000 mL y presentaciones de 1.75 L</p>
                 </div>
               </div>
               <div class="flex items-center gap-2 text-xs font-mono">
-                <span class="badge bg-[#F8E2C8] text-[#784516] border border-[#E5C8A3]" id="subtotal-cant-whisky">0 botellas</span>
-                <span class="font-bold text-[#784516] text-sm" id="subtotal-precio-whisky">$0.00</span>
+                <span class="badge bg-secondary-container text-on-secondary-fixed border border-outline-variant/60" id="subtotal-cant-whisky">0 botellas</span>
+                <span class="font-bold text-primary text-sm" id="subtotal-precio-whisky">$0.00</span>
               </div>
             </div>
-
-            <div id="lista-botellas-whisky" class="space-y-2.5"></div>
+            <div id="lista-botellas-whisky" class="p-4 space-y-2.5"></div>
           </div>
 
-          <!-- 4. CATEGORÍA: LICOR HONEY -->
-          <div class="md3-card p-5 space-y-4 min-w-0 overflow-hidden">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-[#DFD5C7] pb-3">
-              <div class="flex items-center gap-3">
-                <span class="w-8 h-8 rounded-lg bg-[#F8E2C8] border border-[#E5C8A3] font-mono text-xs font-bold text-[#784516] flex items-center justify-center flex-shrink-0">04</span>
+          <!-- 04. LICOR DE WHISKY HONEY -->
+          <div class="bg-surface-container-lowest rounded-lg border border-outline-variant/80 shadow-xs overflow-hidden min-w-0">
+            <div class="bg-surface-container-high px-4 py-3 border-b border-outline-variant/70 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+              <div class="flex items-center gap-2.5">
+                <span class="w-7 h-7 rounded bg-primary-container text-on-primary font-mono text-xs font-bold flex items-center justify-center flex-shrink-0">04</span>
                 <div>
-                  <h3 class="font-bold text-base font-display-md3 text-[#1F1B16]">
+                  <h3 class="font-headline font-bold text-base text-on-surface leading-tight">
                     Licor de Whisky Honey (Miel)
                   </h3>
-                  <p class="text-xs text-[#574A3D]">Jack Daniel's Tennessee Honey y Passport Honey verificados</p>
+                  <p class="text-[11px] text-on-surface-variant">Jack Daniel's Tennessee Honey y Passport Honey verificados</p>
                 </div>
               </div>
               <div class="flex items-center gap-2 text-xs font-mono">
-                <span class="badge bg-[#F8E2C8] text-[#784516] border border-[#E5C8A3]" id="subtotal-cant-honey">0 botellas</span>
-                <span class="font-bold text-[#784516] text-sm" id="subtotal-precio-honey">$0.00</span>
+                <span class="badge bg-secondary-container text-on-secondary-fixed border border-outline-variant/60" id="subtotal-cant-honey">0 botellas</span>
+                <span class="font-bold text-primary text-sm" id="subtotal-precio-honey">$0.00</span>
               </div>
             </div>
-
-            <div id="lista-botellas-honey" class="space-y-2.5"></div>
+            <div id="lista-botellas-honey" class="p-4 space-y-2.5"></div>
           </div>
 
-          <!-- 5. CATEGORÍA: VINOS PARA CLERICOT -->
-          <div class="md3-card p-5 space-y-4 min-w-0 overflow-hidden">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-[#DFD5C7] pb-3">
-              <div class="flex items-center gap-3">
-                <span class="w-8 h-8 rounded-lg bg-[#FAD9DF] border border-[#E5B3BC] font-mono text-xs font-bold text-[#753B47] flex items-center justify-center flex-shrink-0">05</span>
+          <!-- 05. VINOS TINTOS PARA CLERICOT Y MESA -->
+          <div class="bg-surface-container-lowest rounded-lg border border-outline-variant/80 shadow-xs overflow-hidden min-w-0">
+            <div class="bg-surface-container-high px-4 py-3 border-b border-outline-variant/70 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+              <div class="flex items-center gap-2.5">
+                <span class="w-7 h-7 rounded bg-tertiary text-on-tertiary font-mono text-xs font-bold flex items-center justify-center flex-shrink-0">05</span>
                 <div>
-                  <h3 class="font-bold text-base font-display-md3 text-[#1F1B16]">
+                  <h3 class="font-headline font-bold text-base text-on-surface leading-tight">
                     Vinos Tintos para Clericot y Mesa
                   </h3>
-                  <p class="text-xs text-[#574A3D]">Garrafas de 4L y 5L, Tetra Pak de 946 ml y botellas de 750 ml</p>
+                  <p class="text-[11px] text-on-surface-variant">Garrafas de 4L y 5L, Tetra Pak de 946 mL y botellas de 750 mL</p>
                 </div>
               </div>
               <div class="flex items-center gap-2 text-xs font-mono">
-                <span class="badge bg-[#FAD9DF] text-[#753B47] border border-[#E5B3BC]" id="subtotal-cant-vino">0 piezas</span>
-                <span class="font-bold text-[#753B47] text-sm" id="subtotal-precio-vino">$0.00</span>
+                <span class="badge bg-error-container text-on-error-container border border-[#e0a8a1]" id="subtotal-cant-vino">0 piezas</span>
+                <span class="font-bold text-on-error-container text-sm" id="subtotal-precio-vino">$0.00</span>
               </div>
             </div>
-
-            <div id="lista-botellas-vino" class="space-y-2.5"></div>
+            <div id="lista-botellas-vino" class="p-4 space-y-2.5"></div>
           </div>
 
         </div>
 
-        <!-- COLUMNA LATERAL STICKY: RESUMEN FINANCIERO Y DESGLOSE POR TIENDA -->
-        <div class="space-y-4">
-          <div class="md3-card p-5 space-y-4 sticky top-6">
-            <div class="flex items-center justify-between border-b border-[#DFD5C7] pb-3">
-              <h3 class="font-bold text-lg font-display-md3 text-[#1F1B16]">Resumen de Cuenta</h3>
-              <span class="badge bg-[#F8E2C8] text-[#784516] border border-[#E5C8A3]" id="badge-sidebar-cooperadores">Sin cooperadores</span>
+        <!-- COLUMNA DERECHA STICKY (5 COLUMNAS): TABLERO DE RUTA DE COMPRA EN 6 CADENAS (STITCH SPLIT RUN BOARD) -->
+        <div class="lg:col-span-5 space-y-4 lg:sticky lg:top-24">
+          <div class="bg-surface-container-lowest rounded-lg border border-outline-variant/80 shadow-sm overflow-hidden">
+            <!-- Cabecera Oscura de Registro Financiero -->
+            <div class="bg-inverse-surface text-inverse-on-surface px-5 py-4 flex items-center justify-between border-b border-[#52443c]">
+              <div class="flex items-center gap-2.5">
+                <span class="material-symbols-outlined text-[#ffd6ab] text-[20px]">route</span>
+                <div>
+                  <h3 class="font-headline font-bold text-lg leading-none">Ruta de Compra por Cadena</h3>
+                  <p class="font-mono text-[10px] text-[#d7c2b9] uppercase tracking-wider mt-1">Desglose auditado en 6 comercios</p>
+                </div>
+              </div>
+              <span class="px-2 py-0.5 rounded bg-[#52443c] text-[#ffd6ab] font-mono text-[10px] font-bold uppercase">Split Run</span>
             </div>
 
-            <!-- BARRA DE CONSUMO DE PRESUPUESTO -->
-            <div class="space-y-1.5">
-              <div class="flex justify-between text-xs">
-                <span class="text-[#574A3D]">Uso de presupuesto:</span>
-                <span class="font-bold font-mono text-[#784516]" id="sim-porcentaje-barra">Sin presupuesto</span>
-              </div>
-              <div class="w-full bg-[#EFE8DC] h-2.5 rounded-full overflow-hidden border border-[#DFD5C7]">
-                <div id="sim-barra-dinamica" class="bg-[#784516] h-full rounded-full transition-all duration-300" style="width: 0%"></div>
-              </div>
-            </div>
+            <div class="p-5 space-y-4">
+              <!-- Alerta de Optimización Cross-Tienda -->
+              <div id="sim-alerta-optimizacion" class="hidden"></div>
 
-            <!-- CUOTA EXACTA POR PERSONA -->
-            <div class="md3-surface-tonal p-4 text-center">
-              <div class="text-[11px] text-[#574A3D] uppercase font-bold tracking-wider">Cooperación por Persona</div>
-              <div class="text-3xl font-extrabold text-[#784516] mt-1 font-mono" id="sim-cuota-persona">—</div>
-              <div class="text-xs text-[#574A3D] mt-1" id="sim-subtitulo-cuota">Ingresa el N° de personas arriba</div>
-            </div>
+              <!-- Tarjetas de Subtotales por Tienda (6 Cadenas) -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs font-mono">
+                <div class="p-3 rounded bg-surface-container-low border border-outline-variant/60 flex flex-col justify-between">
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold text-primary flex items-center gap-1.5"><span class="store-dot bg-primary"></span>Bodegas Alianza</span>
+                    <span class="text-[10px] text-outline">25 Oct</span>
+                  </div>
+                  <div class="text-base font-bold text-on-surface mt-1.5" id="sim-total-alianza">$0.00</div>
+                </div>
 
-            <!-- TOTALES Y DESGLOSE MULTITIENDA -->
-            <div class="space-y-2 border-t border-[#DFD5C7] pt-3 text-xs">
-              <div class="flex justify-between">
-                <span class="text-[#574A3D]">Botellas / Envases:</span>
-                <span class="font-semibold font-mono text-[#1F1B16]" id="sim-total-piezas">0 unidades</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-[#574A3D]">Volumen Líquido Total:</span>
-                <span class="font-semibold font-mono text-[#1F1B16]" id="sim-total-volumen">0.00 Litros</span>
-              </div>
-              <div class="flex justify-between items-center pt-1">
-                <span class="text-[#574A3D] flex items-center gap-1.5"><span class="store-dot bg-[#784516]"></span>Bodegas Alianza:</span>
-                <span class="font-semibold font-mono text-[#784516]" id="sim-total-alianza">$0.00</span>
-              </div>
-              <div class="flex justify-between items-center">
-                <span class="text-[#574A3D] flex items-center gap-1.5"><span class="store-dot bg-[#1E3A8A]"></span>Sam's Club:</span>
-                <span class="font-semibold font-mono text-[#1E40AF]" id="sim-total-sams">$0.00</span>
-              </div>
-              <div class="flex justify-between items-center">
-                <span class="text-[#574A3D] flex items-center gap-1.5"><span class="store-dot bg-[#991B1B]"></span>Costco:</span>
-                <span class="font-semibold font-mono text-[#991B1B]" id="sim-total-costco">$0.00</span>
-              </div>
-              <div class="flex justify-between items-center">
-                <span class="text-[#574A3D] flex items-center gap-1.5"><span class="store-dot bg-[#0369A1]"></span>Walmart:</span>
-                <span class="font-semibold font-mono text-[#0369A1]" id="sim-total-walmart">$0.00</span>
-              </div>
-              <div class="flex justify-between items-center">
-                <span class="text-[#574A3D] flex items-center gap-1.5"><span class="store-dot bg-[#C2410C]"></span>Chedraui:</span>
-                <span class="font-semibold font-mono text-[#C2410C]" id="sim-total-chedraui">$0.00</span>
-              </div>
-              <div class="flex justify-between items-center">
-                <span class="text-[#574A3D] flex items-center gap-1.5"><span class="store-dot bg-[#881337]"></span>Soriana:</span>
-                <span class="font-semibold font-mono text-[#9F1239]" id="sim-total-soriana">$0.00</span>
-              </div>
-              <div class="flex justify-between text-sm font-bold pt-2 border-t border-[#DFD5C7]">
-                <span class="text-[#1F1B16]">Total Acumulado:</span>
-                <span class="text-[#784516] font-mono text-base" id="sim-gran-total">$0.00</span>
-              </div>
-            </div>
+                <div class="p-3 rounded bg-surface-container-low border border-outline-variant/60 flex flex-col justify-between">
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold text-[#1E3A8A] flex items-center gap-1.5"><span class="store-dot bg-[#1E3A8A]"></span>Sam's Club</span>
+                    <span class="text-[10px] text-outline">2 Nov</span>
+                  </div>
+                  <div class="text-base font-bold text-on-surface mt-1.5" id="sim-total-sams">$0.00</div>
+                </div>
 
-            <!-- BALANCE CONTRA PRESUPUESTO -->
-            <div id="sim-alerta-sobrante" class="p-3 rounded-lg flex items-center justify-between text-xs md3-surface-low">
-              <span class="text-[#574A3D] font-medium" id="sim-label-sobrante">Balance de Presupuesto:</span>
-              <span class="text-[#784516] font-bold text-xs font-mono" id="sim-sobrante">Ingresa monto arriba</span>
-            </div>
+                <div class="p-3 rounded bg-surface-container-low border border-outline-variant/60 flex flex-col justify-between">
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold text-[#991B1B] flex items-center gap-1.5"><span class="store-dot bg-[#991B1B]"></span>Costco</span>
+                    <span class="text-[10px] text-outline">31 Oct</span>
+                  </div>
+                  <div class="text-base font-bold text-on-surface mt-1.5" id="sim-total-costco">$0.00</div>
+                </div>
 
-            <!-- ALERTA DE OPTIMIZACIÓN CROSS-TIENDA -->
-            <div id="sim-alerta-optimizacion" class="hidden"></div>
+                <div class="p-3 rounded bg-surface-container-low border border-outline-variant/60 flex flex-col justify-between">
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold text-[#0C4A6E] flex items-center gap-1.5"><span class="store-dot bg-[#0369A1]"></span>Walmart</span>
+                    <span class="text-[10px] text-outline">31 Oct</span>
+                  </div>
+                  <div class="text-base font-bold text-on-surface mt-1.5" id="sim-total-walmart">$0.00</div>
+                </div>
 
-            <!-- NOTA DE VIGENCIA DE PRECIOS EN CARRITO -->
-            <div class="p-3 rounded-lg bg-[#FAF6F0] border border-[#DFD5C7] text-[11px] text-[#574A3D] space-y-1.5">
-              <div class="font-bold text-[#1F1B16] flex items-center justify-between">
-                <span>Vigencias de Ofertas:</span>
-                <span class="text-[10px] text-[#784516] font-mono">6 tiendas</span>
+                <div class="p-3 rounded bg-surface-container-low border border-outline-variant/60 flex flex-col justify-between">
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold text-[#9A3412] flex items-center gap-1.5"><span class="store-dot bg-[#C2410C]"></span>Chedraui</span>
+                    <span class="text-[10px] text-outline">31 Oct</span>
+                  </div>
+                  <div class="text-base font-bold text-on-surface mt-1.5" id="sim-total-chedraui">$0.00</div>
+                </div>
+
+                <div class="p-3 rounded bg-surface-container-low border border-outline-variant/60 flex flex-col justify-between">
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold text-[#881337] flex items-center gap-1.5"><span class="store-dot bg-[#881337]"></span>Soriana</span>
+                    <span class="text-[10px] text-outline">22 Oct</span>
+                  </div>
+                  <div class="text-base font-bold text-on-surface mt-1.5" id="sim-total-soriana">$0.00</div>
+                </div>
               </div>
-              <ul class="space-y-0.5 text-[10px] font-mono">
-                <li>• Alianza: <strong class="text-[#784516]">25 Oct</strong> (Aniversario)</li>
-                <li>• Sam's: <strong class="text-[#1E3A8A]">2 Nov</strong> (Cuponera)</li>
-                <li>• Costco: <strong class="text-[#991B1B]">31 Oct</strong> (Cuponera)</li>
-                <li>• Chedraui: <strong class="text-[#7C2D12]">31 Oct</strong> (Quincena)</li>
-                <li>• Soriana: <strong class="text-[#881337]">22 Oct</strong> (Folleto)</li>
-                <li>• Walmart: <strong class="text-[#0C4A6E]">31 Oct</strong> (Rebajas)</li>
-              </ul>
-            </div>
 
-            <!-- BOTONES DE ACCIÓN RÁPIDA -->
-            <div class="grid grid-cols-2 gap-2 pt-2 border-t border-[#DFD5C7]">
-              <button onclick="vaciarCarrito()" class="py-2 px-3 rounded-lg bg-[#FAD9DF] hover:bg-[#F5C2CB] border border-[#E5B3BC] text-xs text-[#753B47] font-bold transition-colors text-center flex items-center justify-center gap-1 cursor-pointer min-h-[40px]">
-                <span>Vaciar</span>
-              </button>
-              <button onclick="copiarListaCompra()" class="py-2 px-3 md3-btn-filled text-xs text-center flex items-center justify-center gap-1 cursor-pointer">
-                <span>Copiar Lista</span>
-              </button>
+              <!-- Resumen de Vigencias de Promociones -->
+              <div class="p-3.5 rounded bg-surface-container border border-outline-variant/70 text-[11px] text-on-surface-variant space-y-1.5">
+                <div class="font-mono font-bold text-on-surface flex items-center justify-between uppercase text-[10px] tracking-wider">
+                  <span>Vigencias de Ofertas Auditadas</span>
+                  <span class="text-primary">6 Cadenas</span>
+                </div>
+                <ul class="grid grid-cols-2 gap-x-3 gap-y-1 text-[10px] font-mono pt-1 border-t border-outline-variant/50">
+                  <li>• Alianza: <strong class="text-primary">25 Oct</strong> (Aniv.)</li>
+                  <li>• Sam's: <strong class="text-[#1E3A8A]">2 Nov</strong> (Cuponera)</li>
+                  <li>• Costco: <strong class="text-[#991B1B]">31 Oct</strong> (Cuponera)</li>
+                  <li>• Chedraui: <strong class="text-[#9A3412]">31 Oct</strong> (Quincena)</li>
+                  <li>• Soriana: <strong class="text-[#881337]">22 Oct</strong> (Folleto)</li>
+                  <li>• Walmart: <strong class="text-[#0C4A6E]">31 Oct</strong> (Rebajas)</li>
+                </ul>
+              </div>
+
+              <!-- Botones de Acción Rápida -->
+              <div class="grid grid-cols-2 gap-2.5 pt-2 border-t border-outline-variant/60">
+                <button onclick="vaciarCarrito()" class="py-2.5 px-3 rounded bg-error-container hover:bg-[#f9c6c0] border border-[#e0a8a1] text-xs font-mono text-on-error-container font-bold transition-colors text-center flex items-center justify-center gap-1.5 cursor-pointer">
+                  <span class="material-symbols-outlined text-[16px]">delete</span>
+                  <span>Vaciar</span>
+                </button>
+                <button onclick="copiarListaCompra()" class="py-2.5 px-3 md3-btn-filled text-xs text-center flex items-center justify-center gap-1.5 cursor-pointer">
+                  <span class="material-symbols-outlined text-[16px]">share</span>
+                  <span>Copiar Lista</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

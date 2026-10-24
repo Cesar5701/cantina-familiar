@@ -402,28 +402,28 @@
         barraEl.style.width = `${porcentajeUso}%`;
 
         if (granTotal > PRESUPUESTO_OBJETIVO) {
-          barraEl.className = "bg-[#9F1239] h-full rounded-full transition-all duration-300";
-          alertaBox.className = "p-3 rounded-lg flex items-center justify-between text-xs bg-[#FAD9DF] border border-[#E5B3BC]";
-          labelSobrante.innerText = "Excedente sobre presupuesto:";
-          labelSobrante.className = "text-[#753B47] font-bold";
+          barraEl.className = "bg-[#ba1a1a] h-full rounded-full transition-all duration-300";
+          alertaBox.className = "p-2 rounded flex flex-col justify-between text-xs bg-error-container border border-[#e0a8a1]";
+          labelSobrante.innerText = "Excedente sobre tope:";
+          labelSobrante.className = "text-on-error-container font-bold text-[10px]";
           valSobrante.innerText = `-$${Math.abs(sobrante).toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-          valSobrante.className = "text-[#753B47] font-black text-sm font-mono";
+          valSobrante.className = "text-on-error-container font-black text-xs font-mono mt-0.5";
         } else {
-          barraEl.className = "bg-[#784516] h-full rounded-full transition-all duration-300";
-          alertaBox.className = "p-3 rounded-lg flex items-center justify-between text-xs bg-[#D3E8DC] border border-[#B7D6C5]";
+          barraEl.className = "bg-primary h-full rounded-full transition-all duration-300";
+          alertaBox.className = "p-2 rounded flex flex-col justify-between text-xs bg-[#eaf4ec] border border-[#c5dfc9]";
           labelSobrante.innerText = "Presupuesto Disponible:";
-          labelSobrante.className = "text-[#0B2016] font-medium";
+          labelSobrante.className = "text-[#24592a] font-medium text-[10px]";
           valSobrante.innerText = `+$${sobrante.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-          valSobrante.className = "text-[#0B2016] font-bold text-sm font-mono";
+          valSobrante.className = "text-[#24592a] font-bold text-xs font-mono mt-0.5";
         }
       } else {
         document.getElementById("sim-porcentaje-barra").innerText = `Sin tope`;
         barraEl.style.width = `0%`;
-        alertaBox.className = "p-3 rounded-lg flex items-center justify-between text-xs md3-surface-low";
+        alertaBox.className = "p-2 rounded flex flex-col justify-between text-xs md3-surface-low";
         labelSobrante.innerText = "Presupuesto Objetivo:";
-        labelSobrante.className = "text-[#574A3D] font-medium";
+        labelSobrante.className = "text-on-surface-variant font-medium text-[10px]";
         valSobrante.innerText = "Ingresa monto arriba";
-        valSobrante.className = "text-[#784516] font-mono text-xs font-semibold";
+        valSobrante.className = "text-primary font-mono text-xs font-semibold mt-0.5";
       }
 
       // Alerta de Ahorro Potencial Cross-Tienda en Carrito

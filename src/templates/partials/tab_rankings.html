@@ -1,29 +1,110 @@
     <!-- ========================================================================================= -->
-    <!-- PESTAÑA 1: CATÁLOGO & RANKINGS $/LITRO (SEGMENTACIÓN EN 2 PASOS: CATEGORÍA -> TIPO) -->
+    <!-- PESTAÑA 1: CATÁLOGO & RANKINGS $/LITRO (STITCH ARCHIVAL LEDGER & VOLUMETRIC INDEX) -->
     <!-- ========================================================================================= -->
-    <div id="tab-rankings" class="tab-content space-y-5">
+    <div id="tab-rankings" class="tab-content space-y-6">
 
-      <!-- BARRA DE FILTROS EN 2 NIVELES SEPARADOS (MD3 SURFACE) -->
-      <div class="md3-card p-5 space-y-4">
-        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-[#DFD5C7] pb-3">
-          <div>
-            <h2 class="text-lg font-bold font-display-md3 text-[#1F1B16]">
-              Explorador de Catálogo Multitienda
-            </h2>
-            <p class="text-xs text-[#574A3D]">
-              Paso 1: Elige la categoría de bebida · Paso 2: Filtra por el tipo de añejamiento o estilo.
-            </p>
+      <!-- CABECERA DE SECCIÓN EDITORIAL (STITCH MASTHEAD) -->
+      <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4 pb-2 border-b border-outline-variant/60">
+        <div>
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="px-2 py-0.5 bg-secondary-container text-on-secondary-container archival-badge rounded">Códice de Registro • Vol. IV</span>
+            <span class="font-mono text-xs text-outline">Auditoría Estandarizada: __CORTE_AUDITORIA__</span>
           </div>
-          <div class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] font-mono text-xs self-start sm:self-auto px-3 py-1" id="contador-filtrados">
-            827 botellas verificadas (6 tiendas)
+          <h2 class="font-headline text-2xl sm:text-3xl lg:text-4xl font-bold text-on-surface tracking-tight leading-tight">
+            Índice de Destilados Auditados y Rankings $/Litro
+          </h2>
+        </div>
+        <p class="text-xs sm:text-sm text-on-surface-variant max-w-md leading-relaxed border-l-2 border-primary/40 pl-4">
+          Valuación volumétrica normalizada a 1,000 mL equivalentes en seis cadenas comerciales verificadas. Identificando arbitraje de precios y rendimiento líquido real.
+        </p>
+      </div>
+
+      <!-- BANDA DE 4 KPIS EDITORIALES (STITCH KPI RIBBON) -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <!-- KPI 1: Mejor $/Litro Global -->
+        <div class="bg-surface-container-low rounded-lg p-5 border border-outline-variant/60 border-l-4 border-l-primary flex flex-col justify-between relative overflow-hidden">
+          <div class="flex items-start justify-between gap-2">
+            <span class="archival-badge text-primary">Mejor $/Litro (Destilados)</span>
+            <span class="material-symbols-outlined text-primary/70 text-[20px]">verified</span>
+          </div>
+          <div class="my-2.5">
+            <div class="flex items-baseline gap-1.5">
+              <span class="font-mono text-2xl font-bold text-on-surface" id="kpi-mejor-litro-valor">$261.89</span>
+              <span class="font-mono text-xs text-on-surface-variant font-medium">/ Litro</span>
+            </div>
+            <p class="text-xs font-semibold text-on-surface mt-1 truncate" id="kpi-mejor-litro-detalle">Black &amp; White 1000 mL · Sam's Club</p>
+          </div>
+          <div class="flex items-center justify-between pt-2.5 border-t border-outline-variant/40 font-mono text-[11px]">
+            <span class="text-on-surface-variant">Vinos desde <strong class="text-primary">$67.10/L</strong></span>
+            <span class="text-[#2d6a36] font-semibold">1,000 mL std</span>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-          <!-- 1. Menú de Categoría Principal -->
-          <div>
-            <label for="filtro-macro-categoria" class="block text-xs font-bold text-[#784516] mb-1.5">1. Categoría de Bebida:</label>
-            <select id="filtro-macro-categoria" onchange="actualizarSubtiposCatalogo()" class="w-full md3-input px-3 py-2 font-semibold">
+        <!-- KPI 2: Cobertura del Catálogo Auditado -->
+        <div class="bg-surface-container-low rounded-lg p-5 border border-outline-variant/60 flex flex-col justify-between">
+          <div class="flex items-start justify-between gap-2">
+            <span class="archival-badge text-on-surface-variant">Catálogo Auditado Activo</span>
+            <span class="material-symbols-outlined text-secondary text-[20px]">inventory_2</span>
+          </div>
+          <div class="my-2.5">
+            <div class="font-mono text-xl sm:text-2xl font-bold text-on-surface" id="contador-filtrados">
+              827 botellas verificadas
+            </div>
+            <p class="text-xs text-on-surface-variant mt-1">Tequila, Mezcal, Whisky, Licor Honey y Vino Tinto</p>
+          </div>
+          <div class="flex items-center justify-between pt-2.5 border-t border-outline-variant/40 font-mono text-[11px]">
+            <span class="text-on-surface-variant">Cadenas activas:</span>
+            <span class="text-primary font-bold">6 comercios</span>
+          </div>
+        </div>
+
+        <!-- KPI 3: Arbitraje Cross-Tienda -->
+        <div class="bg-surface-container-low rounded-lg p-5 border border-outline-variant/60 flex flex-col justify-between">
+          <div class="flex items-start justify-between gap-2">
+            <span class="archival-badge text-on-surface-variant">Arbitraje Cross-Tienda</span>
+            <span class="material-symbols-outlined text-[#2d6a36] text-[20px]">trending_down</span>
+          </div>
+          <div class="my-2.5">
+            <div class="flex items-baseline gap-1.5">
+              <span class="font-mono text-2xl font-bold text-[#2d6a36]">101 Etiquetas</span>
+              <span class="font-mono text-xs font-semibold text-[#2d6a36]">comparables</span>
+            </div>
+            <p class="text-xs text-on-surface-variant mt-1 truncate">Misma botella auditada en 2 a 6 tiendas simultáneas</p>
+          </div>
+          <div class="flex items-center justify-between pt-2.5 border-t border-outline-variant/40 font-mono text-[11px]">
+            <span class="text-on-surface-variant">Ahorro detectado:</span>
+            <span class="text-[#2d6a36] font-bold">Hasta 34% / bot.</span>
+          </div>
+        </div>
+
+        <!-- KPI 4: Ventana de Promociones -->
+        <div class="bg-surface-container-low rounded-lg p-5 border border-outline-variant/60 flex flex-col justify-between">
+          <div class="flex items-start justify-between gap-2">
+            <span class="archival-badge text-on-surface-variant">Vigencias Comerciales</span>
+            <span class="material-symbols-outlined text-secondary text-[20px]">calendar_month</span>
+          </div>
+          <div class="my-2.5">
+            <div class="flex items-baseline gap-1.5">
+              <span class="font-mono text-xl sm:text-2xl font-bold text-primary">Oct – Nov 2026</span>
+            </div>
+            <p class="text-xs text-on-surface-variant mt-1 truncate">Aniversario Alianza · Cuponeras Sam's y Costco</p>
+          </div>
+          <div class="flex items-center justify-between pt-2.5 border-t border-outline-variant/40 font-mono text-[11px]">
+            <span class="text-on-surface-variant">Corte verificado:</span>
+            <span class="text-on-surface font-semibold">__CORTE_AUDITORIA__</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- BARRA DE FILTRADO DE REGISTRO EN 2 NIVELES (STITCH AUDITING FILTER LEDGER STRIP) -->
+      <section class="bg-surface-container rounded-lg p-5 border border-outline-variant/80 shadow-sm space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 items-end">
+          <!-- Paso 01: Categoría de Bebida -->
+          <div class="lg:col-span-3">
+            <label for="filtro-macro-categoria" class="archival-badge text-on-surface-variant block mb-1.5">
+              Paso 01 • Categoría de Bebida
+            </label>
+            <select id="filtro-macro-categoria" onchange="actualizarSubtiposCatalogo()" class="w-full md3-input px-3 py-2 font-semibold cursor-pointer">
               <option value="Todas" selected>Todas las Bebidas (827)</option>
               <option value="Tequila">Tequila</option>
               <option value="Mezcal">Mezcal</option>
@@ -33,18 +114,22 @@
             </select>
           </div>
 
-          <!-- 2. Menú de Tipo de Bebida / Subcategoría (Desactivado hasta seleccionar categoría) -->
-          <div>
-            <label for="filtro-categoria" id="label-filtro-categoria" class="block text-xs font-bold text-[#8A7B6B] mb-1.5 transition-colors">2. Tipo de Bebida:</label>
+          <!-- Paso 02: Tipo de Bebida / Subcategoría -->
+          <div class="lg:col-span-3">
+            <label for="filtro-categoria" id="label-filtro-categoria" class="archival-badge text-[#8A7B6B] block mb-1.5 transition-colors">
+              Paso 02 • Tipo / Añejamiento
+            </label>
             <select id="filtro-categoria" onchange="aplicarFiltros()" disabled class="w-full md3-input px-3 py-2 font-medium opacity-60 bg-[#EFE8DC]/50 cursor-not-allowed transition-all">
               <option value="Todas" selected>Selecciona primero una categoría...</option>
             </select>
           </div>
 
-          <!-- 3. Selector de Tienda -->
-          <div>
-            <label for="filtro-tienda" class="block text-xs font-bold text-[#574A3D] mb-1.5">3. Tienda / Comercio:</label>
-            <select id="filtro-tienda" onchange="aplicarFiltros()" class="w-full md3-input px-3 py-2">
+          <!-- Paso 03: Cadena Comercial -->
+          <div class="lg:col-span-3">
+            <label for="filtro-tienda" class="archival-badge text-on-surface-variant block mb-1.5">
+              03 • Tienda / Cadena Comercial
+            </label>
+            <select id="filtro-tienda" onchange="aplicarFiltros()" class="w-full md3-input px-3 py-2 font-medium cursor-pointer">
               <option value="Todas">Todas las Tiendas (6)</option>
               <option value="Bodegas Alianza">Bodegas Alianza</option>
               <option value="Sam's Club">Sam's Club</option>
@@ -55,113 +140,124 @@
             </select>
           </div>
 
-          <!-- 4. Búsqueda por palabras clave -->
-          <div>
-            <label for="filtro-busqueda" class="block text-xs font-bold text-[#574A3D] mb-1.5">4. Buscar Etiqueta o Marca:</label>
-            <input type="text" id="filtro-busqueda" oninput="aplicarFiltros()" placeholder="Ej. Dobel, 1800, Amarás, Red Label..."
-                   class="w-full md3-input px-3 py-2">
-          </div>
-        </div>
-      </div>
-
-      <!-- TABLA / LISTA DE PRODUCTOS (ADAPTATIVA DESKTOP + MOBILE CARDS EN MÓVIL) -->
-      <div class="md3-card overflow-hidden">
-        <div class="p-3.5 sm:p-5 border-b border-[#DFD5C7] space-y-3 bg-[#F7F2EA]">
-          <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-1.5">
-            <div>
-              <h3 class="font-bold text-base sm:text-lg font-display-md3 text-[#1F1B16]">Catálogo General Normalizado</h3>
-              <p class="text-xs text-[#574A3D]">Pulsa <strong>+ Carrito</strong> para sumar cualquier botella a tu cuenta</p>
-            </div>
-          </div>
-
-          <!-- FILTROS Y ORDEN ADAPTATIVOS (Chips en móvil sin cortes ni solapamientos) -->
-          <div class="flex flex-col lg:flex-row justify-between lg:items-center gap-2.5 pt-2 border-t border-[#DFD5C7]/70">
-            <!-- Chips de filtros rápidos -->
-            <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs">
-              <label class="flex items-center gap-1.5 text-xs text-[#1F1B16] cursor-pointer px-2.5 sm:px-3 py-1.5 rounded-lg bg-white border border-[#D6C8B8] hover:bg-[#EFE8DC] transition-colors select-none min-h-[34px] sm:min-h-[36px]" title="Mostrar únicamente la opción más barata por cada producto (oculta ofertas repetidas de tiendas más caras)">
-                <input type="checkbox" id="filtro-mejor-precio" onchange="aplicarFiltros()" checked class="w-4 h-4 rounded accent-[#486355]">
-                <span class="font-semibold text-[#0B2016] text-[11px] sm:text-xs">Solo mejor precio</span>
-              </label>
-              <label class="flex items-center gap-1.5 text-xs text-[#784516] cursor-pointer px-2.5 sm:px-3 py-1.5 rounded-lg bg-white border border-[#DFD5C7] hover:bg-[#EFE8DC] transition-colors select-none min-h-[34px] sm:min-h-[36px]" title="Mostrar únicamente botellas con descuento directo verificado">
-                <input type="checkbox" id="filtro-descuento" onchange="aplicarFiltros()" class="w-4 h-4 rounded accent-[#784516]">
-                <span class="font-semibold text-[#784516] text-[11px] sm:text-xs">Solo ofertas</span>
-              </label>
-              <label class="flex items-center gap-1.5 text-xs text-[#9B1C1C] cursor-pointer px-2.5 sm:px-3 py-1.5 rounded-lg bg-white border border-[#F8B4B4] hover:bg-[#FDE8E8] transition-colors select-none min-h-[34px] sm:min-h-[36px]" title="Mostrar únicamente botellas en paquete, combos o con obsequios incluidos">
-                <input type="checkbox" id="filtro-paquete-pill" onchange="sincronizarFiltroPaquete(this.checked)" class="w-4 h-4 rounded accent-[#9B1C1C]">
-                <span class="font-bold text-[#9B1C1C] text-[11px] sm:text-xs">Solo paquetes y combos</span>
-              </label>
-              <input type="checkbox" id="filtro-paquete" class="hidden" aria-hidden="true" tabindex="-1">
-            </div>
-
-            <!-- Botones de ordenación -->
-            <div class="flex items-center gap-2 text-xs self-start lg:self-auto pt-1 lg:pt-0">
-              <span class="text-[#574A3D] font-medium text-xs whitespace-nowrap">Ordenar:</span>
-              <div class="flex items-center gap-1.5">
-                <button data-orden="precio_por_litro" onclick="ordenarPor('precio_por_litro')"
-                        class="px-2.5 sm:px-3 py-1.5 rounded-lg font-semibold text-[11px] sm:text-xs transition-colors cursor-pointer min-h-[34px] sm:min-h-[36px]">
-                  Menor $/Litro <span class="orden-flecha"></span>
-                </button>
-                <button data-orden="precio_promo" onclick="ordenarPor('precio_promo')"
-                        class="px-2.5 sm:px-3 py-1.5 rounded-lg font-semibold text-[11px] sm:text-xs transition-colors cursor-pointer min-h-[34px] sm:min-h-[36px]">
-                  Precio Botella <span class="orden-flecha"></span>
-                </button>
-              </div>
+          <!-- Paso 04: Búsqueda por Etiqueta o Marca -->
+          <div class="lg:col-span-3">
+            <label for="filtro-busqueda" class="archival-badge text-on-surface-variant block mb-1.5">
+              04 • Buscar Etiqueta o Marca
+            </label>
+            <div class="relative">
+              <span class="material-symbols-outlined text-outline text-[18px] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">search</span>
+              <input type="text" id="filtro-busqueda" oninput="aplicarFiltros()" placeholder="Ej. Dobel, 1800, Amarás, Kirkland..."
+                     class="w-full md3-input pl-9 pr-3 py-2">
             </div>
           </div>
         </div>
+
+        <!-- Fila Inferior: Toggles de Auditoría Rápida & Controles de Ordenación -->
+        <div class="pt-3 border-t border-outline-variant/60 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <!-- Filtros Rápidos (Pills) -->
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="archival-badge text-outline mr-1">Filtros Rápidos:</span>
+
+            <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-surface-container-lowest border border-outline-variant hover:bg-[#EFE8DC] text-on-surface font-mono text-xs font-medium cursor-pointer transition-colors select-none" title="Mostrar únicamente la opción más barata por cada producto (oculta ofertas repetidas de tiendas más caras)">
+              <input type="checkbox" id="filtro-mejor-precio" onchange="aplicarFiltros()" checked class="w-3.5 h-3.5 rounded accent-[#703c1d]">
+              <span class="font-semibold text-on-surface text-[11px] sm:text-xs">Solo mejor precio</span>
+            </label>
+
+            <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-surface-container-lowest border border-outline-variant hover:bg-[#EFE8DC] text-primary font-mono text-xs font-medium cursor-pointer transition-colors select-none" title="Mostrar únicamente botellas con descuento directo verificado">
+              <input type="checkbox" id="filtro-descuento" onchange="aplicarFiltros()" class="w-3.5 h-3.5 rounded accent-[#703c1d]">
+              <span class="font-semibold text-primary text-[11px] sm:text-xs">Solo ofertas</span>
+            </label>
+
+            <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-surface-container-lowest border border-outline-variant hover:bg-[#EFE8DC] text-[#93000a] font-mono text-xs font-medium cursor-pointer transition-colors select-none" title="Mostrar únicamente botellas en paquete, combos o con obsequios incluidos">
+              <input type="checkbox" id="filtro-paquete-pill" onchange="sincronizarFiltroPaquete(this.checked)" class="w-3.5 h-3.5 rounded accent-[#93000a]">
+              <span class="font-bold text-[#93000a] text-[11px] sm:text-xs">Solo paquetes y combos</span>
+            </label>
+            <input type="checkbox" id="filtro-paquete" class="hidden" aria-hidden="true" tabindex="-1">
+          </div>
+
+          <!-- Controles de Ordenación -->
+          <div class="flex items-center gap-2 self-start lg:self-auto">
+            <span class="archival-badge text-outline whitespace-nowrap">Ordenar Registro:</span>
+            <div class="flex items-center gap-1.5">
+              <button data-orden="precio_por_litro" onclick="ordenarPor('precio_por_litro')"
+                      class="px-3 py-1.5 rounded font-mono font-semibold text-xs transition-colors cursor-pointer min-h-[34px]">
+                Menor $/Litro <span class="orden-flecha"></span>
+              </button>
+              <button data-orden="precio_promo" onclick="ordenarPor('precio_promo')"
+                      class="px-3 py-1.5 rounded font-mono font-semibold text-xs transition-colors cursor-pointer min-h-[34px]">
+                Precio Botella <span class="orden-flecha"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TABLA DE REGISTRO AUDITADO (VISTA MÓVIL EN TARJETAS + TABLA ARCHIVAL EN DESKTOP) -->
+      <section class="bg-surface-container-lowest rounded-lg border border-outline-variant/80 shadow-[0_2px_12px_rgba(33,27,15,0.04)] overflow-hidden">
 
         <!-- 1. VISTA MÓVIL: TARJETAS COMPACTAS FLUIDAS (block sm:hidden) -->
-        <div id="lista-productos-movil" class="divide-y divide-[#EAE0D3] block sm:hidden">
+        <div id="lista-productos-movil" class="divide-y divide-outline-variant/40 block sm:hidden">
           <!-- Tarjetas generadas dinámicamente por renderizarTabla() -->
         </div>
 
-        <!-- 2. VISTA DESKTOP / TABLET: TABLA TABULAR COMPLETA (hidden sm:block) -->
+        <!-- 2. VISTA DESKTOP / TABLET: TABLA DE REGISTRO COMPLETA (hidden sm:block) -->
         <div class="hidden sm:block overflow-x-auto">
-          <table class="w-full text-left text-sm">
-            <thead class="bg-[#EFE8DC] text-[#574A3D] text-xs uppercase border-b border-[#DFD5C7]">
-              <tr>
-                <th class="p-3.5">Botella / Marca</th>
-                <th class="p-3.5">Categoría &amp; Tipo</th>
-                <th class="p-3.5 hidden md:table-cell">Volumen</th>
-                <th data-orden-header="precio_promo" class="p-3.5 cursor-pointer hover:text-[#784516] whitespace-nowrap" onclick="ordenarPor('precio_promo')" aria-sort="none">
-                  Precio <span class="orden-flecha"></span>
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-surface-container-high border-b border-outline-variant text-on-surface font-mono text-[11px] uppercase tracking-wider">
+                <th class="py-3.5 px-4 font-semibold">Destilado / Etiqueta Auditada</th>
+                <th class="py-3.5 px-3 font-semibold">Categoría &amp; Subtipo</th>
+                <th class="py-3.5 px-3 font-semibold text-right hidden md:table-cell">Vol.</th>
+                <th data-orden-header="precio_promo" class="py-3.5 px-3 font-semibold text-right cursor-pointer hover:text-primary whitespace-nowrap" onclick="ordenarPor('precio_promo')" aria-sort="none">
+                  Precio Botella <span class="orden-flecha"></span>
                 </th>
-                <th data-orden-header="precio_por_litro" class="p-3.5 cursor-pointer hover:text-[#784516] whitespace-nowrap" onclick="ordenarPor('precio_por_litro')" aria-sort="none">
-                  $/Litro <span class="orden-flecha"></span>
+                <th data-orden-header="precio_por_litro" class="py-3.5 px-4 font-bold text-right bg-surface-container text-primary border-x border-outline-variant/50 cursor-pointer hover:underline whitespace-nowrap" onclick="ordenarPor('precio_por_litro')" aria-sort="none">
+                  $/L Estandarizado <span class="orden-flecha"></span>
                 </th>
-                <th class="p-3.5 hidden lg:table-cell">Promoción</th>
-                <th class="p-3.5">Tienda</th>
-                <th class="p-3.5 text-center">Acción</th>
+                <th class="py-3.5 px-3 font-semibold hidden lg:table-cell">Promoción / Arbitraje</th>
+                <th class="py-3.5 px-3 font-semibold">Cadena</th>
+                <th class="py-3.5 px-4 font-semibold text-right">Acción</th>
               </tr>
             </thead>
-            <tbody id="tabla-productos-body" class="divide-y divide-[#EAE0D3]">
+            <tbody id="tabla-productos-body" class="divide-y divide-outline-variant/40 text-sm">
               <!-- Filas generadas por JS -->
             </tbody>
           </table>
         </div>
 
-        <div class="p-3.5 sm:p-4 border-t border-[#DFD5C7] flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-[#574A3D] bg-[#F7F2EA]">
-          <div id="info-paginacion" class="font-medium text-center sm:text-left">Mostrando 1 a 20 de 827</div>
-          <div class="flex gap-2 w-full sm:w-auto justify-center">
-            <button onclick="cambiarPagina(-1)" id="btn-prev" class="flex-1 sm:flex-initial px-4 py-2 rounded-lg bg-white border border-[#D6C8B8] hover:bg-[#EFE8DC] disabled:opacity-40 transition-colors text-[#1F1B16] font-semibold cursor-pointer min-h-[40px]">← Anterior</button>
-            <button onclick="cambiarPagina(1)" id="btn-next" class="flex-1 sm:flex-initial px-4 py-2 rounded-lg bg-white border border-[#D6C8B8] hover:bg-[#EFE8DC] disabled:opacity-40 transition-colors text-[#1F1B16] font-semibold cursor-pointer min-h-[40px]">Siguiente →</button>
+        <!-- PIE DE TABLA Y PAGINACIÓN DE REGISTRO -->
+        <div class="bg-surface-container px-4 py-3.5 border-t border-outline-variant flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div id="info-paginacion" class="font-mono text-xs text-on-surface-variant text-center sm:text-left">
+            Mostrando 1 a 20 de 827 registros auditados
+          </div>
+          <div class="flex items-center gap-2 w-full sm:w-auto justify-center">
+            <button onclick="cambiarPagina(-1)" id="btn-prev" class="flex-1 sm:flex-initial px-3.5 py-1.5 rounded bg-surface-container-lowest border border-outline-variant hover:bg-surface-container-high disabled:opacity-40 transition-colors text-on-surface font-mono text-xs font-semibold cursor-pointer min-h-[36px] inline-flex items-center justify-center gap-1">
+              <span class="material-symbols-outlined text-[16px]">chevron_left</span> Anterior
+            </button>
+            <button onclick="cambiarPagina(1)" id="btn-next" class="flex-1 sm:flex-initial px-3.5 py-1.5 rounded bg-surface-container-lowest border border-outline-variant hover:bg-surface-container-high disabled:opacity-40 transition-colors text-on-surface font-mono text-xs font-semibold cursor-pointer min-h-[36px] inline-flex items-center justify-center gap-1">
+              Siguiente <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+            </button>
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- GRÁFICO TOP 10 RENDIMIENTO $/LITRO -->
-      <div class="md3-card p-5 space-y-3">
-        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-[#DFD5C7] pb-3">
+      <!-- MÓDULO ANALÍTICO INFERIOR: TOP 10 RENDIMIENTO $/LITRO (STITCH VISUALIZATION PANEL) -->
+      <section class="bg-surface-container-low rounded-lg p-6 border border-outline-variant/70 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-outline-variant/50">
           <div>
-            <h3 class="font-bold text-lg font-display-md3 text-[#1F1B16]" id="chart-titulo">
+            <span class="archival-badge text-primary">Distribución de Eficiencia Volumétrica</span>
+            <h3 class="font-headline text-xl font-bold text-on-surface mt-0.5" id="chart-titulo">
               Top 10 Rendimiento $/Litro del Catálogo
             </h3>
-            <p class="text-xs text-[#574A3D]">Comparativa volumétrica estandarizada a 1,000 ml entre las 6 cadenas</p>
+            <p class="text-xs text-on-surface-variant">Comparativa volumétrica estandarizada a 1,000 mL entre las 6 cadenas auditadas</p>
           </div>
-          <span class="badge bg-[#F8E2C8] text-[#784516] border border-[#E5C8A3] text-xs self-start sm:self-auto">Barra más corta = Mejor precio por litro</span>
+          <span class="badge bg-secondary-container text-on-secondary-fixed border border-outline-variant/60 text-xs self-start sm:self-auto">
+            Barra más corta = Mejor $/Litro
+          </span>
         </div>
         <div id="chart-container" class="w-full overflow-x-auto">
         </div>
-      </div>
+      </section>
 
     </div>

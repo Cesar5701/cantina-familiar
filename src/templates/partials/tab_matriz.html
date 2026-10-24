@@ -1,58 +1,338 @@
     <!-- ========================================================================================= -->
-    <!-- PESTAÑA 4: GUÍA DE BARRICAS Y MADURACIÓN -->
+    <!-- PESTAÑA 4: GUÍA DE BARRICAS Y MADURACIÓN (STITCH COMPENDIUM OF WOOD, TIME & MATURITY) -->
     <!-- ========================================================================================= -->
-    <div id="tab-matriz" class="tab-content space-y-6 hidden">
-      <div class="md3-card p-6 space-y-5">
-        <div>
-          <h3 class="text-xl sm:text-2xl font-bold font-display-md3 text-[#1F1B16]">Guía de Maduración en Barrica y Tipos Seleccionados</h3>
-          <p class="text-sm text-[#574A3D] mt-1">
-            Referencia técnica de las categorías incluidas en la cava (excluyendo tequilas blancos y reposados tradicionales).
+    <div id="tab-matriz" class="tab-content space-y-8 hidden">
+
+      <!-- CABECERA DE COMPENDIO TÉCNICO (STITCH DOSSIER MASTHEAD) -->
+      <div class="flex flex-col lg:flex-row lg:items-end justify-between pb-6 border-b border-outline-variant/60 gap-6">
+        <div class="max-w-3xl">
+          <div class="flex items-center gap-2.5 mb-2.5">
+            <span class="px-2 py-0.5 bg-secondary-container text-on-secondary-container font-mono text-[10px] font-bold uppercase tracking-widest rounded">
+              Fascículo IV • Manual Técnico
+            </span>
+            <span class="font-mono text-xs text-outline">Estándares NOM-006-SCFI • NOM-070 • SWR 2009</span>
+          </div>
+          <h2 class="font-headline text-2xl sm:text-3xl lg:text-4xl font-bold text-on-surface tracking-tight leading-tight">
+            Compendio de Madera, Tiempo y Maduración de Destilados
+          </h2>
+          <p class="mt-2.5 text-sm sm:text-base text-on-surface-variant leading-relaxed">
+            Referencia técnica de las categorías incluidas en la cava de Cantina Familiar. Documenta los tiempos mínimos de guarda en roble, procesos de clarificación con carbón activado y especies de agave silvestre para comparar precios por litro sobre bases equivalentes.
           </p>
         </div>
 
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm">
-            <thead class="bg-[#EFE8DC] text-[#574A3D] text-xs uppercase border-b border-[#DFD5C7]">
-              <tr>
-                <th class="p-3.5">Categoría & Tipo</th>
-                <th class="p-3.5">Guarda en Roble</th>
-                <th class="p-3.5">Proceso Distintivo</th>
-                <th class="p-3.5">Etiquetas de Referencia</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-[#EAE0D3] text-xs">
-              <tr class="hover:bg-[#F7F2EA]">
-                <td class="p-3.5 font-bold text-[#784516]">Tequila · Añejo Cristalino</td>
-                <td class="p-3.5 font-mono">&ge; 12 meses</td>
-                <td class="p-3.5">Filtrado en carbón activado tras guarda en roble</td>
-                <td class="p-3.5 text-[#574A3D]">Maestro Dobel Diamante, 1800 Cristalino y Don Julio 70.</td>
-              </tr>
-              <tr class="hover:bg-[#F7F2EA]">
-                <td class="p-3.5 font-bold text-[#9A3412]">Tequila · Reposado Cristalino</td>
-                <td class="p-3.5 font-mono">2 a 11 meses</td>
-                <td class="p-3.5">Clarificación suave ideal para mezcladores y palomas</td>
-                <td class="p-3.5 text-[#574A3D]">Cuervo Tradicional Cristalino, Centenario Ultra y Member's Mark 1.75L.</td>
-              </tr>
-              <tr class="hover:bg-[#F7F2EA]">
-                <td class="p-3.5 font-bold text-[#854D0E]">Tequila · Añejo Tradicional</td>
-                <td class="p-3.5 font-mono">&ge; 12 meses</td>
-                <td class="p-3.5">Sin filtración; conserva color ámbar y notas intensas de madera</td>
-                <td class="p-3.5 text-[#574A3D]">Tres Generaciones Añejo y 1800 Añejo.</td>
-              </tr>
-              <tr class="hover:bg-[#F7F2EA]">
-                <td class="p-3.5 font-bold text-[#486355]">Mezcal · Silvestre</td>
-                <td class="p-3.5 font-mono">Agaves de 8 a 15 años</td>
-                <td class="p-3.5">Destilación artesanal de Tobalá, Cupreata, Cuishe y Ensambles</td>
-                <td class="p-3.5 text-[#574A3D]">400 Conejos (Tobalá, Cuishe) y Amarás Cupreata.</td>
-              </tr>
-              <tr class="hover:bg-[#F7F2EA]">
-                <td class="p-3.5 font-bold text-[#2E5A44]">Mezcal · Reposado y Añejo</td>
-                <td class="p-3.5 font-mono">2 a &ge;12 meses</td>
-                <td class="p-3.5">Maduración en barrica de roble americano o encino</td>
-                <td class="p-3.5 text-[#574A3D]">Amarás Reposado, 400 Conejos Reposado y 400 Conejos Añejo.</td>
-              </tr>
-            </tbody>
-          </table>
+        <!-- Índice de Consulta Rápida -->
+        <div class="bg-surface-container p-4 rounded-lg border border-outline-variant/60 lg:max-w-xs w-full shrink-0">
+          <div class="font-mono text-[10px] uppercase tracking-widest text-primary font-bold mb-2 flex items-center justify-between">
+            <span>Índice del Fascículo</span>
+            <span class="material-symbols-outlined text-[15px]">import_contacts</span>
+          </div>
+          <div class="grid grid-cols-1 gap-1.5 font-mono text-xs">
+            <a href="#matriz-normativa" class="px-2.5 py-1.5 rounded bg-surface-container-lowest hover:bg-secondary-container/50 text-on-surface border border-outline-variant/40 transition-colors flex items-center justify-between">
+              <span>I. Matriz de Categorías</span>
+              <span class="text-primary">→</span>
+            </a>
+            <a href="#toneleria-roble" class="px-2.5 py-1.5 rounded bg-surface-container-lowest hover:bg-secondary-container/50 text-on-surface border border-outline-variant/40 transition-colors flex items-center justify-between">
+              <span>II. Especies de Roble</span>
+              <span class="text-primary">→</span>
+            </a>
+            <a href="#pirolisis-tostado" class="px-2.5 py-1.5 rounded bg-surface-container-lowest hover:bg-secondary-container/50 text-on-surface border border-outline-variant/40 transition-colors flex items-center justify-between">
+              <span>III. Niveles de Tostado (Char)</span>
+              <span class="text-primary">→</span>
+            </a>
+          </div>
         </div>
       </div>
+
+      <!-- HERO EDITORIAL: LA METAMORFOSIS TRIPARTITA Y AXIOMA DEL AUDITOR -->
+      <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        <div class="lg:col-span-7 bg-surface-container-low rounded-lg p-6 sm:p-7 border border-outline-variant/60 flex flex-col justify-between space-y-5">
+          <div class="space-y-3">
+            <div class="inline-flex items-center gap-2 text-primary font-mono text-xs uppercase tracking-widest font-semibold">
+              <span class="material-symbols-outlined text-[16px]">science</span>
+              <span>Química de Guarda y Clarificación</span>
+            </div>
+            <h3 class="font-headline text-xl sm:text-2xl font-bold text-on-surface leading-snug">
+              La Metamorfosis Tripartita de los Destilados en Barrica
+            </h3>
+            <p class="text-sm text-on-surface-variant leading-relaxed">
+              Hasta el <strong class="text-on-surface font-semibold">65% del perfil aromático y gustativo</strong> de un tequila añejo, mezcal reposado o whisky escocés proviene de su interacción físico-química con la duela de roble tostado. En esta cava auditada se excluyen tequilas blancos sin barrica para garantizar suavidad en servicio directo o mezcladores.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-4 border-t border-outline-variant/50">
+            <div class="bg-surface-container-lowest p-4 rounded border border-outline-variant/40">
+              <div class="font-mono text-[11px] font-bold text-primary uppercase tracking-wider mb-1">01 • Extracción Aditiva</div>
+              <p class="text-xs text-on-surface-variant leading-relaxed">
+                Disolución de vainillina, lactonas de roble, eugenol y hemicelulosa caramelizada desde la madera tostada.
+              </p>
+            </div>
+            <div class="bg-surface-container-lowest p-4 rounded border border-outline-variant/40">
+              <div class="font-mono text-[11px] font-bold text-secondary uppercase tracking-wider mb-1">02 • Oxidación Lenta</div>
+              <p class="text-xs text-on-surface-variant leading-relaxed">
+                El micro-intercambio de oxígeno suaviza alcoholes superiores y forma ésteres frutales y florales complejos.
+              </p>
+            </div>
+            <div class="bg-surface-container-lowest p-4 rounded border border-outline-variant/40">
+              <div class="font-mono text-[11px] font-bold text-tertiary uppercase tracking-wider mb-1">03 • Filtración Selectiva</div>
+              <p class="text-xs text-on-surface-variant leading-relaxed">
+                En los <em>Cristalinos</em>, el paso por carbón activado retira el color ámbar preservando el cuerpo sedoso del añejamiento.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel Derecho: Axioma del Auditor -->
+        <div class="lg:col-span-5 bg-surface-container-high rounded-lg p-6 border border-outline-variant/70 flex flex-col justify-between space-y-4">
+          <div class="flex items-center justify-between border-b border-outline-variant/60 pb-3">
+            <span class="font-mono text-[11px] uppercase tracking-widest text-on-surface font-bold">Parámetros Técnicos de Auditoría</span>
+            <span class="px-2 py-0.5 bg-primary text-on-primary font-mono text-[10px] rounded">Criterio $/L</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 my-auto py-1">
+            <div class="bg-surface-container-lowest p-3.5 rounded border border-outline-variant/50">
+              <span class="font-mono text-[10px] uppercase text-outline block">Barrica Añejo NOM</span>
+              <span class="font-headline text-xl font-bold text-primary mt-0.5 block">&le; 200 Litros</span>
+              <span class="text-[11px] text-on-surface-variant">Mayor contacto superficie/líquido</span>
+            </div>
+            <div class="bg-surface-container-lowest p-3.5 rounded border border-outline-variant/50">
+              <span class="font-mono text-[10px] uppercase text-outline block">Agaves Silvestres</span>
+              <span class="font-headline text-xl font-bold text-[#2d6a36] mt-0.5 block">8 – 15 Años</span>
+              <span class="text-[11px] text-on-surface-variant">Maduración en monte (Tobalá/Cupreata)</span>
+            </div>
+            <div class="bg-surface-container-lowest p-3.5 rounded border border-outline-variant/50">
+              <span class="font-mono text-[10px] uppercase text-outline block">Guarda Añejo / Crist.</span>
+              <span class="font-headline text-xl font-bold text-on-surface mt-0.5 block">&ge; 12 Meses</span>
+              <span class="text-[11px] text-on-surface-variant">Roble blanco americano o francés</span>
+            </div>
+            <div class="bg-surface-container-lowest p-3.5 rounded border border-outline-variant/50">
+              <span class="font-mono text-[10px] uppercase text-outline block">Blended Scotch</span>
+              <span class="font-headline text-xl font-bold text-secondary mt-0.5 block">&ge; 36 Meses</span>
+              <span class="text-[11px] text-on-surface-variant">Mínimo legal en barrica escocesa</span>
+            </div>
+          </div>
+
+          <div class="bg-inverse-surface text-inverse-on-surface p-4 rounded border-l-4 border-[#ffd6ab]">
+            <div class="flex items-start gap-2.5">
+              <span class="material-symbols-outlined text-[#ffd6ab] text-[18px] mt-0.5">verified_user</span>
+              <div>
+                <h4 class="font-mono text-[11px] uppercase tracking-wider text-[#ffd6ab] font-bold">Axioma de Valuación Cantina Familiar</h4>
+                <p class="text-xs text-[#fdefdb]/90 mt-1 leading-relaxed">
+                  "Nunca compares el $/Litro de un Reposado de 2 meses contra un Añejo de 12 meses. El arbitraje real ocurre al enfrentar etiquetas del mismo escalafón normativo entre las 6 cadenas."
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECCIÓN I: MATRIZ NORMATIVA DE CATEGORÍAS AUDITADAS -->
+      <section id="matriz-normativa" class="space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+          <div>
+            <span class="archival-badge text-primary">Sección I • Clasificación Reglamentaria</span>
+            <h3 class="font-headline text-xl sm:text-2xl font-bold text-on-surface mt-0.5">
+              Matriz de Categorías, Guarda en Roble y Etiquetas de Referencia
+            </h3>
+          </div>
+          <span class="badge bg-surface-container text-on-surface-variant border border-outline-variant/70 text-[11px]">
+            8 Subcategorías Auditadas
+          </span>
+        </div>
+
+        <div class="bg-surface-container-lowest rounded-lg border border-outline-variant/80 shadow-xs overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-surface-container-high border-b border-outline-variant text-on-surface font-mono text-[11px] uppercase tracking-wider">
+                  <th class="py-3.5 px-4 font-semibold">Categoría &amp; Tipo</th>
+                  <th class="py-3.5 px-4 font-semibold">Guarda / Maduración</th>
+                  <th class="py-3.5 px-4 font-semibold">Proceso Distintivo</th>
+                  <th class="py-3.5 px-4 font-semibold">Perfil Sensorial</th>
+                  <th class="py-3.5 px-4 font-semibold">Etiquetas de Referencia en Catálogo</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-outline-variant/40 text-xs sm:text-sm">
+                <tr class="ledger-row">
+                  <td class="p-4 font-bold text-primary whitespace-nowrap">Tequila · Añejo Cristalino</td>
+                  <td class="p-4 font-mono font-semibold text-on-surface whitespace-nowrap">&ge; 12 meses (Roble &le;200L)</td>
+                  <td class="p-4 text-on-surface-variant">Filtrado en carbón activado tras guarda completa de añejo</td>
+                  <td class="p-4 text-on-surface-variant">Vainilla, miel de agave, cuerpo sedoso sin astringencia tánica</td>
+                  <td class="p-4 text-on-surface font-medium">Maestro Dobel Diamante, 1800 Cristalino, Don Julio 70, Member's Mark 1.75L.</td>
+                </tr>
+                <tr class="ledger-row bg-surface-container-low/40">
+                  <td class="p-4 font-bold text-secondary whitespace-nowrap">Tequila · Reposado Cristalino</td>
+                  <td class="p-4 font-mono font-semibold text-on-surface whitespace-nowrap">2 a 11 meses (Roble)</td>
+                  <td class="p-4 text-on-surface-variant">Clarificación suave tras reposo; ideal para servicio derecho o palomas</td>
+                  <td class="p-4 text-on-surface-variant">Cítricos limpios, caramelo ligero, final fresco y brillante</td>
+                  <td class="p-4 text-on-surface font-medium">Cuervo Tradicional Cristalino, Gran Centenario Ultra, Herradura Ultra.</td>
+                </tr>
+                <tr class="ledger-row">
+                  <td class="p-4 font-bold text-primary whitespace-nowrap">Tequila · Añejo Tradicional</td>
+                  <td class="p-4 font-mono font-semibold text-on-surface whitespace-nowrap">&ge; 12 meses (Sin filtrar)</td>
+                  <td class="p-4 text-on-surface-variant">Conserva su color ámbar natural e integridad de aceites de barrica</td>
+                  <td class="p-4 text-on-surface-variant">Roble tostado intenso, frutos secos, cacao, especias cálidas</td>
+                  <td class="p-4 text-on-surface font-medium">Tres Generaciones Añejo, 1800 Añejo, Herradura Añejo, Hornitos Black Barrel.</td>
+                </tr>
+                <tr class="ledger-row bg-surface-container-low/40">
+                  <td class="p-4 font-bold text-[#2d6a36] whitespace-nowrap">Mezcal · Silvestre</td>
+                  <td class="p-4 font-mono font-semibold text-on-surface whitespace-nowrap">Agaves de 8 a 15 años</td>
+                  <td class="p-4 text-on-surface-variant">Destilación artesanal de agaves Tobalá, Cupreata, Cuishe y Ensambles</td>
+                  <td class="p-4 text-on-surface-variant">Complejidad floral, mineralidad de monte, ahumado elegante</td>
+                  <td class="p-4 text-on-surface font-medium">400 Conejos Tobalá, 400 Conejos Cuishe, Amarás Joven Cupreata.</td>
+                </tr>
+                <tr class="ledger-row">
+                  <td class="p-4 font-bold text-[#2d6a36] whitespace-nowrap">Mezcal · Reposado y Añejo</td>
+                  <td class="p-4 font-mono font-semibold text-on-surface whitespace-nowrap">2 a &ge; 12 meses (Madera)</td>
+                  <td class="p-4 text-on-surface-variant">Maduración en barrica de roble americano o encino que redondea el humo</td>
+                  <td class="p-4 text-on-surface-variant">Agave cocido, caramelo ahumado, avellana y pimienta dulce</td>
+                  <td class="p-4 text-on-surface font-medium">Amarás Reposado, 400 Conejos Reposado, 400 Conejos Añejo y Cristalino.</td>
+                </tr>
+                <tr class="ledger-row bg-surface-container-low/40">
+                  <td class="p-4 font-bold text-secondary whitespace-nowrap">Whisky · Blended Scotch</td>
+                  <td class="p-4 font-mono font-semibold text-on-surface whitespace-nowrap">&ge; 3 años (SWR 2009)</td>
+                  <td class="p-4 text-on-surface-variant">Ensamble de whiskies de malta y grano madurados en roble en Escocia</td>
+                  <td class="p-4 text-on-surface-variant">Malta tostada, miel de brezo, vainilla, ligero toque de turba</td>
+                  <td class="p-4 text-on-surface font-medium">Johnnie Walker Red Label 1.75L, Black &amp; White 1L / 1.75L, Buchanan's, Chivas.</td>
+                </tr>
+                <tr class="ledger-row">
+                  <td class="p-4 font-bold text-primary whitespace-nowrap">Licor de Whisky · Honey</td>
+                  <td class="p-4 font-mono font-semibold text-on-surface whitespace-nowrap">Base Whiskey + Miel</td>
+                  <td class="p-4 text-on-surface-variant">Whiskey madurado en barrica infusionado con miel natural de abeja (35% ABV)</td>
+                  <td class="p-4 text-on-surface-variant">Miel silvestre, nuez moscada, vainilla dulce; ideal frío en las rocas</td>
+                  <td class="p-4 text-on-surface font-medium">Jack Daniel's Tennessee Honey (700 mL / 1L), Passport Honey.</td>
+                </tr>
+                <tr class="ledger-row bg-surface-container-low/40">
+                  <td class="p-4 font-bold text-on-error-container whitespace-nowrap">Vino Tinto · Clericot y Mesa</td>
+                  <td class="p-4 font-mono font-semibold text-on-surface whitespace-nowrap">Joven / Crianza frutal</td>
+                  <td class="p-4 text-on-surface-variant">Vinificación enfocada en fruta fresca y baja astringencia para sangría/clericot</td>
+                  <td class="p-4 text-on-surface-variant">Frutos rojos maduros, ciruela, acidez equilibrada para fruta picada</td>
+                  <td class="p-4 text-on-surface font-medium">Don Simón Selección 5L, Padre Kino California Tetra 946mL, Carlo Rossi 4L.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECCIÓN II: CIENCIA DE TONELERÍA Y ESPECIES DE ROBLE -->
+      <section id="toneleria-roble" class="space-y-4">
+        <div>
+          <span class="archival-badge text-primary">Sección II • Botánica de Tonelería</span>
+          <h3 class="font-headline text-xl sm:text-2xl font-bold text-on-surface mt-0.5">
+            Especies de Roble y Terroir de Maduración
+          </h3>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <!-- Especie 1: Quercus alba -->
+          <div class="bg-surface-container-lowest rounded-lg border border-outline-variant/80 p-5 flex flex-col justify-between space-y-4">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="px-2 py-0.5 rounded bg-secondary-container text-on-secondary-fixed font-mono text-[10px] font-bold uppercase">Grano Medio · Ex-Bourbon</span>
+                <span class="font-mono text-xs text-primary font-bold">Quercus alba</span>
+              </div>
+              <h4 class="font-headline text-lg font-bold text-on-surface">Roble Blanco Americano</h4>
+              <p class="text-xs text-on-surface-variant leading-relaxed">
+                Estándar dominante en Tequila Añejo, Reposado y Scotch Whisky. Su alta concentración de tilosas permite barricas herméticas ricas en vainillina y cis-lactonas.
+              </p>
+            </div>
+            <div class="pt-3 border-t border-outline-variant/50 space-y-1.5 font-mono text-[11px]">
+              <div class="flex justify-between"><span class="text-outline">Vainillina y Coco:</span><span class="font-bold text-primary">Muy Alta (90%)</span></div>
+              <div class="flex justify-between"><span class="text-outline">Carga Tánica:</span><span class="font-bold text-on-surface">Moderada-Baja</span></div>
+            </div>
+          </div>
+
+          <!-- Especie 2: Quercus robur / petraea -->
+          <div class="bg-surface-container-lowest rounded-lg border border-outline-variant/80 p-5 flex flex-col justify-between space-y-4">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="px-2 py-0.5 rounded bg-primary-container text-on-primary font-mono text-[10px] font-bold uppercase">Grano Fino · Ex-Jerez</span>
+                <span class="font-mono text-xs text-primary font-bold">Quercus robur</span>
+              </div>
+              <h4 class="font-headline text-lg font-bold text-on-surface">Roble Europeo y Francés</h4>
+              <p class="text-xs text-on-surface-variant leading-relaxed">
+                Empleado en finalizados de tequilas cristalinos selectos (como Dobel Diamante) y whiskies de malta. Aporta estructura sedosa, especias de repostería y frutos secos.
+              </p>
+            </div>
+            <div class="pt-3 border-t border-outline-variant/50 space-y-1.5 font-mono text-[11px]">
+              <div class="flex justify-between"><span class="text-outline">Especias y Eugenio:</span><span class="font-bold text-primary">Muy Alta (85%)</span></div>
+              <div class="flex justify-between"><span class="text-outline">Polifenoles / Color:</span><span class="font-bold text-on-surface">Alta Estructura</span></div>
+            </div>
+          </div>
+
+          <!-- Especie 3: Agaves Silvestres y Encino -->
+          <div class="bg-surface-container-lowest rounded-lg border border-outline-variant/80 p-5 flex flex-col justify-between space-y-4">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="px-2 py-0.5 rounded bg-[#eaf4ec] text-[#24592a] font-mono text-[10px] font-bold uppercase">Guarda en Monte &amp; Encino</span>
+                <span class="font-mono text-xs text-[#2d6a36] font-bold">Agave potatorum / cupreata</span>
+              </div>
+              <h4 class="font-headline text-lg font-bold text-on-surface">Terroir Silvestre y Encino Mexicano</h4>
+              <p class="text-xs text-on-surface-variant leading-relaxed">
+                En el mezcal artesanal, la "maduración" ocurre primero durante 8 a 15 años en la tierra antes de la jima, complementada en los reposados con barricas de encino o roble.
+              </p>
+            </div>
+            <div class="pt-3 border-t border-outline-variant/50 space-y-1.5 font-mono text-[11px]">
+              <div class="flex justify-between"><span class="text-outline">Azúcares Complejos:</span><span class="font-bold text-[#2d6a36]">Máxima Densidad</span></div>
+              <div class="flex justify-between"><span class="text-outline">Cocción Tradicional:</span><span class="font-bold text-on-surface">Horno Cónico de Piedra</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECCIÓN III: PIRÓLISIS DE TONELERÍA Y LOS 4 NIVELES DE TOSTADO (CHAR #1 - #4) -->
+      <section id="pirolisis-tostado" class="bg-surface-container rounded-lg p-6 border border-outline-variant/70 space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 pb-3 border-b border-outline-variant/50">
+          <div>
+            <span class="archival-badge text-primary">Sección III • Termodinámica de Duela</span>
+            <h3 class="font-headline text-xl font-bold text-on-surface mt-0.5">
+              Pirólisis de Tonelería: Los 4 Niveles de Tostado y Carbonización
+            </h3>
+          </div>
+          <span class="font-mono text-xs text-on-surface-variant">Filtro natural de compuestos sulfurados</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          <div class="bg-surface-container-lowest p-4 rounded border border-outline-variant/50 border-t-4 border-t-[#d4a373]">
+            <div class="flex justify-between items-center font-mono text-xs mb-1.5">
+              <span class="font-bold text-on-surface">Tostado #1 • Ligero</span>
+              <span class="text-outline">~15 seg</span>
+            </div>
+            <p class="text-xs text-on-surface-variant leading-relaxed">
+              Caramelización superficial de azúcares de madera. Conserva notas frescas de agave, coco suave y flores blancas.
+            </p>
+          </div>
+
+          <div class="bg-surface-container-lowest p-4 rounded border border-outline-variant/50 border-t-4 border-t-[#a97142]">
+            <div class="flex justify-between items-center font-mono text-xs mb-1.5">
+              <span class="font-bold text-on-surface">Tostado #2 • Medio</span>
+              <span class="text-outline">~30 seg</span>
+            </div>
+            <p class="text-xs text-on-surface-variant leading-relaxed">
+              Pico de liberación de vainillina y almendra tostada. Preferido para Tequilas Reposados Cristalinos y Mezcales Reposados.
+            </p>
+          </div>
+
+          <div class="bg-surface-container-lowest p-4 rounded border border-outline-variant/50 border-t-4 border-t-[#703c1d]">
+            <div class="flex justify-between items-center font-mono text-xs mb-1.5">
+              <span class="font-bold text-on-surface">Tostado #3 • Fuerte</span>
+              <span class="text-outline">~35 seg</span>
+            </div>
+            <p class="text-xs text-on-surface-variant leading-relaxed">
+              Intensa formación de toffee, cacao amargo y especias. Estándar en Tequilas Añejos Tradicionales y Blended Scotch.
+            </p>
+          </div>
+
+          <div class="bg-surface-container-lowest p-4 rounded border border-outline-variant/50 border-t-4 border-t-[#211b0f]">
+            <div class="flex justify-between items-center font-mono text-xs mb-1.5">
+              <span class="font-bold text-on-surface">Char #4 • Alligator</span>
+              <span class="text-outline">~55 seg</span>
+            </div>
+            <p class="text-xs text-on-surface-variant leading-relaxed">
+              Textura de piel de caimán que actúa como filtro de carbón activo in situ (como en Hornitos Black Barrel y Jack Daniel's).
+            </p>
+          </div>
+        </div>
+      </section>
+
     </div>

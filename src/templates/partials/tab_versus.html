@@ -1,24 +1,49 @@
     <!-- ========================================================================================= -->
-    <!-- PESTAÑA 2: HEAD-TO-HEAD VERSUS (SEGMENTADO EN CATEGORÍA Y TIPO + SIMULACIÓN REACTIVA) -->
+    <!-- PESTAÑA 2: DUELO HEAD-TO-HEAD (STITCH FORENSIC COMPARATIVE VALUATION) -->
     <!-- ========================================================================================= -->
-    <div id="tab-versus" class="tab-content space-y-5 hidden">
+    <div id="tab-versus" class="tab-content space-y-6 hidden">
 
-      <!-- FILTRO EN 2 PASOS PARA EL VERSUS: 1. CATEGORÍA -> 2. TIPO DE BEBIDA -->
-      <div class="md3-card p-4 sm:p-5 space-y-4 min-w-0 overflow-hidden">
-        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-[#DFD5C7] pb-4">
+      <!-- CINTA SUPERIOR DE PROTOCOLO DE AUDITORÍA & SELECTOR DE ARBITRAJE CROSS-TIENDA -->
+      <div class="bg-surface-container rounded-lg px-4 py-3 border border-outline-variant/70 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5 flex-wrap">
+          <span class="material-symbols-outlined text-primary text-[18px]">verified</span>
+          <span class="font-mono text-xs uppercase tracking-wider text-on-surface font-semibold">
+            Arbitraje Directo Cross-Tienda (Misma Botella entre Cadenas):
+          </span>
+          <span class="badge bg-secondary-container text-on-secondary-fixed border border-outline-variant/70 text-[10px]" id="badge-total-cross">
+            101 botellas
+          </span>
+        </div>
+        <div class="w-full lg:w-auto flex-1 max-w-lg min-w-0">
+          <select id="select-cross-tienda-duelo" aria-label="Comparar misma botella entre tiendas" onchange="cargarDueloCrossTienda(this.value)" class="w-full md3-input px-3 py-1.5 font-mono text-xs font-semibold min-w-0 max-w-full truncate cursor-pointer">
+            <option value="">Cargando botellas comparables...</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- CABINA DE CONFIGURACIÓN DEL DUELO (STITCH DUEL SETUP COCKPIT HEADER) -->
+      <section class="bg-surface-container-low rounded-lg p-5 sm:p-6 border border-outline-variant/70 relative overflow-hidden space-y-5">
+        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-5 pb-5 border-b border-outline-variant/50">
           <div>
-            <h3 class="font-bold text-lg font-display-md3 text-[#1F1B16]">
-              Selector de Categoría y Tipo para el Duelo
-            </h3>
-            <p class="text-xs text-[#574A3D]">
-              Elige primero la bebida y luego el tipo exacto para enfrentar etiquetas equivalentes.
+            <div class="flex items-center gap-2 mb-1.5">
+              <span class="w-2 h-2 rounded-full bg-primary"></span>
+              <span class="archival-badge text-primary">Módulo II • Valuación Comparativa Forense</span>
+            </div>
+            <h2 class="font-headline text-2xl sm:text-3xl font-bold text-on-surface tracking-tight leading-tight">
+              Laboratorio de Duelo Head-to-Head
+            </h2>
+            <p class="text-xs sm:text-sm text-on-surface-variant mt-1 max-w-xl leading-relaxed">
+              Enfrenta dos etiquetas equivalentes por categoría de maduración o audita el diferencial exacto por litro y por trago servido.
             </p>
           </div>
 
+          <!-- Selectores en Cascada Paso 01 -> Paso 02 -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full lg:w-auto min-w-0">
-            <div class="min-w-0">
-              <label for="select-versus-macro" class="block text-[11px] font-bold text-[#784516] uppercase mb-1">1. Categoría de Bebida:</label>
-              <select id="select-versus-macro" onchange="actualizarSubtiposVersus()" class="w-full sm:w-52 md3-input px-3 py-2 text-xs font-semibold max-w-full">
+            <div class="bg-surface-container-lowest p-3 rounded border border-outline-variant/70 min-w-0">
+              <label for="select-versus-macro" class="archival-badge text-primary block mb-1">
+                Paso 01 • Categoría de Bebida
+              </label>
+              <select id="select-versus-macro" onchange="actualizarSubtiposVersus()" class="w-full sm:w-52 md3-input px-2.5 py-1.5 text-xs font-semibold max-w-full cursor-pointer">
                 <option value="Tequila" selected>Tequila</option>
                 <option value="Mezcal">Mezcal</option>
                 <option value="Whisky">Whisky Escocés</option>
@@ -28,58 +53,53 @@
               </select>
             </div>
 
-            <div class="min-w-0">
-              <label for="select-versus-categoria-filtro" class="block text-[11px] font-bold text-[#486355] uppercase mb-1">2. Tipo de Bebida:</label>
-              <select id="select-versus-categoria-filtro" onchange="filtrarSelectoresVersusPorCategoria()" class="w-full sm:w-64 md3-input px-3 py-2 text-xs font-semibold max-w-full">
+            <div class="bg-surface-container-lowest p-3 rounded border border-outline-variant/70 min-w-0">
+              <label for="select-versus-categoria-filtro" class="archival-badge text-secondary block mb-1">
+                Paso 02 • Subtipo / Maduración
+              </label>
+              <select id="select-versus-categoria-filtro" onchange="filtrarSelectoresVersusPorCategoria()" class="w-full sm:w-64 md3-input px-2.5 py-1.5 text-xs font-semibold max-w-full cursor-pointer">
               </select>
             </div>
           </div>
         </div>
 
-        <!-- SUGERENCIAS DINÁMICAS DE DUELOS SEGÚN EL TIPO ESCOGIDO -->
-        <div class="space-y-2 pt-1 min-w-0">
-          <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 text-xs">
-            <span class="text-[#574A3D] font-bold uppercase tracking-wider">
-              Duelos Sugeridos en este Tipo:
+        <!-- VUELOS DE CATA Y DUELOS SUGERIDOS (STITCH STANDARDIZED FLIGHT PRESETS) -->
+        <div class="space-y-2.5 min-w-0">
+          <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
+            <span class="archival-badge text-on-surface-variant flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[15px] text-primary">bolt</span>
+              Vuelos de Cata y Arbitraje Sugeridos:
             </span>
-            <span class="text-[#784516] font-mono font-semibold text-[11px]" id="versus-sugerencias-info">Duelos clave</span>
+            <span class="font-mono text-[11px] text-primary font-semibold" id="versus-sugerencias-info">Duelos clave</span>
           </div>
           <div class="flex flex-wrap gap-2 min-w-0 w-full" id="versus-sugerencias-container">
           </div>
         </div>
+      </section>
 
-        <!-- COMPARATIVA DIRECTA CROSS-TIENDA (MISMA ETIQUETA ENTRE TIENDAS) -->
-        <div class="p-3.5 rounded-xl bg-[#D3E8DC]/40 border border-[#B7D6C5] flex flex-col md:flex-row items-start md:items-center justify-between gap-3 min-w-0">
-          <div class="space-y-0.5 min-w-0 flex-1">
-            <div class="flex items-center gap-1.5 flex-wrap">
-              <svg class="ico-sm text-[#0B2016]" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M16 3l4 4-4 4M20 7H4M8 21l-4-4 4-4M4 17h16"/>
-              </svg>
-              <span class="text-xs font-bold text-[#0B2016] uppercase">Comparar Misma Etiqueta entre Tiendas:</span>
-              <span class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] text-[10px] whitespace-normal sm:whitespace-nowrap" id="badge-total-cross">101 botellas</span>
-            </div>
-            <p class="text-[11px] text-[#2C4A3A]">
-              Enfrenta directamente la tienda más barata vs la más cara de la misma botella para ver el ahorro exacto.
-            </p>
-          </div>
-          <div class="w-full md:w-auto flex-1 max-w-md min-w-0">
-            <select id="select-cross-tienda-duelo" aria-label="Comparar misma botella entre tiendas" onchange="cargarDueloCrossTienda(this.value)" class="w-full md3-input px-3 py-2 text-xs font-semibold min-w-0 max-w-full truncate">
-              <option value="">Cargando botellas comparables...</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <!-- SELECTORES MANUALES A Y B -->
+      <!-- BAHÍAS DE SELECCIÓN DE CONTENDIENTES (CONTENDER ALPHA [A] VS CONTENDER BETA [B]) -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
-        <div class="md3-card p-4 space-y-1.5 border-l-4 border-l-[#784516] min-w-0 overflow-hidden">
-          <label for="select-versus-a" class="block text-xs font-bold text-[#784516] uppercase tracking-wider">Contendiente A:</label>
-          <select id="select-versus-a" onchange="actualizarVersusManual('A')" class="w-full min-w-0 max-w-full md3-input p-2.5 text-xs sm:text-sm truncate">
+        <div class="bg-surface-container rounded-lg p-4 border-t-4 border-t-primary border-x border-b border-outline-variant/70 space-y-2 min-w-0 overflow-hidden">
+          <div class="flex items-center justify-between">
+            <label for="select-versus-a" class="archival-badge text-primary flex items-center gap-1.5">
+              <span class="px-1.5 py-0.5 rounded bg-primary text-on-primary font-mono text-[10px] font-bold">A</span>
+              Contendiente Alpha
+            </label>
+            <span class="font-mono text-[10px] text-on-surface-variant uppercase"> Espécimen Izquierdo</span>
+          </div>
+          <select id="select-versus-a" onchange="actualizarVersusManual('A')" class="w-full min-w-0 max-w-full md3-input p-2.5 text-xs sm:text-sm font-medium truncate cursor-pointer">
           </select>
         </div>
-        <div class="md3-card p-4 space-y-1.5 border-l-4 border-l-[#753B47] min-w-0 overflow-hidden">
-          <label for="select-versus-b" class="block text-xs font-bold text-[#753B47] uppercase tracking-wider">Contendiente B:</label>
-          <select id="select-versus-b" onchange="actualizarVersusManual('B')" class="w-full min-w-0 max-w-full md3-input p-2.5 text-xs sm:text-sm truncate">
+
+        <div class="bg-surface-container rounded-lg p-4 border-t-4 border-t-secondary border-x border-b border-outline-variant/70 space-y-2 min-w-0 overflow-hidden">
+          <div class="flex items-center justify-between">
+            <label for="select-versus-b" class="archival-badge text-secondary flex items-center gap-1.5">
+              <span class="px-1.5 py-0.5 rounded bg-secondary text-on-secondary font-mono text-[10px] font-bold">B</span>
+              Contendiente Beta
+            </label>
+            <span class="font-mono text-[10px] text-on-surface-variant uppercase">Espécimen Derecho</span>
+          </div>
+          <select id="select-versus-b" onchange="actualizarVersusManual('B')" class="w-full min-w-0 max-w-full md3-input p-2.5 text-xs sm:text-sm font-medium truncate cursor-pointer">
           </select>
         </div>
       </div>
@@ -88,16 +108,23 @@
       <div id="versus-alerta-compatibilidad">
       </div>
 
-      <!-- TARJETAS COMPARATIVAS LADO A LADO -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-5" id="versus-tarjetas-container">
+      <!-- ARENA COMPARATIVA LADO A LADO CON SELLO CENTRAL "VS" -->
+      <div class="relative">
+        <div class="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex-col items-center justify-center pointer-events-none">
+          <div class="w-12 h-12 rounded-full bg-inverse-surface text-inverse-on-surface border-2 border-[#ffd6ab] shadow-lg flex items-center justify-center">
+            <span class="font-headline italic font-bold text-base tracking-tighter">VS</span>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="versus-tarjetas-container">
+        </div>
       </div>
 
-      <!-- SIMULACIÓN DE COMPRA REACTIVA Y TIPS DE DECISIÓN -->
-      <div id="versus-impacto-familiar-box" class="md3-card p-5 space-y-4">
+      <!-- VEREDICTO FORENSE EN SUPERFICIE INVERSA OSCURA (STITCH DARK VERDICT BANNER) -->
+      <div id="versus-veredicto-box" class="bg-inverse-surface text-inverse-on-surface rounded-lg p-6 lg:p-7 shadow-md border border-[#52443c] relative overflow-hidden">
       </div>
 
-      <!-- VEREDICTO DE INTELIGENCIA DE COMPRA -->
-      <div id="versus-veredicto-box" class="md3-card p-6 bg-[#F7F2EA]">
+      <!-- SIMULACIÓN REACTIVA DE IMPACTO FAMILIAR Y NOTAS DE COMPRA -->
+      <div id="versus-impacto-familiar-box" class="bg-surface-container-low rounded-lg p-5 sm:p-6 border border-outline-variant/70 space-y-4">
       </div>
 
     </div>
