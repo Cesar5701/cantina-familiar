@@ -975,4 +975,3 @@ def test_arbitraje_descarta_precios_fantasma_agotados():
     assert oferta_ched["es_mejor_precio"] is False
     assert oferta_ched["disponibilidad"] == "agotado"
     assert oferta_ched["stock_unidades"] == 0
-

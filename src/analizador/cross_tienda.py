@@ -115,7 +115,9 @@ def calcular_grupos_cross_tienda(df: pd.DataFrame) -> dict[str, dict]:
                 "disponibilidad": r.get("disponibilidad", "disponible"),
                 "stock_unidades": (
                     int(r["stock_unidades"])
-                    if ("stock_unidades" in r and pd.notnull(r["stock_unidades"]) and str(r["stock_unidades"]).isdigit())
+                    if (
+                        "stock_unidades" in r and pd.notnull(r["stock_unidades"]) and str(r["stock_unidades"]).isdigit()
+                    )
                     else None
                 ),
                 "url": r.get("url", ""),
