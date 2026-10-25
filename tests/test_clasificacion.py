@@ -174,6 +174,22 @@ def test_clasificacion_estricta_tequila():
     assert cat == "Tequila - Añejo Tradicional"
     assert cla == "Extra Añejo"
 
+    # José Cuervo Tradicional Reposado (Ámbar tradicional, NO Cristalino)
+    cat, sub, cla = clasificar_estricto("Tequila José Cuervo Tradicional Reposado 1.75 L", "Tequila")
+    assert cat == "Tequila - Reposado Tradicional"
+    assert sub == "Reposado"
+    assert cla == "Reposado"
+
+    cat, sub, cla = clasificar_estricto("Tequila José Cuervo Tradicional Reposado 950 ml", "Tequila")
+    assert cat == "Tequila - Reposado Tradicional"
+    assert sub == "Reposado"
+
+    # José Cuervo Tradicional Cristalino (Sí es Cristalino sobre base Reposado)
+    cat, sub, cla = clasificar_estricto("Tequila José Cuervo Tradicional Cristalino 750 ml", "Tequila")
+    assert cat == "Tequila - Reposado Cristalino"
+    assert sub == "Reposado Cristalino"
+    assert cla == "Reposado Cristalino"
+
 
 def test_clasificacion_estricta_mezcal():
     # Silvestres

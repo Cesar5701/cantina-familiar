@@ -110,10 +110,19 @@ def clasificar_estricto(row_o_nombre: Union[dict, Any, str], categoria: Optional
     # TEQUILA (NOM-006-SCFI)
     # -----------------------------------------------------------------------
     if cat == "Tequila" or "tequila" in nom_l:
+        es_rep = "reposado" in nom_l or "rep." in nom_l or "rep " in nom_l
+        es_crist = (
+            "cristalino" in nom_l
+            or "crist." in nom_l
+            or "ultra" in nom_l
+            or "platinium" in nom_l
+            or "diamante" in nom_l
+            or "cristal" in nom_l
+        )
+        es_anejo = "añejo" in nom_l or "anejo" in nom_l or "extra añejo" in nom_l or "milenio" in nom_l
+
         # 1. BLANCO / PLATA (0 meses barrica)
-        if ("plata" in nom_l or "blanco" in nom_l or "silver" in nom_l) and not (
-            "añejo" in nom_l or "anejo" in nom_l or "reposado" in nom_l
-        ):
+        if ("plata" in nom_l or "blanco" in nom_l or "silver" in nom_l) and not (es_anejo or es_rep):
             return "Tequila - Blanco / Plata", "Blanco", "Blanco"
         if "don ramón plata" in nom_l or "don ramon plata" in nom_l:
             return "Tequila - Blanco / Plata", "Blanco", "Blanco"
@@ -135,9 +144,11 @@ def clasificar_estricto(row_o_nombre: Union[dict, Any, str], categoria: Optional
             elif "añejo" in nom_l or "dark" in nom_l:
                 return "Tequila - Añejo Tradicional", "Añejo Tradicional", "Añejo"
 
-        # 4. MARCAS REPOSADO CRISTALINO POR NORMA (cuando omiten la palabra 'Reposado')
-        if any(m in nom_l for m in MARCAS_REPOSADO_CRISTALINO_POR_NORMA) and not (
-            "añejo" in nom_l or "anejo" in nom_l or "ultra añejo" in nom_l
+        # 4. MARCAS REPOSADO CRISTALINO POR NORMA (cuando son cristalinos pero el súper omite la palabra 'Reposado')
+        if (
+            es_crist
+            and any(m in nom_l for m in MARCAS_REPOSADO_CRISTALINO_POR_NORMA)
+            and not (es_anejo or "ultra añejo" in nom_l)
         ):
             return "Tequila - Reposado Cristalino", "Reposado Cristalino", "Reposado Cristalino"
 
@@ -146,17 +157,6 @@ def clasificar_estricto(row_o_nombre: Union[dict, Any, str], categoria: Optional
             return "Tequila - Añejo Cristalino", "Añejo Cristalino", "Añejo Cristalino"
 
         # 6. REGLAS GENERALES PARA OTROS TEQUILAS
-        es_rep = "reposado" in nom_l or "rep." in nom_l or "rep " in nom_l
-        es_crist = (
-            "cristalino" in nom_l
-            or "crist." in nom_l
-            or "ultra" in nom_l
-            or "platinium" in nom_l
-            or "diamante" in nom_l
-            or "cristal" in nom_l
-        )
-        es_anejo = "añejo" in nom_l or "anejo" in nom_l or "extra añejo" in nom_l or "milenio" in nom_l
-
         if es_rep and es_crist and not es_anejo:
             return "Tequila - Reposado Cristalino", "Reposado Cristalino", "Reposado Cristalino"
         elif es_rep and not es_crist and not es_anejo:
