@@ -918,3 +918,61 @@ def test_cli_main_analizador(tmp_path, monkeypatch):
     df_read = pd.read_csv(archivo_out)
     assert len(df_read) == 1
     assert df_read.loc[0, "producto"] == "Whisky Black Label 750 ml"
+
+
+def test_arbitraje_descarta_precios_fantasma_agotados():
+    """Valida que el arbitraje cross-tienda descarte precios fantasma de botellas agotadas."""
+    df = crear_df_base(
+        [
+            {
+                "tienda": "Chedraui",
+                "producto": "Tequila Maestro Dobel Diamante 700 ml",
+                "ml": 700,
+                "precio_promo": 520.0,
+                "disponibilidad": "agotado",
+                "stock_unidades": 0,
+                "url": "https://chedraui.com/dobel",
+            },
+            {
+                "tienda": "Sam's Club",
+                "producto": "Tequila Maestro Dobel Diamante 700 ml",
+                "ml": 700,
+                "precio_promo": 574.0,
+                "disponibilidad": "disponible",
+                "stock_unidades": 12,
+                "url": "https://sams.com/dobel",
+            },
+            {
+                "tienda": "Bodegas Alianza",
+                "producto": "Tequila Maestro Dobel Diamante 700 ml",
+                "ml": 700,
+                "precio_promo": 610.0,
+                "disponibilidad": "disponible",
+                "stock_unidades": 4,
+                "url": "https://alianza.com/dobel",
+            },
+        ]
+    )
+    grupos = calcular_grupos_cross_tienda(df)
+    assert len(grupos) == 1
+    info = list(grupos.values())[0]
+
+    # La tienda mínima debe ser Sam's Club ($574), NO Chedraui ($520) que está agotado
+    assert info["tienda_min"] == "Sam's Club"
+    assert info["precio_min"] == 574.0
+
+    records = enriquecer_registros_cross_tienda(df, grupos)
+    chedraui_rec = next(r for r in records if r["tienda"] == "Chedraui")
+    sams_rec = next(r for r in records if r["tienda"] == "Sam's Club")
+
+    # Chedraui está agotado: no debe marcarse como precio más bajo realizable
+    assert chedraui_rec["es_precio_mas_bajo"] is False
+    # Sam's Club tiene stock: es el precio más bajo realizable
+    assert sams_rec["es_precio_mas_bajo"] is True
+
+    # En las ofertas de Sam's Club, Chedraui no debe promoverse como mejor precio
+    oferta_ched = next(o for o in sams_rec["ofertas_cross_tienda"] if o["tienda"] == "Chedraui")
+    assert oferta_ched["es_mejor_precio"] is False
+    assert oferta_ched["disponibilidad"] == "agotado"
+    assert oferta_ched["stock_unidades"] == 0
+

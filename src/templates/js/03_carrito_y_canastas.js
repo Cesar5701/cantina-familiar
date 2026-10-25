@@ -306,12 +306,29 @@
               `;
             }
 
+            let badgeStockCarrito = "";
+            if (item.disponibilidad === "agotado") {
+              badgeStockCarrito = `<span class="badge bg-[#fbeae8] text-[#ba1a1a] border border-[#ffdad6] text-[10px] font-bold">⚠️ Agotado</span>`;
+            } else if (item.stock_unidades !== null && item.stock_unidades !== undefined && item.stock_unidades !== "" && Number(item.stock_unidades) > 0 && Number(item.stock_unidades) <= 5) {
+              badgeStockCarrito = `<span class="badge bg-[#fef3eb] text-[#8c5332] border border-[#f3ddce] text-[10px] font-semibold">Últimas ${item.stock_unidades} pzas</span>`;
+            }
+
+            let alertaStock = "";
+            if (item.disponibilidad === "agotado") {
+              alertaStock = `
+                <div class="mt-2 p-2 rounded-xl bg-[#FDE8E8] border border-[#F8B4B4] text-[11px] text-[#9B1C1C]">
+                  <strong>Aviso de inventario:</strong> Esta botella figura como <em>agotada</em> en ${item.tienda}. Considera verificar disponibilidad en tienda física o buscar una alternativa en otra cadena.
+                </div>
+              `;
+            }
+
             html += `
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 md3-surface-low hover:border-[#8A7B6B] transition-colors min-w-0">
                 <div class="space-y-1 flex-1 min-w-0">
                   <div class="flex flex-wrap items-center gap-1.5">
                     <span class="badge ${claseBadgeColor} border text-[10px]">${item.categoria_comparable}</span>
                     ${tiendaBadge}
+                    ${badgeStockCarrito}
                     <span class="text-xs font-mono text-[#574A3D]">${item.ml} ml</span>
                   </div>
                   <div class="font-semibold text-sm text-[#1F1B16] leading-tight break-words">
@@ -326,6 +343,7 @@
                     Unitario: <strong class="text-[#784516] font-bold">$${item.precio_promo.toFixed(2)}</strong> · <span class="text-[#486355] font-semibold">$${item.precio_por_litro.toFixed(2)} / L</span>
                   </div>
                   ${alertaAhorro}
+                  ${alertaStock}
                 </div>
 
                 <!-- CONTROLES DE CANTIDAD TÁCTILES (HIG 44pt) -->

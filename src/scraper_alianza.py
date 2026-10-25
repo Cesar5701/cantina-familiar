@@ -62,7 +62,9 @@ def consultar_api_alianza(
         seller = items[0].get("sellers", [{}])[0].get("commertialOffer", {})
         precio_promo = seller.get("Price")
         precio_regular = seller.get("ListPrice") or precio_promo
-        disponible = "disponible" if (seller.get("AvailableQuantity", 0) > 0) else "agotado"
+        avail_qty = seller.get("AvailableQuantity")
+        stock_unidades = int(avail_qty) if avail_qty is not None else None
+        disponible = "disponible" if (avail_qty and avail_qty > 0) else "agotado"
 
         if precio_promo is None or precio_promo <= 0:
             if resumen:
@@ -95,6 +97,7 @@ def consultar_api_alianza(
                 "precio_total_promo": float(precio_promo),
                 "condiciones": condicion,
                 "disponibilidad": disponible,
+                "stock_unidades": stock_unidades,
                 "url": link,
                 "fecha_consulta": fecha_actual,
                 "fuente": "API oficial Bodegas Alianza",

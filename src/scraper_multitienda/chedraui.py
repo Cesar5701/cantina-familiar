@@ -97,6 +97,7 @@ def scrapear_chedraui(terminos: list[str] | None = None) -> list[dict]:
                         condicion=cond,
                         fuente="API VTEX chedraui.com.mx",
                         fecha_actual=fecha_actual,
+                        stock_unidades=int(avail_qty) if avail_qty is not None else None,
                     )
                     if item_norm:
                         resultados.append(item_norm)

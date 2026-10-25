@@ -74,7 +74,11 @@ def calcular_grupos_cross_tienda(df: pd.DataFrame) -> dict[str, dict]:
         if grp_valid["tienda"].nunique() < 2:
             continue
 
-        idx_min = grp_valid[col_ord].idxmin()
+        if "disponibilidad" in grp_valid.columns:
+            grp_disp = grp_valid[grp_valid["disponibilidad"].astype(str).str.lower() != "agotado"]
+            idx_min = grp_disp[col_ord].idxmin() if not grp_disp.empty else grp_valid[col_ord].idxmin()
+        else:
+            idx_min = grp_valid[col_ord].idxmin()
         idx_max = grp_valid[col_ord].idxmax()
         row_min = grp_valid.loc[idx_min]
         row_max = grp_valid.loc[idx_max]
@@ -108,6 +112,12 @@ def calcular_grupos_cross_tienda(df: pd.DataFrame) -> dict[str, dict]:
                     if "precio_por_litro" in r
                     else round(float(r[col_precio]), 2)
                 ),
+                "disponibilidad": r.get("disponibilidad", "disponible"),
+                "stock_unidades": (
+                    int(r["stock_unidades"])
+                    if ("stock_unidades" in r and pd.notnull(r["stock_unidades"]) and str(r["stock_unidades"]).isdigit())
+                    else None
+                ),
                 "url": r.get("url", ""),
             }
             for _, r in grp_valid.iterrows()
@@ -123,6 +133,7 @@ def calcular_grupos_cross_tienda(df: pd.DataFrame) -> dict[str, dict]:
             "precio_min": round(p_min, 2),
             "precio_por_litro_min": round(ppl_min, 2),
             "ml_min": row_min["ml"],
+            "disponibilidad_min": row_min.get("disponibilidad", "disponible"),
             "tienda_max": row_max["tienda"],
             "precio_max": round(p_max, 2),
             "precio_por_litro_max": round(ppl_max, 2),
@@ -218,7 +229,13 @@ def enriquecer_registros_cross_tienda(
             p_litro_min = info["precio_por_litro_min"]
 
             # H35: El mejor precio se determina por precio por litro (+ margen de 5 centavos para empates)
-            rec["es_precio_mas_bajo"] = bool(p_litro_actual <= p_litro_min + 0.05)
+            # Descartando precios fantasma si el producto actual está agotado y hay alternativa en existencia
+            disp_actual = str(row.get("disponibilidad", "disponible")).lower()
+            if disp_actual == "agotado" and info.get("disponibilidad_min", "disponible") != "agotado":
+                rec["es_precio_mas_bajo"] = False
+            else:
+                rec["es_precio_mas_bajo"] = bool(p_litro_actual <= p_litro_min + 0.05)
+
             if rec["es_precio_mas_bajo"]:
                 rec["diferencia_vs_minimo"] = 0.0
             else:
@@ -237,6 +254,8 @@ def enriquecer_registros_cross_tienda(
                     "ml": of["ml"],
                     "precio_promo": of["precio_promo"],
                     "precio_por_litro": of["precio_por_litro"],
+                    "disponibilidad": of.get("disponibilidad", "disponible"),
+                    "stock_unidades": of.get("stock_unidades"),
                     "url": of["url"],
                     "diferencia": round(
                         (p_actual - of["precio_promo"])
@@ -244,7 +263,10 @@ def enriquecer_registros_cross_tienda(
                         else (p_litro_actual - of["precio_por_litro"]) * (float(row["ml"]) / 1000.0),
                         2,
                     ),
-                    "es_mejor_precio": bool(of["precio_por_litro"] < p_litro_actual - 0.05),
+                    "es_mejor_precio": bool(
+                        of["precio_por_litro"] < p_litro_actual - 0.05
+                        and str(of.get("disponibilidad", "disponible")).lower() != "agotado"
+                    ),
                 }
                 for of in info["ofertas"]
                 if of["tienda"] != row["tienda"]
@@ -258,7 +280,7 @@ def enriquecer_registros_cross_tienda(
             rec["tienda_mas_cara"] = row["tienda"]
             rec["precio_maximo_cross"] = p_actual
             rec["ahorro_maximo_cross"] = 0.0
-            rec["es_precio_mas_bajo"] = True
+            rec["es_precio_mas_bajo"] = bool(str(row.get("disponibilidad", "disponible")).lower() != "agotado")
             rec["diferencia_vs_minimo"] = 0.0
             rec["ofertas_cross_tienda"] = []
 

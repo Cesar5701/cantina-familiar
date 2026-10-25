@@ -482,3 +482,23 @@ def test_h51_pestana_activa_persistente_en_hash():
     # Sincronía si el usuario edita el fragmento o abre un enlace compartido
     assert 'window.addEventListener("hashchange", () => {' in contenido
     assert "if (id) cambiarTab(id);" in contenido
+
+
+def test_filtro_y_badges_disponibilidad_en_dashboard():
+    """Valida la presencia del filtro 'Solo en existencia' y badges de stock en el dashboard."""
+    tpl_path = Path("src/templates/dashboard_template.html")
+    assert tpl_path.exists()
+    contenido = cargar_plantilla_dashboard(tpl_path)
+
+    # Toggle en el HTML con id accesible
+    assert 'id="filtro-disponible"' in contenido
+    assert "Solo en existencia" in contenido
+
+    # Lógica de filtrado en 04_navegacion_y_catalogo.js
+    assert 'const chkDisp = document.getElementById("filtro-disponible");' in contenido
+    assert "item.disponibilidad !== 'agotado'" in contenido
+
+    # Badges en la tabla y tarjeta móvil
+    assert 'item.disponibilidad === "agotado"' in contenido
+    assert "Últimas" in contenido
+    assert "Existencia:" in contenido

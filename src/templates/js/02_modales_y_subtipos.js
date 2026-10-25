@@ -29,20 +29,31 @@
       document.getElementById("modal-cross-subtitulo").innerText =
         `Disponible en ${item.num_tiendas_cross} tiendas · Ahorro máximo entre tiendas: $${item.ahorro_maximo_cross.toFixed(2)} MXN`;
 
-      const mejorOferta = ofertas[0].p;
+      const mejorOferta = ofertas.find(x => x.p.disponibilidad !== "agotado")?.p || ofertas[0].p;
       const minPorLitro = mejorOferta.precio_por_litro;
       const cont = document.getElementById("modal-cross-contenido");
       let html = "";
 
-      ofertas.forEach(({ p, idx }, rank) => {
-        const esMinimo = rank === 0;
+      ofertas.forEach(({ p, idx }) => {
+        const esMinimo = (p === mejorOferta) && p.disponibilidad !== "agotado";
         const difVsMin = (p.ml === mejorOferta.ml)
           ? (p.precio_promo - mejorOferta.precio_promo)
           : ((p.precio_por_litro - minPorLitro) * (p.ml / 1000.0));
         const badgeTienda = getBadgeTienda(p.tienda, true);
 
+        let badgeStock = "";
+        if (p.disponibilidad === "agotado") {
+          badgeStock = `<span class="badge bg-[#fbeae8] text-[#ba1a1a] border border-[#ffdad6] text-[10px] font-semibold">Agotado</span>`;
+        } else if (p.stock_unidades !== null && p.stock_unidades !== undefined && p.stock_unidades !== "" && Number(p.stock_unidades) > 0 && Number(p.stock_unidades) <= 5) {
+          badgeStock = `<span class="badge bg-[#fef3eb] text-[#8c5332] border border-[#f3ddce] text-[10px] font-semibold">Últimas ${p.stock_unidades} pzas</span>`;
+        } else if (p.stock_unidades !== null && p.stock_unidades !== undefined && p.stock_unidades !== "" && Number(p.stock_unidades) > 5) {
+          badgeStock = `<span class="badge bg-[#eaf4ec] text-[#24592a] border border-[#c5dfc9] text-[10px] font-medium">Existencia: ${p.stock_unidades}</span>`;
+        }
+
         let bannerAhorro = "";
-        if (esMinimo) {
+        if (p.disponibilidad === "agotado") {
+          bannerAhorro = `<span class="text-[11px] text-[#ba1a1a] font-medium">Sin existencia en esta tienda</span>`;
+        } else if (esMinimo) {
           bannerAhorro = `<span class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] text-[10px] font-bold whitespace-normal sm:whitespace-nowrap leading-tight text-left">Mejor Precio (Ahorras hasta $${item.ahorro_maximo_cross.toFixed(2)})</span>`;
         } else {
           bannerAhorro = `<span class="text-[11px] text-[#9B1C1C] font-semibold">+$${difVsMin.toFixed(2)} vs ${mejorOferta.tienda}</span>`;
@@ -53,6 +64,7 @@
             <div class="space-y-1.5 min-w-0 flex-1">
               <div class="flex items-center gap-2 flex-wrap">
                 ${badgeTienda}
+                ${badgeStock}
                 ${bannerAhorro}
               </div>
               <div class="font-bold text-sm text-[#1F1B16] leading-snug break-words">${p.producto}</div>

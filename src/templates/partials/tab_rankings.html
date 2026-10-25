@@ -169,6 +169,11 @@
               <span class="font-semibold text-primary text-[11px] sm:text-xs">Solo ofertas</span>
             </label>
 
+            <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-surface-container-lowest border border-outline-variant hover:bg-[#EFE8DC] text-[#24592a] font-mono text-xs font-medium cursor-pointer transition-colors select-none" title="Ocultar botellas agotadas y mostrar únicamente las que tienen existencia verificada">
+              <input type="checkbox" id="filtro-disponible" onchange="aplicarFiltros()" checked class="w-3.5 h-3.5 rounded accent-[#24592a]">
+              <span class="font-semibold text-[#24592a] text-[11px] sm:text-xs">Solo en existencia</span>
+            </label>
+
             <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-surface-container-lowest border border-outline-variant hover:bg-[#EFE8DC] text-[#93000a] font-mono text-xs font-medium cursor-pointer transition-colors select-none" title="Mostrar únicamente botellas en paquete, combos o con obsequios incluidos">
               <input type="checkbox" id="filtro-paquete-pill" onchange="sincronizarFiltroPaquete(this.checked)" class="w-3.5 h-3.5 rounded accent-[#93000a]">
               <span class="font-bold text-[#93000a] text-[11px] sm:text-xs">Solo paquetes y combos</span>

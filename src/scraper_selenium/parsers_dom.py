@@ -44,6 +44,7 @@ def _construir_registro_producto(
         "precio_total_promo": precio_promo,
         "condiciones": condicion,
         "disponibilidad": "disponible",
+        "stock_unidades": None,
         "url": url,
         "fecha_consulta": fecha_consulta,
         "fuente": f"Página oficial ({tienda})",

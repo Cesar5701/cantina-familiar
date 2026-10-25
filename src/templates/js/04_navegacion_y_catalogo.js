@@ -110,6 +110,8 @@
       const soloPaquete = chkPaq ? chkPaq.checked : false;
       const chkMejor = document.getElementById("filtro-mejor-precio");
       const soloMejor = chkMejor ? chkMejor.checked : true;
+      const chkDisp = document.getElementById("filtro-disponible");
+      const soloDisp = chkDisp ? chkDisp.checked : false;
 
       // Actualizar estado visual y disponibilidad del toggle según la tienda seleccionada
       if (chkMejor) {
@@ -133,7 +135,8 @@
         const matchTienda = (tienda === 'Todas') || (item.tienda === tienda);
         const matchDesc = !soloDesc || (item.ahorro_verificable > 0);
         const matchPaquete = !soloPaquete || esProductoPaquete(item);
-        return matchBusq && matchMacro && matchSub && matchTienda && matchDesc && matchPaquete;
+        const matchDisp = !soloDisp || (item.disponibilidad !== 'agotado');
+        return matchBusq && matchMacro && matchSub && matchTienda && matchDesc && matchPaquete && matchDisp;
       });
 
       // Si está en 'Todas las Tiendas' y el filtro está activo, mostrar únicamente la mejor oferta por producto
@@ -315,6 +318,19 @@
           `;
         }
 
+        let stockBadgeDesktop = "";
+        let stockBadgeMovil = "";
+        if (item.disponibilidad === "agotado") {
+          stockBadgeDesktop = `<div class="mt-1"><span class="badge bg-[#fbeae8] text-[#ba1a1a] border border-[#ffdad6] font-semibold" title="Sin existencias reportadas">Agotado</span></div>`;
+          stockBadgeMovil = `<span class="badge bg-[#fbeae8] text-[#ba1a1a] border border-[#ffdad6] text-[10px] font-semibold">Agotado</span>`;
+        } else if (item.stock_unidades !== null && item.stock_unidades !== undefined && item.stock_unidades !== "" && Number(item.stock_unidades) > 0 && Number(item.stock_unidades) <= 5) {
+          stockBadgeDesktop = `<div class="mt-1"><span class="badge bg-[#fef3eb] text-[#8c5332] border border-[#f3ddce] font-semibold" title="${item.stock_unidades} unidades en inventario">Últimas ${item.stock_unidades} pzas</span></div>`;
+          stockBadgeMovil = `<span class="badge bg-[#fef3eb] text-[#8c5332] border border-[#f3ddce] text-[10px] font-semibold">Últimas ${item.stock_unidades} pzas</span>`;
+        } else if (item.stock_unidades !== null && item.stock_unidades !== undefined && item.stock_unidades !== "" && Number(item.stock_unidades) > 5) {
+          stockBadgeDesktop = `<div class="mt-1"><span class="badge bg-[#eaf4ec] text-[#24592a] border border-[#c5dfc9] font-medium" title="${item.stock_unidades} unidades disponibles">Existencia: ${item.stock_unidades}</span></div>`;
+          stockBadgeMovil = `<span class="badge bg-[#eaf4ec] text-[#24592a] border border-[#c5dfc9] text-[10px] font-medium">Existencia: ${item.stock_unidades}</span>`;
+        }
+
         // 1. Fila Desktop (tr) — Stitch Archival Ledger Row
         if (tbody) {
           const tr = document.createElement("tr");
@@ -336,7 +352,7 @@
             <td class="py-3.5 px-3 text-xs font-mono text-on-surface-variant text-right hidden md:table-cell whitespace-nowrap">${item.ml} mL</td>
             <td class="py-3.5 px-3 font-bold text-on-surface font-mono text-right whitespace-nowrap">$${item.precio_promo.toFixed(2)}</td>
             <td class="py-3.5 px-4 font-extrabold text-primary font-mono text-right bg-surface-container/60 border-x border-outline-variant/40 whitespace-nowrap">$${item.precio_por_litro.toFixed(2)}</td>
-            <td class="py-3.5 px-3 hidden lg:table-cell whitespace-nowrap">${ahorroBadge}</td>
+            <td class="py-3.5 px-3 hidden lg:table-cell whitespace-nowrap">${ahorroBadge}${stockBadgeDesktop}</td>
             <td class="py-3.5 px-3 whitespace-nowrap">${tiendaBadge}</td>
             <td class="py-3.5 px-4 text-right whitespace-nowrap">
               <button onclick="agregarDesdeTabla(${originalIndex})" class="px-3 py-1.5 text-xs md3-btn-tonal cursor-pointer whitespace-nowrap">
@@ -357,6 +373,7 @@
             <div class="flex items-center justify-between gap-1.5 flex-wrap">
               <div class="flex items-center gap-1.5 flex-wrap">
                 ${tiendaBadgeCorto}
+                ${stockBadgeMovil}
                 <span class="badge bg-surface-container border border-outline-variant/70 text-on-surface-variant text-[10px]">${item.categoria_comparable}</span>
               </div>
               <span class="text-xs font-mono font-bold text-on-surface-variant">${item.ml} mL</span>

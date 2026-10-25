@@ -23,6 +23,7 @@ def evaluar_y_normalizar_producto(
     condicion: str,
     fuente: str,
     fecha_actual: str,
+    stock_unidades: int | None = None,
 ) -> dict | None:
     """
     Evalúa si un producto cumple con los criterios del proyecto y le asigna
@@ -106,6 +107,7 @@ def evaluar_y_normalizar_producto(
             "precio_total_promo": round(float(precio_promo), 2),
             "condiciones": condicion,
             "disponibilidad": disponible,
+            "stock_unidades": stock_unidades,
             "url": url,
             "fecha_consulta": fecha_actual,
             "fuente": fuente,
@@ -145,6 +147,7 @@ def evaluar_y_normalizar_producto(
             "precio_total_promo": round(float(precio_promo), 2),
             "condiciones": condicion,
             "disponibilidad": disponible,
+            "stock_unidades": stock_unidades,
             "url": url,
             "fecha_consulta": fecha_actual,
             "fuente": fuente,
@@ -182,6 +185,7 @@ def evaluar_y_normalizar_producto(
             "precio_total_promo": round(float(precio_promo), 2),
             "condiciones": condicion,
             "disponibilidad": disponible,
+            "stock_unidades": stock_unidades,
             "url": url,
             "fecha_consulta": fecha_actual,
             "fuente": fuente,
@@ -228,6 +232,7 @@ def evaluar_y_normalizar_producto(
                 "precio_total_promo": round(float(precio_promo), 2),
                 "condiciones": condicion,
                 "disponibilidad": disponible,
+                "stock_unidades": stock_unidades,
                 "url": url,
                 "fecha_consulta": fecha_actual,
                 "fuente": fuente,
@@ -268,6 +273,7 @@ def evaluar_y_normalizar_producto(
                 "precio_total_promo": round(float(precio_promo), 2),
                 "condiciones": condicion,
                 "disponibilidad": disponible,
+                "stock_unidades": stock_unidades,
                 "url": url,
                 "fecha_consulta": fecha_actual,
                 "fuente": fuente,

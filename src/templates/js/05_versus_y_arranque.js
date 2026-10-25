@@ -217,6 +217,15 @@
 
         const tiendaBadge = getBadgeTienda(p.tienda, false);
 
+        let stockBadge = "";
+        if (p.disponibilidad === "agotado") {
+          stockBadge = `<span class="badge bg-[#fbeae8] text-[#ba1a1a] border border-[#ffdad6] text-[10px] font-semibold">Agotado</span>`;
+        } else if (p.stock_unidades !== null && p.stock_unidades !== undefined && p.stock_unidades !== "" && Number(p.stock_unidades) > 0 && Number(p.stock_unidades) <= 5) {
+          stockBadge = `<span class="badge bg-[#fef3eb] text-[#8c5332] border border-[#f3ddce] text-[10px] font-semibold">Últimas ${p.stock_unidades} pzas</span>`;
+        } else if (p.stock_unidades !== null && p.stock_unidades !== undefined && p.stock_unidades !== "" && Number(p.stock_unidades) > 5) {
+          stockBadge = `<span class="badge bg-[#eaf4ec] text-[#24592a] border border-[#c5dfc9] text-[10px] font-medium">Existencia: ${p.stock_unidades}</span>`;
+        }
+
         return `
           <div class="bg-surface-container-lowest rounded-lg border border-outline-variant/80 border-t-4 ${colorBorder} p-5 space-y-4 min-w-0 overflow-hidden shadow-xs">
             <div class="flex flex-wrap justify-between items-start gap-2 pb-3 border-b border-outline-variant/50">
@@ -224,7 +233,7 @@
                 <span class="badge bg-surface-container border border-outline-variant/80 font-bold text-xs text-on-surface">Contendiente ${letra}</span>
                 ${esGanador ? `<span class="badge bg-[#eaf4ec] text-[#24592a] border border-[#c5dfc9] text-[10px]">★ Óptimo $/L</span>` : ''}
               </div>
-              <div class="flex flex-wrap gap-1.5 items-center">${tiendaBadge}${ahorro}</div>
+              <div class="flex flex-wrap gap-1.5 items-center">${tiendaBadge}${ahorro}${stockBadge}</div>
             </div>
 
             <div class="min-w-0">

@@ -145,6 +145,7 @@ def actualizar_todo(archivos_fuente: list[str] | None = None, carpeta_salida: st
         "ahorro_verificable",
         "porcentaje_ahorro",
         "disponibilidad",
+        "stock_unidades",
         "url",
         "especie_agave",
         "condiciones",

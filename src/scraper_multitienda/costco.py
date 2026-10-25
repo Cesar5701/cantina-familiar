@@ -80,6 +80,8 @@ def scrapear_costco(terminos: list[str] | None = None) -> list[dict]:
                     nombre = (p.get("name") or "").strip()
                     stock_info = p.get("stock") or {}
                     disp_val = stock_info.get("stockLevelStatus")
+                    stock_lvl = stock_info.get("stockLevel")
+                    stock_unidades = int(stock_lvl) if stock_lvl is not None else None
                     disponible = "disponible" if disp_val == "inStock" else "agotado"
 
                     if disponible == "agotado":
@@ -110,6 +112,7 @@ def scrapear_costco(terminos: list[str] | None = None) -> list[dict]:
                         condicion=cond,
                         fuente="API OCC v2 costco.com.mx",
                         fecha_actual=fecha_actual,
+                        stock_unidades=stock_unidades,
                     )
                     if item_norm:
                         resultados.append(item_norm)
