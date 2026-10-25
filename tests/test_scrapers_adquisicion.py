@@ -436,6 +436,35 @@ def test_scrapear_nextjs_walmart_platform_mock():
         assert prod["precio_regular"] == 990.0
 
 
+def test_scrapear_nextjs_walmart_platform_circuit_breaker_y_respaldo(tmp_path):
+    """Valida que ante un reto WAF/PerimeterX se active el Circuit Breaker y cargue el respaldo sin errores."""
+    from src.scraper_multitienda.walmart_sams import es_pagina_desafio_waf
+
+    html_waf = "<html><head><title>Verify Your Identity</title></head><body>px-captcha</body></html>"
+    assert es_pagina_desafio_waf(html_waf) is True
+    assert es_pagina_desafio_waf(None) is True
+    assert es_pagina_desafio_waf('<html><script id="__NEXT_DATA__">{}</script></html>') is False
+
+    csv_respaldo = tmp_path / "scraped_sams_mock.csv"
+    csv_respaldo.write_text(
+        "tienda,producto,marca,categoria,subcategoria,ml,precio_regular,precio_promo,disponibilidad\n"
+        "Sam's Club,Tequila Don Julio 70 Añejo Cristalino 700 ml,Don Julio,Tequila,Añejo Cristalino,700,1020.0,846.0,disponible\n",
+        encoding="utf-8",
+    )
+
+    with patch("src.scraper_multitienda.descargar_html_con_reintentos", return_value=html_waf) as mock_dl:
+        resultados = scrapear_nextjs_walmart_platform(
+            tienda="Sam's Club",
+            base_domain="www.sams.com.mx",
+            terminos=["tequila", "mezcal", "whisky"],
+            ruta_respaldo=str(csv_respaldo),
+        )
+        # Circuit breaker debe detenerse en el primer término bloqueado
+        assert mock_dl.call_count == 1
+        assert len(resultados) == 1
+        assert resultados[0]["producto"] == "Tequila Don Julio 70 Añejo Cristalino 700 ml"
+
+
 def test_scrapear_soriana_mock():
     """Valida la extracción desde HTML Salesforce Commerce Cloud de Soriana (H43)."""
     html_soriana = """

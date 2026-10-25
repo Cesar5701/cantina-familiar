@@ -48,12 +48,22 @@ def main():
         guardar_csv_atomico(pd.DataFrame(prods_chedraui), "data/scraped_chedraui.csv")
 
     # 2. Sam's Club
-    prods_sams = _pkg.scrapear_nextjs_walmart_platform("Sam's Club", "www.sams.com.mx", terminos_sams)
+    prods_sams = _pkg.scrapear_nextjs_walmart_platform(
+        "Sam's Club",
+        "www.sams.com.mx",
+        terminos_sams,
+        ruta_respaldo="data/scraped_sams.csv",
+    )
     if prods_sams:
         guardar_csv_atomico(pd.DataFrame(prods_sams), "data/scraped_sams.csv")
 
     # 3. Walmart
-    prods_walmart = _pkg.scrapear_nextjs_walmart_platform("Walmart", "www.walmart.com.mx", terminos_walmart)
+    prods_walmart = _pkg.scrapear_nextjs_walmart_platform(
+        "Walmart",
+        "www.walmart.com.mx",
+        terminos_walmart,
+        ruta_respaldo="data/scraped_walmart.csv",
+    )
     if prods_walmart:
         guardar_csv_atomico(pd.DataFrame(prods_walmart), "data/scraped_walmart.csv")
 

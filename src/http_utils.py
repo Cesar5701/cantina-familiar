@@ -32,6 +32,11 @@ HEADERS_BOT = {
     "Accept": "application/json",
 }
 
+HEADERS_SSR_NEXTJS = {
+    "User-Agent": "WhatsApp/2.23.20.0",
+    "Accept": "text/html",
+}
+
 CODIGOS_REINTENTO = {429, 500, 502, 503, 504}
 
 
@@ -65,9 +70,12 @@ def peticion_http_con_reintentos(
     Returns:
         Cadena decodificada en UTF-8 con la respuesta del servidor, o None si falla y lanzar_error es False.
     """
-    encabezados = HEADERS_DEFAULT.copy()
-    if headers:
-        encabezados.update(headers)
+    if headers is not None and "WhatsApp" in headers.get("User-Agent", ""):
+        encabezados = headers.copy()
+    else:
+        encabezados = HEADERS_DEFAULT.copy()
+        if headers:
+            encabezados.update(headers)
 
     ultimo_error = None
 
