@@ -337,11 +337,15 @@ def test_h50_entry_points_y_limpieza_plantilla():
     # 2. pyproject.toml debe declarar [project.scripts]
     pyproject = Path("pyproject.toml").read_text(encoding="utf-8")
     assert "[project.scripts]" in pyproject
+    assert 'cantina-scrapear = "src.scrapear_todo:main"' in pyproject
     assert 'cantina-consolidar = "src.actualizar_dashboard_completo:main"' in pyproject
     assert 'cantina-dashboard = "src.generar_dashboard_v4:main"' in pyproject
     assert 'cantina-analizar = "src.analizador:main"' in pyproject
 
     # 3. Validar que las funciones referenciadas sean importables y ejecutables
+    mod_scrap = importlib.import_module("src.scrapear_todo")
+    assert callable(mod_scrap.main)
+
     mod_act = importlib.import_module("src.actualizar_dashboard_completo")
     assert callable(mod_act.main)
 
@@ -350,3 +354,23 @@ def test_h50_entry_points_y_limpieza_plantilla():
 
     mod_ana = importlib.import_module("src.analizador")
     assert callable(mod_ana.main)
+
+
+def test_orquestador_scraping_pipeline_mocks():
+    """Valida la ejecución del pipeline completo de scraping orquestado con mocks."""
+    from unittest.mock import patch
+
+    from src.scrapear_todo import ejecutar_pipeline_scraping_completo
+
+    with (
+        patch("src.scrapear_todo.scrapear_alianza_main") as mock_ali,
+        patch("src.scrapear_todo.scrapear_multitienda_main") as mock_multi,
+        patch("src.scrapear_todo.actualizar_todo") as mock_act,
+        patch("src.scrapear_todo.generar_dashboard") as mock_dash,
+    ):
+        res = ejecutar_pipeline_scraping_completo()
+        assert res is True
+        mock_ali.assert_called_once()
+        mock_multi.assert_called_once()
+        mock_act.assert_called_once()
+        mock_dash.assert_called_once()

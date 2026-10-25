@@ -48,6 +48,7 @@ dev = [
 ]
 
 [project.scripts]
+cantina-scrapear = "src.scrapear_todo:main"
 cantina-consolidar = "src.actualizar_dashboard_completo:main"
 cantina-dashboard = "src.generar_dashboard_v4:main"
 cantina-analizar = "src.analizador:main"

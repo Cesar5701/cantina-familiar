@@ -145,6 +145,10 @@ El flujo completo del proyecto consta de 3 fases desacopladas y observables:
 El proyecto expone comandos de consola estándar mediante `[project.scripts]` (H50):
 
 ```bash
+# Paso 0 (Opcional): Ejecutar ciclo completo de adquisición multitienda (Scraping 6 tiendas + ETL + Dashboard)
+cantina-scrapear
+# (o alternativamente: python src/scrapear_todo.py)
+
 # Paso A: Consolidar y clasificar datasets de las 6 tiendas (ETL principal para dashboard)
 cantina-consolidar
 # (o alternativamente: python src/actualizar_dashboard_completo.py)
@@ -159,7 +163,8 @@ cantina-analizar --entrada data/bebidas_verificadas.csv --salida data/reporte_ra
 ```
 
 > **Diferencia entre comandos:**
-> - `cantina-consolidar` ejecuta el flujo integral de ETL multi-tienda: une los 6 catálogos fuente, aplica clasificación estricta NOM, detecta duplicados, enriquece con comparativas cross-tienda y genera `data/dashboard_data.json` junto a los catálogos unificados.
+> - `cantina-scrapear` orquesta la extracción automática de catálogos en las 6 tiendas en vivo (Bodegas Alianza, Chedraui, Sam's, Walmart, Soriana, Costco), ejecuta la normalización y consolida el dashboard en una sola invocación.
+> - `cantina-consolidar` ejecuta el flujo integral de ETL multi-tienda sobre los CSVs ya descargados: une los 6 catálogos fuente, aplica clasificación estricta NOM, detecta duplicados, enriquece con comparativas cross-tienda y genera `data/dashboard_data.json` junto a los catálogos unificados.
 > - `cantina-analizar` es una herramienta CLI de inspección ad-hoc para evaluar cualquier dataset tabular de forma independiente: audita datos faltantes y duplicados, calcula métricas unitarias e imprime una tabla de rankings por categoría directamente en la terminal.
 
 ### 2. Ejecutar la Suite de Pruebas Unitarias
