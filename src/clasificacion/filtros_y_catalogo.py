@@ -63,8 +63,18 @@ def es_mercancia_o_no_bebible(nombre: str, ml: Optional[int] = None) -> bool:
     if any(m in nom_l for m in mercancia_pura):
         return True
 
-    # 2. Artículos que inician directamente como cristalería o botanas/sales sueltas
-    prefijos_cristaleria = (
+    # 2. Paquetes/combos donde el producto base o multipack son aguas, refrescos o mezcladores
+    # (ej. "Pack 24 Agua de Piedra...", "Pack 24 Squirt...", "Pack 12 Peñafiel...")
+    pat_pack_mezclador = re.compile(
+        r"(?:^|\b)(?:pack|paquete|caja)\s*(?:de\s*|x\s*)?\d+\s*.*?"
+        r"\b(?:agua|squirt|refresco|peñafiel|penafiel|perrier|panna|topo\s*chico|coca|ginger|tonica|tónica|soda|mundet)\b",
+        re.IGNORECASE,
+    )
+    if pat_pack_mezclador.search(nom_l):
+        return True
+
+    # 3. Artículos que inician directamente como cristalería, botanas/sales o mezcladores/aguas
+    prefijos_mezclador_y_cristaleria = (
         "vaso ",
         "vasos ",
         "copa ",
@@ -78,8 +88,36 @@ def es_mercancia_o_no_bebible(nombre: str, ml: Optional[int] = None) -> bool:
         "sal de ",
         "sal con ",
         "papas ",
+        "agua mineral",
+        "agua de piedra",
+        "agua con gas",
+        "agua natural",
+        "agua purificada",
+        "agua pura",
+        "refresco ",
+        "refrescos ",
+        "squirt ",
+        "peñafiel ",
+        "penafiel ",
+        "coca cola ",
+        "coca-cola ",
+        "topo chico ",
+        "ginger ale ",
+        "canada dry ",
+        "club soda ",
+        "agua quina ",
+        "agua tonica ",
+        "agua tónica ",
     )
-    if nom_l.startswith(prefijos_cristaleria):
+    if nom_l.startswith(prefijos_mezclador_y_cristaleria):
+        return True
+
+    # 4. Combos con paquetes masivos de mezcladores (>= 4 latas/botellas de agua/refresco con una botella)
+    m_cant_mezclador = re.search(
+        r"\b(\d+)\s*(?:latas?|botellas?|piezas?|pzas?)\s*(?:de\s*)?(?:agua|refresco|squirt|peñafiel|penafiel|soda|coca|perrier|panna|topo\s*chico)\b",
+        nom_l,
+    )
+    if m_cant_mezclador and int(m_cant_mezclador.group(1)) >= 4:
         return True
 
     # 3. Detectar si contiene palabras de cristalería o accesorios en el cuerpo del nombre

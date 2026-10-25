@@ -6,6 +6,21 @@ import re
 from typing import Any, Optional
 
 
+def limpiar_obsequios_mezcladores_para_volumen(nom_l: str) -> str:
+    """
+    Aísla el nombre del producto principal eliminando cláusulas de obsequio,
+    mezcladores, aguas, refrescos o cristalería agregados para evitar que sus
+    volúmenes o unidades inflen o sustituyan el volumen real de la botella de licor.
+    """
+    pat_obsequio = re.compile(
+        r"(\+|\bcon\b|\bc/\b|\bmás\b|\bmas\b|\bincluye\b|\bobsequio\b|\bgratis\b)\s*.*?"
+        r"\b(?:agua|mineral|squirt|peñafiel|penafiel|refresco|soda|coca|perrier|panna|topo\s*chico|vaso|copa|tarro|hielera|termo|sal\b|botana).*$",
+        re.IGNORECASE,
+    )
+    limpio = pat_obsequio.sub("", nom_l).strip()
+    return limpio if len(limpio) >= 6 else nom_l
+
+
 def extraer_ml(nombre: str, ml_defecto: int = 750) -> int:
     """
     Extrae o normaliza el volumen en mililitros a partir del nombre del producto.
@@ -22,38 +37,39 @@ def extraer_ml(nombre: str, ml_defecto: int = 750) -> int:
         return ml_defecto
 
     nom_l = str(nombre).lower()
+    nom_l_analizar = limpiar_obsequios_mezcladores_para_volumen(nom_l)
 
     # 1. Multipacks explícitos de botellas completas: ej. "2 pzas de 750 ml", "6 botellas de 700 ml"
-    m_pack = re.search(r"(\d+)\s*(?:pzas|piezas|botellas)\s*(?:de\s*)?(\d+)\s*ml", nom_l)
+    m_pack = re.search(r"(\d+)\s*(?:pzas|piezas|botellas)\s*(?:de\s*)?(\d+)\s*ml", nom_l_analizar)
     if m_pack:
         return int(m_pack.group(1)) * int(m_pack.group(2))
 
     # 2. Detectar multiplicador de paquete (1 a 24 unidades): Pack N, Pack de N, Pack x N, N pack, x N
     # Evitar colisión con ml (ej. "pack 750 ml" no debe tomar 750 como multiplicador)
     mult_pack = 1
-    m_n_pack = re.search(r"\b(\d{1,2})\s*(?:pack|botellas?|bot|piezas?|pzas?)\b", nom_l)
+    m_n_pack = re.search(r"\b(\d{1,2})\s*(?:pack|botellas?|bot|piezas?|pzas?)\b", nom_l_analizar)
     if m_n_pack:
         mult_pack = int(m_n_pack.group(1))
     else:
         m_pack_de = re.search(
-            r"\b(?:pack|paquete|caja)\s*(?:de\s*|x\s*)?(\d{1,2})\b(?!\s*(?:ml|mls|cc|l|lt|litro))", nom_l
+            r"\b(?:pack|paquete|caja)\s*(?:de\s*|x\s*)?(\d{1,2})\b(?!\s*(?:ml|mls|cc|l|lt|litro))", nom_l_analizar
         )
         if m_pack_de:
             mult_pack = int(m_pack_de.group(1))
         else:
-            m_x_n = re.search(r"\bx\s*(\d{1,2})\b(?!\s*(?:ml|mls|cc|l|lt|litro))", nom_l)
+            m_x_n = re.search(r"\bx\s*(\d{1,2})\b(?!\s*(?:ml|mls|cc|l|lt|litro))", nom_l_analizar)
             if m_x_n:
                 mult_pack = int(m_x_n.group(1))
 
     # 3. Formatos en litros (ej. 1.75 L, 1.75L, 4 L, 5 L, 1.5 L, 1 L, 1 Litro)
-    m_l = re.search(r"(\d+(?:\.\d+)?)\s*(?:l|lt|lts|litro|litros)\b", nom_l)
+    m_l = re.search(r"(\d+(?:\.\d+)?)\s*(?:l|lt|lts|litro|litros)\b", nom_l_analizar)
     if m_l:
         val_l = float(m_l.group(1))
         if 0.35 <= val_l <= 6.0:
             return round(val_l * 1000) * mult_pack
 
     # 4. Formatos en mililitros con posible decimal (ej. 187.5 ml, 700 ml, 750 ml, 946 ml, 750 cc)
-    m_ml = re.search(r"(\d+(?:\.\d+)?)\s*(?:ml|mls|mililitros|cc)\b", nom_l)
+    m_ml = re.search(r"(\d+(?:\.\d+)?)\s*(?:ml|mls|mililitros|cc)\b", nom_l_analizar)
     if m_ml:
         return round(float(m_ml.group(1))) * mult_pack
 

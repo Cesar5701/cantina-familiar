@@ -53,6 +53,11 @@ from src.clasificacion import (
         ("Whisky Black & White 6 pack 750 ml", 4500),
         ("Tequila Centinela Supremo Añejo 750 ml (8 Bot)", 6000),
         ("Caja de 3 Tequila Herradura Selección Suprema 750 ml", 2250),
+        # Combos con obsequios/mezcladores (el volumen no debe ser inflado por el mezclador)
+        ("Whisky Johnnie Walker Red Label 700 ml + Refresco Squirt 2 L", 700),
+        ("Whisky Red Label 700 ml + 2 Peñafiel 600 ml", 700),
+        ("Tequila Maestro Dobel Diamante 700ML + 2 Agua Mineral 355 ml", 700),
+        ("Tequila Don Ramón Añejo Cristalino Punta Diamante 750 ml con 2 Vasos", 750),
         # Miniaturas descartables
         ("4 pachitas de 200 ml Tequila Jimador", 200),
         ("Pack miniatura 50 ml Tequila José Cuervo", 50),
@@ -366,6 +371,12 @@ def test_es_mercancia_o_no_bebible():
         "Hielera Corona acero inoxidable",
         "Chocolate Ferrero Rocher",
         "Papas Alianza C/Sal 195 g",
+        # Packs de mezcladores y refrescos que incluyen botella pero no son licor puro
+        "Pack 24 Agua de Piedra de Piedra con Gas 360 ml Whisky Black and White Blend 700 ml",
+        "Pack 24 Squirt 355 ml + Whisky Black and White Blend 700 ml",
+        "Pack 24 Agua Panna 250 ml + Whisky Black and White Blend 700 ml",
+        "Agua Mineral Peñafiel 600 ml",
+        "Refresco Squirt Toronja 2 L",
     ]
     for item in descartados:
         assert es_mercancia_o_no_bebible(item) is True, f"Debería descartarse como mercancía: {item}"
@@ -379,6 +390,9 @@ def test_es_mercancia_o_no_bebible():
         "Mezcal Mitre Artesanal Joven 750ml kit mezcalero",
         "Vino Tinto Dulce Tres Coronas 750 ml",
         "Tequila Don Ramón Platinium Añejo Cristalino 700 ml con 2 copas",
+        "Tequila Maestro Dobel Diamante 700ML + 2 Agua Mineral",
+        "Mezcal Aguaviva Joven 750 ml",
+        "Mezcal Agua Maldita Joven Aboc C/Alacran 750ml",
     ]
     for item in admitidos:
         assert es_mercancia_o_no_bebible(item) is False, f"NO debería descartarse: {item}"
