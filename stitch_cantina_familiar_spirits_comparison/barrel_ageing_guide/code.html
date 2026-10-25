@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&amp;family=Source+Sans+3:ital,wght@0,400;0,600;1,400&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "inverse-surface": "#372f22",
+          "on-error-container": "#93000a",
+          "on-surface": "#211b0f",
+          "error-container": "#ffdad6",
+          "inverse-primary": "#ffb68f",
+          "on-secondary-fixed-variant": "#5d4121",
+          "on-secondary-container": "#7a5b38",
+          "on-secondary-fixed": "#2b1700",
+          "on-secondary": "#ffffff",
+          "on-tertiary": "#ffffff",
+          "surface-bright": "#fff8f3",
+          "on-primary-fixed": "#331200",
+          "outline-variant": "#d7c2b9",
+          "tertiary": "#57463d",
+          "on-primary-container": "#ffd4bf",
+          "error": "#ba1a1a",
+          "secondary": "#775836",
+          "outline": "#85746b",
+          "surface-container-highest": "#efe1cd",
+          "secondary-fixed-dim": "#e8bf95",
+          "on-tertiary-container": "#f1d9cc",
+          "surface-dim": "#e6d8c5",
+          "on-primary-fixed-variant": "#6c391a",
+          "tertiary-fixed-dim": "#d9c2b5",
+          "surface-container-high": "#f4e6d3",
+          "on-background": "#211b0f",
+          "primary-container": "#8c5332",
+          "inverse-on-surface": "#fdefdb",
+          "secondary-fixed": "#ffddba",
+          "surface-variant": "#efe1cd",
+          "background": "#fff8f3",
+          "on-surface-variant": "#52443c",
+          "primary": "#703c1d",
+          "on-tertiary-fixed-variant": "#54433a",
+          "primary-fixed-dim": "#ffb68f",
+          "tertiary-fixed": "#f6ded1",
+          "surface-tint": "#89502f",
+          "on-primary": "#ffffff",
+          "surface-container-lowest": "#ffffff",
+          "secondary-container": "#ffd6ab",
+          "on-error": "#ffffff",
+          "on-tertiary-fixed": "#251911",
+          "surface": "#fff8f3",
+          "surface-container": "#faecd8",
+          "tertiary-container": "#705e54",
+          "surface-container-low": "#fff2e1",
+          "primary-fixed": "#ffdbca"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "margin-desktop": "3.5rem",
+          "space-xl": "2.5rem",
+          "margin": "1rem",
+          "gutter-desktop": "2rem",
+          "space-lg": "1.5rem",
+          "margin-tablet": "2rem",
+          "space-sm": "0.5rem",
+          "gutter": "1.25rem",
+          "space-xs": "0.25rem",
+          "space-md": "1rem"
+        },
+        "fontFamily": {
+          "body-lg": ["\"Source Sans 3\""],
+          "label-md": ["JetBrains Mono"],
+          "body-sm": ["\"Source Sans 3\""],
+          "body-md": ["\"Source Sans 3\""],
+          "headline-sm": ["Playfair Display"],
+          "headline-lg": ["Playfair Display"],
+          "label-sm": ["JetBrains Mono"],
+          "display-lg-mobile": ["Playfair Display"],
+          "display-lg": ["Playfair Display"],
+          "headline-md": ["Playfair Display"],
+          "label-lg": ["JetBrains Mono"]
+        },
+        "fontSize": {
+          "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+          "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500"}],
+          "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+          "body-md": ["15px", {"lineHeight": "22px", "fontWeight": "400"}],
+          "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+          "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+          "label-sm": ["10px", {"lineHeight": "14px", "letterSpacing": "0.08em", "fontWeight": "600"}],
+          "display-lg-mobile": ["34px", {"lineHeight": "42px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+          "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "500"}],
+          "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}]
+        }
+      }
+    }
+  };</script></head><body class="bg-background font-body-md text-body-md text-on-surface antialiased"><header class="fixed top-0 w-full z-50 bg-surface/95 backdrop-blur-md shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-28 w-full px-margin-desktop flex flex-col justify-between py-space-xs"><div class="flex items-center justify-between border-b-0 py-space-xs"><div class="flex items-center gap-space-md"><img alt="Cantina Familiar Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1Wvp_X1itdZgJQPT57-xo5l8d4EoCYbT4MWNMnuogikvVyklf5jSY_opkpkjm_aaClUi9kTtIYka7re9zlIffaAO3j2YXWnYdiiQGjodB9Xcg0JfGx0qw2D15vNZTUW7ZjApYyxLuBiiZHNP_2UBXbElmpgmhCJYYX_PJEN_w4cJG_Apqp1NaH3EczyBztAoGeqH5LVG6xmq75vhPMjzeqybb3QXyCCDiqqs_60VIuMRlHOtvDMFdh5PrAv"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-primary tracking-tight">Cantina Familiar</span><span class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant">Audited Spirits &amp; Wine Register</span></div><div class="hidden xl:flex items-center gap-space-xs bg-surface-container px-space-sm py-0.5 rounded-lg text-on-surface"><span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span><span class="font-label-sm text-label-sm text-on-surface-variant font-semibold">Audited Daily • 6 Chains Verified • 1,280 SKUs</span></div></div><div class="flex items-center gap-space-lg"><div class="hidden lg:flex items-center gap-space-sm bg-surface-container-low px-space-md py-space-xs rounded-lg"><div class="flex flex-col text-right"><span class="font-label-sm text-label-sm text-on-surface-variant">Allocation Quota: 18.5L / 24.0L (77%)</span><span class="font-label-sm text-label-sm text-secondary font-semibold">Resale Warning: Compliant</span></div><div class="w-16 h-1.5 bg-surface-container-highest rounded-full overflow-hidden"><div class="h-full bg-primary-container w-[77%]"></div></div></div><div class="flex items-center gap-space-sm"><div class="bg-surface-container px-space-sm py-1 rounded-lg text-on-surface flex items-center gap-space-xs"><span class="font-label-sm text-label-sm font-semibold text-primary">MXN</span><span class="font-label-sm text-label-sm text-outline-variant">|</span><span class="font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface cursor-pointer">USD</span><span class="font-label-sm text-label-sm text-outline-variant">|</span><span class="font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface cursor-pointer">EUR</span></div><div class="hidden sm:flex items-center gap-1 bg-surface-container-high px-space-sm py-1 rounded-lg"><span class="font-label-sm text-label-sm text-on-surface-variant">Chain Filter:</span><span class="font-label-sm text-label-sm font-bold text-on-surface">All 6 Chains</span></div><div class="flex items-center gap-space-xs pl-space-xs"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="hidden md:flex flex-col"><span class="font-label-sm text-label-sm text-on-surface font-semibold leading-tight">Cellar Master</span><span class="font-label-sm text-label-sm text-secondary leading-tight">Tier III Verified</span></div></div></div></div></div><div class="flex items-center justify-between pb-space-xs"><nav class="flex items-center gap-space-xs" data-active-classes="bg-primary-container text-on-primary font-semibold rounded-lg"><a class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-label-md text-label-md" data-path="catalog-and-price-per-liter-rankings" href="#">Catalog &amp; $/L Rankings</a><a class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-label-md text-label-md" data-path="head-to-head-duel" href="#">Head-to-Head Duel</a><a class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-label-md text-label-md" data-path="multi-retailer-cart-builder" href="#">Multi-Retailer Cart Builder</a><a aria-current="page" class="px-space-md py-1.5 transition-colors bg-primary-container text-on-primary font-semibold rounded-lg" data-path="barrel-and-ageing-guide" href="#">Barrel &amp; Ageing Guide</a></nav><div class="hidden md:flex items-center gap-space-sm text-on-surface-variant font-label-sm text-label-sm"><span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#3d7042]"></span> Bodegas Alianza</span><span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#3d7042]"></span> La Europea</span><span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#3d7042]"></span> Costco</span><span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#3d7042]"></span> Liverpool</span><span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#3d7042]"></span> Selecto</span><span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#3d7042]"></span> Walmart</span></div></div></div></header><main class="w-full pt-28 bg-surface min-h-[calc(100vh-14rem)]"><div class="flex flex-col w-full">
+<!-- Dossier Masthead -->
+<section class="w-full px-margin-desktop py-space-xl bg-surface-container-low">
+<div class="max-w-7xl mx-auto flex flex-col gap-space-lg">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs max-w-3xl">
+<div class="flex items-center gap-space-sm flex-wrap">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-primary font-bold bg-surface-container-high px-space-xs py-0.5 rounded">Fascicle IV • Archival Technical Manual</span>
+<span class="font-label-sm text-label-sm text-outline-variant">/</span>
+<span class="font-label-sm text-label-sm text-secondary font-medium">CRT-SWR-OIV Standard Codification</span>
+<span class="font-label-sm text-label-sm text-outline-variant">/</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Audit Cycle 2025.1</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-primary tracking-tight">Compendium of Wood, Time &amp; Distillate Maturity</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mt-space-xs">
+            The definitive technical manual on barrel cooperage chemistry, pyrolytic char gradients, statutory aging mandates under NOM-006-SCFI-2012 and Scotch Whisky Regulations (SWR 2009), microclimatic evaporation kinetics, and oenological cellar protocols.
+          </p>
+</div>
+<div class="flex flex-col items-start md:items-end gap-space-xs shrink-0">
+<div class="bg-surface-container-highest px-space-md py-space-sm rounded-lg flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[28px]">menu_book</span>
+<div class="flex flex-col text-left md:text-right">
+<span class="font-label-sm text-label-sm text-on-surface-variant font-semibold uppercase tracking-wider">Reference Code</span>
+<span class="font-label-md text-label-md font-bold text-on-surface">CF-DOC-AGE-884</span>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-secondary">Verified by Chief Cellar Auditor</span>
+</div>
+</div>
+<!-- Jump Navigation Folio -->
+<nav class="flex items-center gap-space-xs overflow-x-auto py-space-xs">
+<a class="px-space-md py-space-xs bg-surface-container rounded-lg font-label-md text-label-md text-on-surface hover:bg-surface-container-high transition-colors whitespace-nowrap flex items-center gap-1.5" href="#classifications">
+<span class="material-symbols-outlined text-[16px] text-primary">view_timeline</span>
+          1. Legal Aging Matrix
+        </a>
+<a class="px-space-md py-space-xs bg-surface-container rounded-lg font-label-md text-label-md text-on-surface hover:bg-surface-container-high transition-colors whitespace-nowrap flex items-center gap-1.5" href="#cooperage-chemistry">
+<span class="material-symbols-outlined text-[16px] text-primary">forest</span>
+          2. Oak Chemistry &amp; Char Levels
+        </a>
+<a class="px-space-md py-space-xs bg-surface-container rounded-lg font-label-md text-label-md text-on-surface hover:bg-surface-container-high transition-colors whitespace-nowrap flex items-center gap-1.5" href="#evaporation-angels-share">
+<span class="material-symbols-outlined text-[16px] text-primary">water_drop</span>
+          3. Evaporation &amp; Angel's Share
+        </a>
+<a class="px-space-md py-space-xs bg-surface-container rounded-lg font-label-md text-label-md text-on-surface hover:bg-surface-container-high transition-colors whitespace-nowrap flex items-center gap-1.5" href="#value-curves">
+<span class="material-symbols-outlined text-[16px] text-primary">analytics</span>
+          4. $/L Valuation Plateau
+        </a>
+<a class="px-space-md py-space-xs bg-surface-container rounded-lg font-label-md text-label-md text-on-surface hover:bg-surface-container-high transition-colors whitespace-nowrap flex items-center gap-1.5" href="#glossary-notes">
+<span class="material-symbols-outlined text-[16px] text-primary">verified</span>
+          5. Technical Glossary &amp; Badging
+        </a>
+</nav>
+</div>
+</section>
+<!-- Editorial Visual Hook (Heroic Split Feature) -->
+<section class="w-full px-margin-desktop py-space-lg">
+<div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-gutter-desktop items-stretch">
+<div class="lg:col-span-7 bg-surface-container rounded-xl p-space-lg flex flex-col justify-between">
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-primary font-bold">Wood Morphology &amp; Extraction Kinetics</span>
+<span class="font-label-sm text-label-sm bg-surface-container-highest px-space-xs py-0.5 rounded text-on-surface">NOM Annex B</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">The Tripartite Metamorphosis of Maturing Spirits</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">
+            Maturation is not passive storage; it is a three-way thermodynamic exchange between raw spirit congeners, atmospheric oxygen diffusing through oak staves, and hydrolyzable wood extractives (lignin, hemicellulose, tannins, and lactones). In high-altitude Mexican distilleries, barrel respiration occurs at accelerated velocity compared to maritime Scottish cellars.
+          </p>
+</div>
+<div class="grid grid-cols-3 gap-space-sm mt-space-md pt-space-md bg-surface-container-low rounded-lg p-space-md">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-primary">60-80%</span>
+<span class="font-body-sm text-body-sm text-on-surface font-semibold">Color &amp; Aroma</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Derived from cask interaction</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-primary">3.2% - 5.5%</span>
+<span class="font-body-sm text-body-sm text-on-surface font-semibold">Annual Loss (Jalisco)</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">High-elevation respiration</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-primary">≤ 600L</span>
+<span class="font-body-sm text-body-sm text-on-surface font-semibold">Max Statutory Cask</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">For Añejo / Extra Añejo</span>
+</div>
+</div>
+</div>
+<div class="lg:col-span-5 bg-surface-container rounded-xl overflow-hidden flex flex-col">
+<div class="relative w-full h-56 bg-surface-container-highest overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Close up architectural macro photography of historic charred oak barrel staves with glistening amber spirit drips, copper hoop rings, soft warm golden amber lighting, deep shadows, fine museum archival tone." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmWar5qWGCxUEql0z9mHsuBKuMQwT6btYxAjQqSzzjXKolslnqd7HJwKCTaR2c60n-TXupanyE9tNVV-mOKii0SxtM1iBDvNH4svxu9gyPoWVi1kTITf-T3wU0Rnq9XX1n4C-a8pykYV0ehq0hPTaobPpQsuWnmOfCt4bm9NxzmOKTnFobTICVebER2ZSKCXu4DhssyMuCVEm2QAMKSdR5Vclnhzi5M0R3ZQFJxYFORnk7sMw0TEKyCw"/>
+<div class="absolute top-space-xs left-space-xs bg-inverse-surface/90 text-inverse-on-surface px-space-xs py-0.5 rounded font-label-sm text-label-sm flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Cask No. 418 • Allier Oak
+          </div>
+</div>
+<div class="p-space-md flex flex-col gap-space-xs bg-surface-container-high flex-1 justify-between">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-bold">Auditor's Axiom</span>
+<p class="font-body-sm text-body-sm text-on-surface mt-1">
+              "Excessive wood extraction masks inferior distillation. An aged distillate should celebrate the agave or grain origin, not bury it in artificial vanillin or heavy caramel coloring."
+            </p>
+</div>
+<div class="flex items-center justify-between pt-space-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Cantina Familiar Standards Board</span>
+<span class="font-label-sm text-label-sm text-primary font-semibold">Doc. Rev 04</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 1: Aging Classification Matrix across all 4 categories -->
+<section class="w-full px-margin-desktop py-space-xl bg-surface" id="classifications">
+<div class="max-w-7xl mx-auto flex flex-col gap-space-lg">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs text-primary font-label-sm text-label-sm uppercase tracking-widest font-semibold">
+<span class="material-symbols-outlined text-[16px]">balance</span>
+          Statutory Standards Matrix
+        </div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Cross-Category Legal Aging Classifications</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-3xl">
+          Comparative analysis of aging minimums under Mexican Federal Official Standards (NOM-006 &amp; NOM-070), the Scotch Whisky Order, and Spanish Denominación de Origen Calificada (DOCa) wine regulations.
+        </p>
+</div>
+<!-- Tab Filter Chips for Matrix View -->
+<div class="flex items-center gap-space-xs overflow-x-auto" id="matrixFilterRow">
+<button class="matrix-filter-btn px-space-md py-1.5 rounded bg-primary text-on-primary font-label-md text-label-md font-semibold transition-all" data-target="all" onclick="filterMatrix('all')">All 4 Disciplines</button>
+<button class="matrix-filter-btn px-space-md py-1.5 rounded bg-surface-container text-on-surface hover:bg-surface-container-high font-label-md text-label-md font-medium transition-all" data-target="tequila" onclick="filterMatrix('tequila')">Tequila (NOM-006)</button>
+<button class="matrix-filter-btn px-space-md py-1.5 rounded bg-surface-container text-on-surface hover:bg-surface-container-high font-label-md text-label-md font-medium transition-all" data-target="mezcal" onclick="filterMatrix('mezcal')">Mezcal (NOM-070)</button>
+<button class="matrix-filter-btn px-space-md py-1.5 rounded bg-surface-container text-on-surface hover:bg-surface-container-high font-label-md text-label-md font-medium transition-all" data-target="whisky" onclick="filterMatrix('whisky')">Scotch &amp; Whiskies</button>
+<button class="matrix-filter-btn px-space-md py-1.5 rounded bg-surface-container text-on-surface hover:bg-surface-container-high font-label-md text-label-md font-medium transition-all" data-target="wine" onclick="filterMatrix('wine')">Cellar Wines (DOCa / DO)</button>
+</div>
+<!-- The Comparative Ledger Table -->
+<div class="overflow-x-auto rounded-xl bg-surface-container-low shadow-sm">
+<table class="w-full text-left font-body-sm text-body-sm min-w-[920px]">
+<thead>
+<tr class="bg-surface-container-highest text-on-surface font-label-md text-label-md uppercase tracking-wider">
+<th class="py-space-md px-space-md">Spirit / Discipline</th>
+<th class="py-space-md px-space-md">Classification</th>
+<th class="py-space-md px-space-md">Legal Aging Duration</th>
+<th class="py-space-md px-space-md">Statutory Cask Constraints</th>
+<th class="py-space-md px-space-md">Sensory Imprint &amp; Palate Markers</th>
+<th class="py-space-md px-space-md">Certified Value Index</th>
+</tr>
+</thead>
+<tbody class="divide-none" id="matrixTableBody">
+<!-- Tequila Rows -->
+<tr class="matrix-row tequila bg-surface-container/40 hover:bg-surface-container transition-colors">
+<td class="py-space-md px-space-md font-semibold text-primary font-headline-sm text-headline-sm">
+<span class="inline-block px-1.5 py-0.5 rounded bg-surface-container-highest font-label-sm text-label-sm text-on-surface mr-1.5">NOM-006</span>
+                Tequila
+              </td>
+<td class="py-space-md px-space-md font-bold text-on-surface">Blanco / Plata</td>
+<td class="py-space-md px-space-md font-label-md text-label-md text-on-surface font-semibold">0 - 59 days</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Stainless steel vats or uncharred neutral oak storage.</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Herbaceous agave, fresh citrus peel, black pepper, wet stone minerality.</td>
+<td class="py-space-md px-space-md font-label-md text-label-md text-primary font-bold">$450 - $950 / L</td>
+</tr>
+<tr class="matrix-row tequila bg-surface-container-low hover:bg-surface-container transition-colors">
+<td class="py-space-md px-space-md font-semibold text-primary font-headline-sm text-headline-sm">Tequila</td>
+<td class="py-space-md px-space-md font-bold text-on-surface">Reposado</td>
+<td class="py-space-md px-space-md font-label-md text-label-md text-on-surface font-semibold">2 - 12 months</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Oak casks or large wooden pipones without statutory capacity limits.</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Warm honey, mild toasted oak, cinnamon stick, cooked agave preserves.</td>
+<td class="py-space-md px-space-md font-label-md text-label-md text-primary font-bold">$700 - $1,400 / L</td>
+</tr>
+<tr class="matrix-row tequila bg-surface-container/40 hover:bg-surface-container transition-colors">
+<td class="py-space-md px-space-md font-semibold text-primary font-headline-sm text-headline-sm">Tequila</td>
+<td class="py-space-md px-space-md font-bold text-on-surface">Añejo</td>
+<td class="py-space-md px-space-md font-label-md text-label-md text-on-surface font-semibold">1 - 3 years</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Strictly sealed oak barrels ≤ 600 Liters, certified by CRT.</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Toffee, roasted hazelnut, dried fig, dark chocolate, tobacco leaf.</td>
+<td class="py-space-md px-space-md font-label-md text-label-md text-primary font-bold">$1,200 - $2,800 / L</td>
+</tr>
+<tr class="matrix-row tequila bg-surface-container-low hover:bg-surface-container transition-colors">
+<td class="py-space-md px-space-md font-semibold text-primary font-headline-sm text-headline-sm">Tequila</td>
+<td class="py-space-md px-space-md font-bold text-on-surface">Extra Añejo (XA)</td>
+<td class="py-space-md px-space-md font-label-md text-label-md text-on-surface font-semibold">3+ years min.</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Oak casks strictly ≤ 600 Liters; government wire-locked bung seal.</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Rich leather, caramelized praline, old library cedar, concentrated raisin.</td>
+<td class="py-space-md px-space-md font-label-md text-label-md text-primary font-bold">$2,900 - $8,500+ / L</td>
+</tr>
+<tr class="matrix-row tequila bg-surface-container/40 hover:bg-surface-container transition-colors">
+<td class="py-space-md px-space-md font-semibold text-primary font-headline-sm text-headline-sm">Tequila</td>
+<td class="py-space-md px-space-md font-bold text-on-surface">Cristalino</td>
+<td class="py-space-md px-space-md font-label-md text-label-md text-on-surface font-semibold">Añejo / XA base</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Aged per CRT standard, then filtered through activated charcoal beds.</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Silky vanilla sweetness, oak tannins stripped, light citrus agave finish.</td>
+<td class="py-space-md px-space-md font-label-md text-label-md text-primary font-bold">$1,400 - $2,900 / L</td>
+</tr>
+<!-- Mezcal Rows -->
+<tr class="matrix-row mezcal bg-surface-container-high/30 hover:bg-surface-container transition-colors">
+<td class="py-space-md px-space-md font-semibold text-primary font-headline-sm text-headline-sm">
+<span class="inline-block px-1.5 py-0.5 rounded bg-surface-container-highest font-label-sm text-label-sm text-on-surface mr-1.5">NOM-070</span>
+                Mezcal
+              </td>
+<td class="py-space-md px-space-md font-bold text-on-surface">Joven / Blanco</td>
+<td class="py-space-md px-space-md font-label-md text-label-md text-on-surface font-semibold">Unaged</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Unaged or stabilized in inert glass containers &lt; 2 months.</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Raw maguey sap, mesquite woodsmoke, savory salinity, wild mint.</td>
+<td class="py-space-md px-space-md font-label-md text-label-md text-primary font-bold">$600 - $1,800 / L</td>
+</tr>
+<tr class="matrix-row mezcal bg-surface-container-low hover:bg-surface-container transition-colors">
+<td class="py-space-md px-space-md font-semibold text-primary font-headline-sm text-headline-sm">Mezcal</td>
+<td class="py-space-md px-space-md font-bold text-on-surface">Madurado en Vidrio</td>
+<td class="py-space-md px-space-md font-label-md text-label-md text-on-surface font-semibold">1+ year min.</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Sealed glass carboys (demijohns) buried or stored underground.</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Ultra-smooth integration, subtle oxidation, amplified terroir &amp; waxiness.</td>
+<td class="py-space-md px-space-md font-label-md text-label-md text-primary font-bold">$1,500 - $3,600 / L</td>
+</tr>
+<tr class="matrix-row mezcal bg-surface-container-high/30 hover:bg-surface-container transition-colors">
+<td class="py-space-md px-space-md font-semibold text-primary font-headline-sm text-headline-sm">Mezcal</td>
+<td class="py-space-md px-space-md font-bold text-on-surface">Reposado &amp; Añejo</td>
+<td class="py-space-md px-space-md font-label-md text-label-md text-on-surface font-semibold">2-12 mo / 1+ yr</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Wood casks ≤ 1000L (Añejo ≤ 200L under COMERCAM oversight).</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Campfire smoke softened by toasted wood, baking spices, caramel.</td>
+<td class="py-space-md px-space-md font-label-md text-label-md text-primary font-bold">$900 - $2,400 / L</td>
+</tr>
+<!-- Whisky Rows -->
+<tr class="matrix-row whisky bg-surface-container/40 hover:bg-surface-container transition-colors">
+<td class="py-space-md px-space-md font-semibold text-primary font-headline-sm text-headline-sm">
+<span class="inline-block px-1.5 py-0.5 rounded bg-surface-container-highest font-label-sm text-label-sm text-on-surface mr-1.5">SWR 2009</span>
+                Scotch Malt
+              </td>
+<td class="py-space-md px-space-md font-bold text-on-surface">Single Malt (Statutory)</td>
+<td class="py-space-md px-space-md font-label-md text-label-md text-on-surface font-semibold">3 years min.</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Oak casks strictly ≤ 700 Liters, in bonded warehouse in Scotland.</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Malted barley, cereal sweetness, green apple, initial oak tannin bite.</td>
+<td class="py-space-md px-space-md font-label-md text-label-md text-primary font-bold">$700 - $1,100 / L</td>
+</tr>
+<tr class="matrix-row whisky bg-surface-container-low hover:bg-surface-container transition-colors">
+<td class="py-space-md px-space-md font-semibold text-primary font-headline-sm text-headline-sm">Scotch Malt</td>
+<td class="py-space-md px-space-md font-bold text-on-surface">Age Statement 12-15Y</td>
+<td class="py-space-md px-space-md font-label-md text-label-md text-on-surface font-semibold">12 - 15 years</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Ex-Bourbon American Hogsheads or European Oak Butts.</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Dried stone fruit, heather honey, vanilla wafer, balanced oak spice.</td>
+<td class="py-space-md px-space-md font-label-md text-label-md text-primary font-bold">$1,200 - $2,200 / L</td>
+</tr>
+<tr class="matrix-row whisky bg-surface-container/40 hover:bg-surface-container transition-colors">
+<td class="py-space-md px-space-md font-semibold text-primary font-headline-sm text-headline-sm">Scotch Malt</td>
+<td class="py-space-md px-space-md font-bold text-on-surface">Prestige 18-25Y+</td>
+<td class="py-space-md px-space-md font-label-md text-label-md text-on-surface font-semibold">18 - 25+ years</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Ex-Oloroso / Pedro Ximénez Sherry or Refill puncheons.</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Old rancio, antique mahogany, Christmas cake fruitiness, dark cacao.</td>
+<td class="py-space-md px-space-md font-label-md text-label-md text-primary font-bold">$3,800 - $14,000+ / L</td>
+</tr>
+<!-- Cellar Wine Rows -->
+<tr class="matrix-row wine bg-surface-container-high/30 hover:bg-surface-container transition-colors">
+<td class="py-space-md px-space-md font-semibold text-primary font-headline-sm text-headline-sm">
+<span class="inline-block px-1.5 py-0.5 rounded bg-surface-container-highest font-label-sm text-label-sm text-on-surface mr-1.5">DOCa / DO</span>
+                Cellar Wine
+              </td>
+<td class="py-space-md px-space-md font-bold text-on-surface">Crianza (Red)</td>
+<td class="py-space-md px-space-md font-label-md text-label-md text-on-surface font-semibold">24 mo (6 mo oak)</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Oak barrels ≤ 330 Liters (minimum 6 months before bottle aging).</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Fresh red cherry, raspberry, subtle dill, light coconut, bright acidity.</td>
+<td class="py-space-md px-space-md font-label-md text-label-md text-primary font-bold">$320 - $750 / L</td>
+</tr>
+<tr class="matrix-row wine bg-surface-container-low hover:bg-surface-container transition-colors">
+<td class="py-space-md px-space-md font-semibold text-primary font-headline-sm text-headline-sm">Cellar Wine</td>
+<td class="py-space-md px-space-md font-bold text-on-surface">Reserva (Red)</td>
+<td class="py-space-md px-space-md font-label-md text-label-md text-on-surface font-semibold">36 mo (12 mo oak)</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Oak barrels ≤ 330 Liters plus consecutive bottle resting.</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Blackberry compote, cigar box cedar, clove, supple structured tannins.</td>
+<td class="py-space-md px-space-md font-label-md text-label-md text-primary font-bold">$680 - $1,600 / L</td>
+</tr>
+<tr class="matrix-row wine bg-surface-container-high/30 hover:bg-surface-container transition-colors">
+<td class="py-space-md px-space-md font-semibold text-primary font-headline-sm text-headline-sm">Cellar Wine</td>
+<td class="py-space-md px-space-md font-bold text-on-surface">Gran Reserva (Red)</td>
+<td class="py-space-md px-space-md font-label-md text-label-md text-on-surface font-semibold">60 mo (24 mo oak)</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Minimum 2 years oak, 3 years in bottle; produced only in prime vintages.</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Leather, forest floor truffle, dried damson, balsamico, velvet finish.</td>
+<td class="py-space-md px-space-md font-label-md text-label-md text-primary font-bold">$1,400 - $4,800+ / L</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="flex flex-col sm:flex-row items-center justify-between p-space-md bg-surface-container-low rounded-lg gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[22px]">info</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Under CRT regulations, unaged 100% Agave Tequila bottled with resting in uncharred oak containers under 60 days preserves the "Blanco" status.</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-semibold shrink-0">Standard CRT-2024-NOM-006</span>
+</div>
+</div>
+</section>
+<!-- SECTION 2: Cooperage & Oak Chemistry Deep Dive -->
+<section class="w-full px-margin-desktop py-space-xl bg-surface-container-low" id="cooperage-chemistry">
+<div class="max-w-7xl mx-auto flex flex-col gap-space-lg">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs text-primary font-label-sm text-label-sm uppercase tracking-widest font-semibold">
+<span class="material-symbols-outlined text-[16px]">science</span>
+          Pyrolysis &amp; Botanical Taxonomy
+        </div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Cooperage Science &amp; Oak Species Profiles</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-3xl">
+          The chemical blueprint of aged spirits is defined by the botanical species of oak, seasoning duration, cellular pore density, and the degree of internal cooperage toasting and charring.
+        </p>
+</div>
+<!-- 3-Column Botanical Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter-desktop">
+<!-- American White Oak Card -->
+<div class="bg-surface rounded-xl p-space-lg flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm font-bold text-primary uppercase tracking-widest">Species A-1</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container-high font-label-sm text-label-sm text-on-surface font-semibold">Tyloses Sealed</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">American White Oak</h3>
+<span class="font-label-md text-label-md text-secondary italic">Quercus alba • Eastern USA</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-space-xs">
+              Possesses thick tyloses that prevent liquid leakage when sawn. Exceptionally high in oak lactones (cis- and trans-methyl-octalactone) which impart overt coconut, creamy vanilla, and sweet butter notes.
+            </p>
+<div class="flex flex-col gap-space-xs pt-space-xs">
+<span class="font-label-sm text-label-sm uppercase text-on-surface font-semibold">Extractive Compound Density:</span>
+<div class="space-y-1.5 font-label-sm text-label-sm">
+<div class="flex items-center justify-between">
+<span class="text-on-surface-variant">Vanillin:</span>
+<span class="font-bold text-on-surface">Very High (9.4 mg/L)</span>
+</div>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[90%]"></div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-on-surface-variant">Tannic Astringency:</span>
+<span class="font-bold text-on-surface">Moderate (Low Phenolics)</span>
+</div>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
+<div class="bg-secondary h-full w-[45%]"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-space-md pt-space-md bg-surface-container-low rounded p-space-sm flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Primary Usage:</span>
+<span class="font-label-sm text-label-sm font-bold text-primary">Bourbon • Reposado • Scotch Finishes</span>
+</div>
+</div>
+<!-- European French Oak Card -->
+<div class="bg-surface rounded-xl p-space-lg flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm font-bold text-primary uppercase tracking-widest">Species E-2</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container-high font-label-sm text-label-sm text-on-surface font-semibold">Split Stave Only</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">French / European Oak</h3>
+<span class="font-label-md text-label-md text-secondary italic">Quercus robur / petraea • Allier &amp; Limousin</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-space-xs">
+              Lacks tyloses; must be hand-split along grain lines to remain liquid-tight. Tight rings release subtle, complex hydrolyzable ellagitannins, giving elegant structure, cinnamon, cedarwood, and dried dark stone fruit.
+            </p>
+<div class="flex flex-col gap-space-xs pt-space-xs">
+<span class="font-label-sm text-label-sm uppercase text-on-surface font-semibold">Extractive Compound Density:</span>
+<div class="space-y-1.5 font-label-sm text-label-sm">
+<div class="flex items-center justify-between">
+<span class="text-on-surface-variant">Ellagitannins:</span>
+<span class="font-bold text-on-surface">Extreme (Structural Depth)</span>
+</div>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[95%]"></div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-on-surface-variant">Sweet Lactones:</span>
+<span class="font-bold text-on-surface">Subtle (2.1 mg/L)</span>
+</div>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
+<div class="bg-secondary h-full w-[35%]"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-space-md pt-space-md bg-surface-container-low rounded p-space-sm flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Primary Usage:</span>
+<span class="font-label-sm text-label-sm font-bold text-primary">Gran Reserva Wine • Cognac • Extra Añejo</span>
+</div>
+</div>
+<!-- Mexican Encino Oak Card -->
+<div class="bg-surface rounded-xl p-space-lg flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm font-bold text-primary uppercase tracking-widest">Species M-3</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container-high font-label-sm text-label-sm text-on-surface font-semibold">Artisanal Micro-Cask</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Mexican Encino Oak</h3>
+<span class="font-label-md text-label-md text-secondary italic">Quercus rugosa / candicans • Michoacán &amp; Jalisco</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-space-xs">
+              A rare, indigenous hardwood utilized by avant-garde mezcal and tequila distillers. Imparts an unmistakable herbal resin, savory allspice, roasted cacao nibs, and wild eucalyptus undertones without cloying caramel.
+            </p>
+<div class="flex flex-col gap-space-xs pt-space-xs">
+<span class="font-label-sm text-label-sm uppercase text-on-surface font-semibold">Extractive Compound Density:</span>
+<div class="space-y-1.5 font-label-sm text-label-sm">
+<div class="flex items-center justify-between">
+<span class="text-on-surface-variant">Resin &amp; Phenolics:</span>
+<span class="font-bold text-on-surface">High (Peppery Herbal)</span>
+</div>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[78%]"></div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-on-surface-variant">Wood Sugars:</span>
+<span class="font-bold text-on-surface">Moderate (Earthy Molasses)</span>
+</div>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
+<div class="bg-secondary h-full w-[50%]"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-space-md pt-space-md bg-surface-container-low rounded p-space-sm flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Primary Usage:</span>
+<span class="font-label-sm text-label-sm font-bold text-primary">Ancestral Mezcal • Single Estate Tequila</span>
+</div>
+</div>
+</div>
+<!-- Charring & Toasting Technical Infographic Band -->
+<div class="bg-surface rounded-xl p-space-lg flex flex-col gap-space-md">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-sm">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Cooperage Pyrolysis: The 4 Char Levels</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Open-flame charring creates a carbonaceous filtration layer that scrubs raw sulfur congeners while caramelizing hemicellulose into wood sugars.</p>
+</div>
+<div class="bg-surface-container-high px-space-md py-space-xs rounded font-label-sm text-label-sm text-on-surface font-bold shrink-0">
+            ASTM Flame Penetration Scale
+          </div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
+<!-- Char 1 -->
+<div class="bg-surface-container-low p-space-md rounded-lg flex flex-col justify-between">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm font-bold text-secondary uppercase">Char Level #1</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">15 Seconds</span>
+</div>
+<div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden my-1">
+<div class="bg-[#c28e5d] h-full w-[25%]"></div>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface">Light Toast</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Depth: ~1.5mm. Yields natural wood sap, fresh cedar, crisp fruit esters. Retains highest wood tannins; ideal for delicate white wines and light Reposados.</p>
+</div>
+<span class="font-label-sm text-label-sm text-primary font-semibold mt-space-sm">Active Filter: Minimal</span>
+</div>
+<!-- Char 2 -->
+<div class="bg-surface-container-low p-space-md rounded-lg flex flex-col justify-between">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm font-bold text-secondary uppercase">Char Level #2</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">30 Seconds</span>
+</div>
+<div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden my-1">
+<div class="bg-[#9e633d] h-full w-[50%]"></div>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface">Medium Char</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Depth: ~2.0mm. Pronounced vanillin and toasted almond notes. Softens acidity while allowing core agave fruit notes to remain vibrant and central.</p>
+</div>
+<span class="font-label-sm text-label-sm text-primary font-semibold mt-space-sm">Active Filter: Moderate</span>
+</div>
+<!-- Char 3 -->
+<div class="bg-surface-container-low p-space-md rounded-lg flex flex-col justify-between">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm font-bold text-secondary uppercase">Char Level #3</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">40 Seconds</span>
+</div>
+<div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden my-1">
+<div class="bg-[#6b3d1f] h-full w-[75%]"></div>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface">Alligator Char</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Depth: ~3.0mm. Wood cracks into shiny alligator-skin pattern. Peak release of brown sugar, butterscotch, and deep baking spices. Bourbon standard.</p>
+</div>
+<span class="font-label-sm text-label-sm text-primary font-semibold mt-space-sm">Active Filter: High Absorption</span>
+</div>
+<!-- Char 4 -->
+<div class="bg-surface-container-low p-space-md rounded-lg flex flex-col justify-between">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm font-bold text-secondary uppercase">Char Level #4</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">55 Seconds</span>
+</div>
+<div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden my-1">
+<div class="bg-[#381f11] h-full w-[100%]"></div>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface">Heavy Char</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Depth: ~4.0mm. Maximum carbon barrier. Imparts dark smoky char, burnt espresso, molasses, and rapid ruby-amber extraction within 180 days.</p>
+</div>
+<span class="font-label-sm text-label-sm text-primary font-semibold mt-space-sm">Active Filter: Maximum Congener Trap</span>
+</div>
+</div>
+<!-- Cask Seasoning Provenance Impact -->
+<div class="bg-surface-container p-space-md rounded-lg grid grid-cols-1 md:grid-cols-2 gap-space-md mt-space-xs">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">local_drink</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Ex-Bourbon Barrel Impact ($/L Basis)</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Because American law mandates that Bourbon casks can only be used once, hundreds of thousands of freshly emptied Quercus alba casks ship directly to Tequila and Speyside. They provide predictable, reliable vanilla notes and keep production costs modest ($150 - $220 USD per empty barrel), stabilizing shelf price per liter.
+            </p>
+</div>
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">wine_bar</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Ex-Sherry / PX Cask Premium</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Authentic seasoned Jerez Butts (500L) cost upwards of $1,200 - $1,800 USD each. The residual fortified wine saturated in the staves infuses high levels of glycerol, oxidized fig, and walnut. Distillates finished in European Sherry casks command a 35% to 65% retail price-per-liter premium across both Scotch and Agave categories.
+            </p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 3: The $/Liter Maturation Cost & Evaporation Infographic Panel -->
+<section class="w-full px-margin-desktop py-space-xl bg-surface" id="evaporation-angels-share">
+<div class="max-w-7xl mx-auto flex flex-col gap-space-lg">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs text-primary font-label-sm text-label-sm uppercase tracking-widest font-semibold">
+<span class="material-symbols-outlined text-[16px]">air</span>
+          Thermodynamics &amp; Inventory Depletion
+        </div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">The Angel's Share &amp; Microclimatic Evaporation</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-3xl">
+          Evaporation is not uniform across geography. Temperature, relative humidity, and barometric elevation dictate whether alcohol or water transpires through the cask pore walls first.
+        </p>
+</div>
+<!-- Comparative Microclimate Infographic Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter-desktop">
+<!-- Jalisco Highlands Panel -->
+<div class="bg-surface-container rounded-xl p-space-lg flex flex-col justify-between">
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-on-surface">Los Altos de Jalisco</span>
+<span class="font-label-sm text-label-sm bg-primary/10 text-primary px-space-xs py-0.5 rounded font-bold">2,100m Elev.</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-semibold">Arandas &amp; Atotonilco el Alto</span>
+<!-- Evaporation Loss Ring Graphic -->
+<div class="my-space-md flex items-center justify-center">
+<div class="relative w-36 h-36 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-surface-container-high" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3.5"></path>
+<path class="text-primary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="28, 100" stroke-linecap="round" stroke-width="3.5"></path>
+</svg>
+<div class="absolute flex flex-col items-center">
+<span class="font-headline-md text-headline-md font-bold text-on-surface leading-none">4.5%</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Annual Loss</span>
+</div>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Dry mountain climate causes water molecules to transpire faster than ethanol. The spirit's ABV frequently <strong class="text-on-surface">rises</strong> or stays concentrated while total volume plummets 18% over a 4-year XA cycle.
+            </p>
+</div>
+<div class="bg-surface-container-high p-space-sm rounded mt-space-md flex flex-col gap-1 font-label-sm text-label-sm">
+<div class="flex justify-between text-on-surface">
+<span>Avg Cellar Temp:</span>
+<span class="font-bold">22°C - 28°C</span>
+</div>
+<div class="flex justify-between text-on-surface">
+<span>Relative Humidity:</span>
+<span class="font-bold">40% - 55%</span>
+</div>
+<div class="flex justify-between text-primary font-bold">
+<span>ABV Trend:</span>
+<span>Concentrating / Flat</span>
+</div>
+</div>
+</div>
+<!-- Scottish Speyside Panel -->
+<div class="bg-surface-container rounded-xl p-space-lg flex flex-col justify-between">
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-on-surface">Scottish Highlands</span>
+<span class="font-label-sm text-label-sm bg-secondary/15 text-secondary px-space-xs py-0.5 rounded font-bold">150m Elev.</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-semibold">Speyside &amp; Islay Bonded Stores</span>
+<!-- Evaporation Loss Ring Graphic -->
+<div class="my-space-md flex items-center justify-center">
+<div class="relative w-36 h-36 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-surface-container-high" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3.5"></path>
+<path class="text-secondary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="14, 100" stroke-linecap="round" stroke-width="3.5"></path>
+</svg>
+<div class="absolute flex flex-col items-center">
+<span class="font-headline-md text-headline-md font-bold text-on-surface leading-none">1.8%</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Annual Loss</span>
+</div>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Damp, cold maritime air preserves volume while alcohol evaporates more rapidly than atmospheric water vapor. Casks resting for 25 years in Scottish dunnage warehouses can drop from 63.5% down to 45% ABV.
+            </p>
+</div>
+<div class="bg-surface-container-high p-space-sm rounded mt-space-md flex flex-col gap-1 font-label-sm text-label-sm">
+<div class="flex justify-between text-on-surface">
+<span>Avg Cellar Temp:</span>
+<span class="font-bold">8°C - 14°C</span>
+</div>
+<div class="flex justify-between text-on-surface">
+<span>Relative Humidity:</span>
+<span class="font-bold">75% - 90%</span>
+</div>
+<div class="flex justify-between text-primary font-bold">
+<span>ABV Trend:</span>
+<span>Decreasing Gradually</span>
+</div>
+</div>
+</div>
+<!-- Rioja / Ribera Cellar Panel -->
+<div class="bg-surface-container rounded-xl p-space-lg flex flex-col justify-between">
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-on-surface">Rioja Alta &amp; Duero</span>
+<span class="font-label-sm text-label-sm bg-primary-container/20 text-on-primary-container px-space-xs py-0.5 rounded font-bold">600m Elev.</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-semibold">Underground Calado Cellars</span>
+<!-- Evaporation Loss Ring Graphic -->
+<div class="my-space-md flex items-center justify-center">
+<div class="relative w-36 h-36 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-surface-container-high" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3.5"></path>
+<path class="text-tertiary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="19, 100" stroke-linecap="round" stroke-width="3.5"></path>
+</svg>
+<div class="absolute flex flex-col items-center">
+<span class="font-headline-md text-headline-md font-bold text-on-surface leading-none">2.6%</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Annual Loss</span>
+</div>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Controlled subterranean cellars prevent sudden temperature swings. Winemakers perform continuous "topping up" (ouillage) with identical vintage lots to protect wine against acetobacter spoilage.
+            </p>
+</div>
+<div class="bg-surface-container-high p-space-sm rounded mt-space-md flex flex-col gap-1 font-label-sm text-label-sm">
+<div class="flex justify-between text-on-surface">
+<span>Avg Cellar Temp:</span>
+<span class="font-bold">12°C - 16°C (Subterranean)</span>
+</div>
+<div class="flex justify-between text-on-surface">
+<span>Relative Humidity:</span>
+<span class="font-bold">70% - 85%</span>
+</div>
+<div class="flex justify-between text-primary font-bold">
+<span>Mitigation:</span>
+<span>Periodic Cask Topping</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 4: Per-Liter Value Curve & "Sweet Spot" Rule -->
+<section class="w-full px-margin-desktop py-space-xl bg-surface-container-low" id="value-curves">
+<div class="max-w-7xl mx-auto flex flex-col gap-space-lg">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs text-primary font-label-sm text-label-sm uppercase tracking-widest font-semibold">
+<span class="material-symbols-outlined text-[16px]">show_chart</span>
+          Economic Return vs. Palate Fatigue
+        </div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">The $/Liter Maturation Curve: The Value Plateau Rule</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-3xl">
+          Cellaring time introduces an exponential cost compounding function: warehousing storage, tax bonding fees, insurance liabilities, and cumulative evaporation losses. Beyond an optimal inflection point, price outpaces sensory improvement.
+        </p>
+</div>
+<!-- Value Plateau Visual Chart Card -->
+<div class="bg-surface rounded-xl p-space-lg shadow-sm flex flex-col gap-space-lg">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Empirical Cost Compounding vs. Palate Quality Score</h3>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Indexed against 1,280 verified SKUs across all Mexican licensed retailers</span>
+</div>
+<div class="flex items-center gap-space-md font-label-sm text-label-sm">
+<span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-primary rounded-sm"></span> Retail $/L Cost Curve</span>
+<span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-secondary rounded-sm"></span> Organoleptic Complexity Index</span>
+</div>
+</div>
+<!-- SVG Infographic Curve with Sweet Spot Highlighting -->
+<div class="w-full h-72 bg-surface-container-low rounded-lg p-space-md relative flex items-center justify-center">
+<svg class="w-full h-full" fill="none" preserveaspectratio="none" viewbox="0 0 800 240">
+<!-- Grid Lines -->
+<line stroke="#EADCC9" stroke-dasharray="4 4" stroke-width="1" x1="60" x2="760" y1="20" y2="20"></line>
+<line stroke="#EADCC9" stroke-dasharray="4 4" stroke-width="1" x1="60" x2="760" y1="80" y2="80"></line>
+<line stroke="#EADCC9" stroke-dasharray="4 4" stroke-width="1" x1="60" x2="760" y1="140" y2="140"></line>
+<line stroke="#EADCC9" stroke-width="1" x1="60" x2="760" y1="200" y2="200"></line>
+<!-- Sweet Spot Shaded Region (Center Band) -->
+<rect fill="#8C5332" fill-opacity="0.08" height="180" rx="4" width="220" x="230" y="20"></rect>
+<text fill="#703C1D" font-family="JetBrains Mono" font-size="11" font-weight="bold" text-anchor="middle" x="340" y="40">SWEET SPOT WINDOW (Peak Value/Peso)</text>
+<!-- Price Curve (Exponential rise) -->
+<path d="M 80 185 Q 240 170 340 145 T 500 95 T 660 35 T 740 22" fill="none" stroke="#703C1D" stroke-linecap="round" stroke-width="3.5"></path>
+<!-- Quality/Palate Complexity Curve (Plateaus then drops slightly from over-oaking) -->
+<path d="M 80 180 Q 220 100 340 68 T 460 62 T 580 72 T 740 92" fill="none" stroke="#775836" stroke-dasharray="6 3" stroke-linecap="round" stroke-width="3"></path>
+<!-- Node Indicators on Curve -->
+<circle cx="160" cy="175" fill="#703C1D" r="4.5"></circle>
+<circle cx="340" cy="145" fill="#703C1D" r="5"></circle>
+<circle cx="340" cy="68" fill="#775836" r="5"></circle>
+<circle cx="660" cy="35" fill="#703C1D" r="4.5"></circle>
+<!-- Axis Labels -->
+<text fill="#52443C" font-family="JetBrains Mono" font-size="11" x="80" y="222">Blanco / 3Y</text>
+<text fill="#703C1D" font-family="JetBrains Mono" font-size="11" font-weight="bold" x="340" y="222">Reposado / 12Y (Inflection)</text>
+<text fill="#52443C" font-family="JetBrains Mono" font-size="11" x="540" y="222">Añejo / 18Y</text>
+<text fill="#52443C" font-family="JetBrains Mono" font-size="11" x="710" y="222">XA / 25Y+ (Rarity Fee)</text>
+</svg>
+</div>
+<!-- 3 Specific Recommendation Cards for Value Buyers -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter-desktop">
+<div class="bg-surface-container-low p-space-md rounded-lg flex flex-col justify-between">
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm text-primary font-bold uppercase">Agave Sweet Spot</span>
+<h4 class="font-headline-sm text-headline-sm text-on-surface">Tequila Reposado &amp; Añejo Standard</h4>
+<div class="font-label-md text-label-md text-primary font-bold my-1">$800 - $1,350 / L</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                At 4-11 months in oak, the spirit achieves 85% of wood sweet-compound absorption while maintaining 100% of authentic agave fruit expression. Above $2,500/L (Extra Añejo), wood extractives often overpower the base distillate.
+              </p>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between font-label-sm text-label-sm">
+<span class="text-on-surface-variant">Audited Target:</span>
+<span class="font-bold text-on-surface">7-10 Mo. Reposado</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-space-md rounded-lg flex flex-col justify-between">
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm text-primary font-bold uppercase">Malt Whisky Sweet Spot</span>
+<h4 class="font-headline-sm text-headline-sm text-on-surface">Single Malt 12 to 14 Year Olds</h4>
+<div class="font-label-md text-label-md text-primary font-bold my-1">$1,100 - $1,750 / L</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                Statistically the peak efficiency corridor. An 18yo whisky commands a ~150% price multiplier over its 12yo counterpart, yet sensory blind tastings record only an 8-12% variance in perceived palate complexity.
+              </p>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between font-label-sm text-label-sm">
+<span class="text-on-surface-variant">Audited Target:</span>
+<span class="font-bold text-on-surface">12-14yo Highland / Speyside</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-space-md rounded-lg flex flex-col justify-between">
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm text-primary font-bold uppercase">Cellar Wine Sweet Spot</span>
+<h4 class="font-headline-sm text-headline-sm text-on-surface">Reserva Level (DOCa Rioja / Ribera)</h4>
+<div class="font-label-md text-label-md text-primary font-bold my-1">$550 - $1,100 / L</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                Reserva red vintages receive full wood polymerization (minimum 12 months) plus bottle integration, delivering prime cellared elegance without paying the scarcity speculative premium of Gran Reserva or Icon cuvées.
+              </p>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between font-label-sm text-label-sm">
+<span class="text-on-surface-variant">Audited Target:</span>
+<span class="font-bold text-on-surface">Reserva 2016-2019 Vintages</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 5: Technical Glossary, Cellaring Protocols & Archival Badging -->
+<section class="w-full px-margin-desktop py-space-xl bg-surface" id="glossary-notes">
+<div class="max-w-7xl mx-auto flex flex-col gap-space-lg">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs text-primary font-label-sm text-label-sm uppercase tracking-widest font-semibold">
+<span class="material-symbols-outlined text-[16px]">bookmark</span>
+          Lexicon &amp; Standards Codification
+        </div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Technical Glossary &amp; Collector Protocols</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-3xl">
+          Cellaring terms defined for audited appraisal, bottle maintenance, and inventory verification.
+        </p>
+</div>
+<!-- 2-Column Bento Grid: Technical Glossary + Bottle Storage Best Practices -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter-desktop">
+<!-- Glossary Accordion / Cards (Col 7) -->
+<div class="lg:col-span-7 flex flex-col gap-space-sm">
+<div class="bg-surface-container rounded-lg p-space-md flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-on-surface">NOM (Norma Oficial Mexicana)</span>
+<span class="font-label-sm text-label-sm bg-surface-container-highest px-space-xs py-0.5 rounded text-primary font-bold">Regulatory CRT</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              A four-digit distillery identifier issued by the Mexican government (e.g., NOM 1146, NOM 1414). Certifies that spirit originates from a licensed producer adhering strictly to NOM-006-SCFI-2012 sanitization, distillation, and aging audit trails.
+            </p>
+</div>
+<div class="bg-surface-container rounded-lg p-space-md flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-on-surface">Solera &amp; Criaderas System</span>
+<span class="font-label-sm text-label-sm bg-surface-container-highest px-space-xs py-0.5 rounded text-primary font-bold">Dynamic Aging</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Fractional blending methodology common to Sherry, Brandy de Jerez, and rum. Spirit is tiered across rows (solera at ground level); as bottled fraction is drawn off, barrels above replenish it, ensuring constant continuity of style. Age claims must state the weighted mean or lowest component depending on legal jurisdiction.
+            </p>
+</div>
+<div class="bg-surface-container rounded-lg p-space-md flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-on-surface">Non-Chill Filtered (NCF)</span>
+<span class="font-label-sm text-label-sm bg-surface-container-highest px-space-xs py-0.5 rounded text-primary font-bold">Purist Mark</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Bottling without chilling the spirit down to ~0°C to strip out fatty acid esters, long-chain proteins, and natural oils. While chill filtration prevents cosmetic cloudiness when ice or water is added, Non-Chill Filtered spirits preserve superior mouthfeel and texture.
+            </p>
+</div>
+<div class="bg-surface-container rounded-lg p-space-md flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-on-surface">Bottle Shock (Mal de Botella)</span>
+<span class="font-label-sm text-label-sm bg-surface-container-highest px-space-xs py-0.5 rounded text-primary font-bold">Post-Transit State</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Temporary sensory dislocation caused by motion, thermal shifts, and oxygen dissolution during transportation. High-end wines and agaves require 14 to 30 days of quiet resting in dark cellars before tasting evaluations.
+            </p>
+</div>
+</div>
+<!-- Cellaring Protocols & Cork Management (Col 5) -->
+<div class="lg:col-span-5 bg-surface-container-low rounded-xl p-space-lg flex flex-col justify-between">
+<div class="flex flex-col gap-space-md">
+<div class="flex items-center gap-space-xs text-primary font-label-sm text-label-sm uppercase tracking-widest font-bold">
+<span class="material-symbols-outlined text-[18px]">shelves</span>
+              Cellar Management Protocol
+            </div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Spirits vs. Wine: Storage Cardinal Rules</h3>
+<div class="space-y-space-sm font-body-sm text-body-sm">
+<div class="bg-surface p-space-sm rounded-lg flex flex-col gap-1">
+<span class="font-bold text-primary font-headline-sm text-headline-sm">Spirits MUST Rest Upright</span>
+<p class="text-on-surface-variant">
+                  High-proof ethanol (38% - 55% ABV) rapidly degrades natural cork bark, causing disintegration and taints. Store all Tequilas, Mezcales, and Whiskies vertically. Wet cork tops only once per year for 10 seconds.
+                </p>
+</div>
+<div class="bg-surface p-space-sm rounded-lg flex flex-col gap-1">
+<span class="font-bold text-secondary font-headline-sm text-headline-sm">Wines MUST Rest Horizontally</span>
+<p class="text-on-surface-variant">
+                  Cellar-grade wines (12% - 15% ABV) require constant contact with the inner cork seal to maintain moisture and prevent atmospheric air ingress that causes premature maderization.
+                </p>
+</div>
+<div class="bg-surface p-space-sm rounded-lg flex flex-col gap-1">
+<span class="font-bold text-on-surface font-headline-sm text-headline-sm">Light &amp; UV Protection</span>
+<p class="text-on-surface-variant">
+                  Photochemical degradation ("light strike") destroys delicate terpene and lactone compounds. Maintain dark cellars; glass amber bottles offer 90% protection, clear flint glass offers under 10%.
+                </p>
+</div>
+</div>
+</div>
+<!-- Archival Certification Seal Stamp -->
+<div class="mt-space-md pt-space-md bg-surface-container p-space-md rounded-lg flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[32px]">verified</span>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface font-bold uppercase tracking-wider">Cantina Familiar Standard</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Audited CRT &amp; SWR Accordance</span>
+</div>
+</div>
+<span class="font-label-sm text-label-sm bg-surface-container-highest px-space-xs py-1 rounded text-primary font-mono font-bold">CF-STAMP-2025</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Interactive Client Script for Filtering Matrix -->
+<script>
+    function filterMatrix(category) {
+      const rows = document.querySelectorAll('.matrix-row');
+      const buttons = document.querySelectorAll('.matrix-filter-btn');
+
+      // Update active button state
+      buttons.forEach(btn => {
+        if (btn.getAttribute('data-target') === category) {
+          btn.classList.remove('bg-surface-container', 'text-on-surface');
+          btn.classList.add('bg-primary', 'text-on-primary', 'font-semibold');
+        } else {
+          btn.classList.remove('bg-primary', 'text-on-primary', 'font-semibold');
+          btn.classList.add('bg-surface-container', 'text-on-surface');
+        }
+      });
+
+      // Filter rows
+      rows.forEach(row => {
+        if (category === 'all' || row.classList.contains(category)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+  </script>
+</div></main><footer class="w-full bg-surface-container-low mt-space-xl"><div class="w-full px-margin-desktop py-space-xl"><div class="grid grid-cols-1 md:grid-cols-4 gap-gutter-desktop mb-space-lg"><div class="col-span-1 md:col-span-2 flex flex-col gap-space-sm"><div class="flex items-center gap-space-sm"><span class="font-headline-md text-headline-md text-primary">Cantina Familiar</span><span class="font-label-sm text-label-sm px-space-xs py-0.5 bg-surface-container-highest text-on-surface rounded">EST. 2024 • MÉXICO</span></div><p class="font-body-sm text-body-sm text-on-surface-variant max-w-xl">A standardized registry for agave distillates, highland malt spirits, and cellar-grade vintages. We audit shelf prices, shelf availability, volume-adjusted value indices, and batch authenticity across national licensed purveyors every morning at 06:00 CST.</p><div class="flex items-center gap-space-md text-on-surface font-label-sm text-label-sm pt-space-xs"><span class="text-primary font-semibold">Audited Chains:</span><span>La Europea</span><span>•</span><span>Bodegas Alianza</span><span>•</span><span>Costco Wholesale</span><span>•</span><span>Walmart Supercenter</span><span>•</span><span>Chedraui Selecto</span><span>•</span><span>Liverpool Gourmet</span></div></div><div class="flex flex-col gap-space-xs"><span class="font-label-md text-label-md font-semibold text-on-surface uppercase tracking-wider">Auditing Standards</span><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface" data-path="methodology" href="#">$/L Metric Calculation</a><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface" data-path="methodology" href="#">NOM Agave Verification</a><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface" data-path="methodology" href="#">Retail Inventory Frequency</a><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface" data-path="methodology" href="#">Allocation Quota Thresholds</a></div><div class="flex flex-col gap-space-xs"><span class="font-label-md text-label-md font-semibold text-on-surface uppercase tracking-wider">Legal &amp; Provenance</span><span class="font-body-sm text-body-sm text-on-surface-variant">Data reflects audited shelf &amp; online pricing as of today at 06:00 CST. Independent audit not sponsored by retailers.</span><span class="font-label-sm text-label-sm text-secondary font-medium pt-space-xs">NOM CRT Registered • Mexican Spirits Index ID: CF-MX-8492</span></div></div><div class="flex flex-col sm:flex-row items-center justify-between pt-space-md bg-surface-container-high/40 px-space-md rounded-lg text-on-surface-variant font-label-sm text-label-sm"><p>© 2025 Cantina Familiar Gazette. Dedicated to transparent cellaring, responsible collection, and batch integrity.</p><div class="flex items-center gap-space-md pt-space-xs sm:pt-0"><span class="hover:text-on-surface cursor-pointer">Terms of Audit</span><span>•</span><span class="hover:text-on-surface cursor-pointer">Privacy Registry</span><span>•</span><span class="hover:text-on-surface cursor-pointer">API Feed</span></div></div></div></footer></body></html>

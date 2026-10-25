@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&amp;family=Source+Sans+3:ital,wght@0,400;0,600;1,400&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "inverse-surface": "#372f22",
+          "on-error-container": "#93000a",
+          "on-surface": "#211b0f",
+          "error-container": "#ffdad6",
+          "inverse-primary": "#ffb68f",
+          "on-secondary-fixed-variant": "#5d4121",
+          "on-secondary-container": "#7a5b38",
+          "on-secondary-fixed": "#2b1700",
+          "on-secondary": "#ffffff",
+          "on-tertiary": "#ffffff",
+          "surface-bright": "#fff8f3",
+          "on-primary-fixed": "#331200",
+          "outline-variant": "#d7c2b9",
+          "tertiary": "#57463d",
+          "on-primary-container": "#ffd4bf",
+          "error": "#ba1a1a",
+          "secondary": "#775836",
+          "outline": "#85746b",
+          "surface-container-highest": "#efe1cd",
+          "secondary-fixed-dim": "#e8bf95",
+          "on-tertiary-container": "#f1d9cc",
+          "surface-dim": "#e6d8c5",
+          "on-primary-fixed-variant": "#6c391a",
+          "tertiary-fixed-dim": "#d9c2b5",
+          "surface-container-high": "#f4e6d3",
+          "on-background": "#211b0f",
+          "primary-container": "#8c5332",
+          "inverse-on-surface": "#fdefdb",
+          "secondary-fixed": "#ffddba",
+          "surface-variant": "#efe1cd",
+          "background": "#fff8f3",
+          "on-surface-variant": "#52443c",
+          "primary": "#703c1d",
+          "on-tertiary-fixed-variant": "#54433a",
+          "primary-fixed-dim": "#ffb68f",
+          "tertiary-fixed": "#f6ded1",
+          "surface-tint": "#89502f",
+          "on-primary": "#ffffff",
+          "surface-container-lowest": "#ffffff",
+          "secondary-container": "#ffd6ab",
+          "on-error": "#ffffff",
+          "on-tertiary-fixed": "#251911",
+          "surface": "#fff8f3",
+          "surface-container": "#faecd8",
+          "tertiary-container": "#705e54",
+          "surface-container-low": "#fff2e1",
+          "primary-fixed": "#ffdbca"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "margin-desktop": "3.5rem",
+          "space-xl": "2.5rem",
+          "margin": "1rem",
+          "gutter-desktop": "2rem",
+          "space-lg": "1.5rem",
+          "margin-tablet": "2rem",
+          "space-sm": "0.5rem",
+          "gutter": "1.25rem",
+          "space-xs": "0.25rem",
+          "space-md": "1rem"
+        },
+        "fontFamily": {
+          "body-lg": ["\"Source Sans 3\""],
+          "label-md": ["JetBrains Mono"],
+          "body-sm": ["\"Source Sans 3\""],
+          "body-md": ["\"Source Sans 3\""],
+          "headline-sm": ["Playfair Display"],
+          "headline-lg": ["Playfair Display"],
+          "label-sm": ["JetBrains Mono"],
+          "display-lg-mobile": ["Playfair Display"],
+          "display-lg": ["Playfair Display"],
+          "headline-md": ["Playfair Display"],
+          "label-lg": ["JetBrains Mono"]
+        },
+        "fontSize": {
+          "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+          "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500"}],
+          "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+          "body-md": ["15px", {"lineHeight": "22px", "fontWeight": "400"}],
+          "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+          "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+          "label-sm": ["10px", {"lineHeight": "14px", "letterSpacing": "0.08em", "fontWeight": "600"}],
+          "display-lg-mobile": ["34px", {"lineHeight": "42px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+          "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "500"}],
+          "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}]
+        }
+      }
+    }
+  };</script></head><body class="bg-background font-body-md text-body-md text-on-surface antialiased"><header class="fixed top-0 w-full z-50 bg-surface/95 backdrop-blur-md shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-28 w-full px-margin-desktop flex flex-col justify-between py-space-xs"><div class="flex items-center justify-between border-b-0 py-space-xs"><div class="flex items-center gap-space-md"><img alt="Cantina Familiar Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1Wvp_X1itdZgJQPT57-xo5l8d4EoCYbT4MWNMnuogikvVyklf5jSY_opkpkjm_aaClUi9kTtIYka7re9zlIffaAO3j2YXWnYdiiQGjodB9Xcg0JfGx0qw2D15vNZTUW7ZjApYyxLuBiiZHNP_2UBXbElmpgmhCJYYX_PJEN_w4cJG_Apqp1NaH3EczyBztAoGeqH5LVG6xmq75vhPMjzeqybb3QXyCCDiqqs_60VIuMRlHOtvDMFdh5PrAv"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-primary tracking-tight">Cantina Familiar</span><span class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant">Audited Spirits &amp; Wine Register</span></div><div class="hidden xl:flex items-center gap-space-xs bg-surface-container px-space-sm py-0.5 rounded-lg text-on-surface"><span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span><span class="font-label-sm text-label-sm text-on-surface-variant font-semibold">Audited Daily • 6 Chains Verified • 1,280 SKUs</span></div></div><div class="flex items-center gap-space-lg"><div class="hidden lg:flex items-center gap-space-sm bg-surface-container-low px-space-md py-space-xs rounded-lg"><div class="flex flex-col text-right"><span class="font-label-sm text-label-sm text-on-surface-variant">Allocation Quota: 18.5L / 24.0L (77%)</span><span class="font-label-sm text-label-sm text-secondary font-semibold">Resale Warning: Compliant</span></div><div class="w-16 h-1.5 bg-surface-container-highest rounded-full overflow-hidden"><div class="h-full bg-primary-container w-[77%]"></div></div></div><div class="flex items-center gap-space-sm"><div class="bg-surface-container px-space-sm py-1 rounded-lg text-on-surface flex items-center gap-space-xs"><span class="font-label-sm text-label-sm font-semibold text-primary">MXN</span><span class="font-label-sm text-label-sm text-outline-variant">|</span><span class="font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface cursor-pointer">USD</span><span class="font-label-sm text-label-sm text-outline-variant">|</span><span class="font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface cursor-pointer">EUR</span></div><div class="hidden sm:flex items-center gap-1 bg-surface-container-high px-space-sm py-1 rounded-lg"><span class="font-label-sm text-label-sm text-on-surface-variant">Chain Filter:</span><span class="font-label-sm text-label-sm font-bold text-on-surface">All 6 Chains</span></div><div class="flex items-center gap-space-xs pl-space-xs"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="hidden md:flex flex-col"><span class="font-label-sm text-label-sm text-on-surface font-semibold leading-tight">Cellar Master</span><span class="font-label-sm text-label-sm text-secondary leading-tight">Tier III Verified</span></div></div></div></div></div><div class="flex items-center justify-between pb-space-xs"><nav class="flex items-center gap-space-xs" data-active-classes="bg-primary-container text-on-primary font-semibold rounded-lg"><a aria-current="page" class="px-space-md py-1.5 transition-colors bg-primary-container text-on-primary font-semibold rounded-lg" data-path="catalog-and-price-per-liter-rankings" href="#">Catalog &amp; $/L Rankings</a><a class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-label-md text-label-md" data-path="head-to-head-duel" href="#">Head-to-Head Duel</a><a class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-label-md text-label-md" data-path="multi-retailer-cart-builder" href="#">Multi-Retailer Cart Builder</a><a class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-label-md text-label-md" data-path="barrel-and-ageing-guide" href="#">Barrel &amp; Ageing Guide</a></nav><div class="hidden md:flex items-center gap-space-sm text-on-surface-variant font-label-sm text-label-sm"><span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#3d7042]"></span> Bodegas Alianza</span><span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#3d7042]"></span> La Europea</span><span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#3d7042]"></span> Costco</span><span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#3d7042]"></span> Liverpool</span><span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#3d7042]"></span> Selecto</span><span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#3d7042]"></span> Walmart</span></div></div></div></header><main class="w-full pt-28 bg-surface min-h-[calc(100vh-14rem)]"><div class="flex flex-col w-full">
+<div class="w-full px-margin-desktop py-space-md flex flex-col gap-space-lg">
+<!-- Top Editorial Header & Timestamp Monogram -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md pb-space-md">
+<div class="flex flex-col max-w-4xl">
+<div class="flex items-center gap-space-sm mb-space-xs">
+<span class="px-space-xs py-0.5 bg-primary text-on-primary font-label-sm text-label-sm uppercase tracking-widest rounded">Registry Codex • Vol. IV</span>
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider font-semibold">Standardized Audit 06:00 CST</span>
+<span class="font-label-sm text-label-sm text-outline-variant">•</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Lic. CRT / SAT Verification Token: CF-884-2025</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Index of Audited Spirits &amp; Per-Liter Valuation Rankings</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-space-xs max-w-3xl">
+          Standardized net-volume price audit across 6 licensed national purveyors (La Europea, Bodegas Alianza, Costco, Chedraui Selecto, Walmart, and Liverpool Gourmet). All unit prices mathematically normalized to 1,000ml pure liquid volume to eliminate retail packaging bias.
+        </p>
+</div>
+<!-- Quick Export / Ledger Stats -->
+<div class="flex items-center gap-space-sm self-start md:self-end">
+<button class="px-space-md py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-md text-label-md rounded flex items-center gap-space-xs transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px] text-primary">download</span>
+<span>Ledger TSV</span>
+</button>
+<button class="px-space-md py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-md text-label-md rounded flex items-center gap-space-xs transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px] text-primary">verified_user</span>
+<span>Audit Certificate</span>
+</button>
+</div>
+</div>
+<!-- Editorial KPI Ribbon (Sotheby's / Liv-Ex auction index aesthetic) -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-gutter">
+<!-- KPI 1 -->
+<div class="bg-surface-container-low p-space-md rounded flex flex-col justify-between shadow-sm relative overflow-hidden">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-semibold">Lowest Overall $/L</span>
+<span class="px-1.5 py-0.5 bg-surface-container-highest font-label-sm text-label-sm text-primary rounded">Best Index</span>
+</div>
+<div class="my-space-sm">
+<div class="font-headline-md text-headline-md text-on-surface tracking-tight font-semibold">$784 <span class="font-label-md text-label-md font-normal text-on-surface-variant">/ L</span></div>
+<div class="font-body-md text-body-md text-primary font-medium truncate">San Matías Tahona Extra Añejo</div>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span>Purveyor: Costco Wholesale</span>
+<span class="text-secondary font-semibold">Unit: $588 (750ml)</span>
+</div>
+</div>
+<!-- KPI 2 -->
+<div class="bg-surface-container-low p-space-md rounded flex flex-col justify-between shadow-sm relative">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-semibold">Audited Median Valuation</span>
+<span class="px-1.5 py-0.5 bg-surface-container-highest font-label-sm text-label-sm text-on-surface-variant rounded">Agave Focus</span>
+</div>
+<div class="my-space-sm">
+<div class="font-headline-md text-headline-md text-on-surface tracking-tight font-semibold">$1,240 <span class="font-label-md text-label-md font-normal text-on-surface-variant">/ L</span></div>
+<div class="font-body-md text-body-md text-on-surface-variant truncate">Standard Agave Baseline (84 SKUs)</div>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span>30-Day Index Trend: -2.4%</span>
+<span class="text-primary font-semibold">Inflation Normalized</span>
+</div>
+</div>
+<!-- KPI 3 -->
+<div class="bg-surface-container-low p-space-md rounded flex flex-col justify-between shadow-sm relative">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-semibold">Fiscal Allocation Quota</span>
+<span class="px-1.5 py-0.5 bg-primary-container text-on-primary font-label-sm text-label-sm rounded font-medium">Warning Threshold</span>
+</div>
+<div class="my-space-sm">
+<div class="flex items-baseline gap-space-xs">
+<span class="font-headline-md text-headline-md text-on-surface tracking-tight font-semibold">18.5 L</span>
+<span class="font-label-md text-label-md text-on-surface-variant">/ 24.0 L (77.1%)</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1.5 rounded-full mt-2 overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 77.1%;"></div>
+</div>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span class="text-error font-medium">5.5 L remaining before luxury tax</span>
+<span>Tier III Cap</span>
+</div>
+</div>
+<!-- KPI 4 -->
+<div class="bg-surface-container-low p-space-md rounded flex flex-col justify-between shadow-sm relative">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-semibold">Max Retail Arbitrage Found</span>
+<span class="px-1.5 py-0.5 bg-secondary-container text-on-secondary-fixed font-label-sm text-label-sm rounded font-bold">41.8% Spread</span>
+</div>
+<div class="my-space-sm">
+<div class="font-headline-md text-headline-md text-primary tracking-tight font-semibold">Macallan 12 Double Cask</div>
+<div class="font-body-md text-body-md text-on-surface-variant truncate">Costco ($1,180) vs Liverpool ($1,673)</div>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span>Net Save / Liter: $657 MXN</span>
+<span class="text-primary font-bold">High Inefficiency</span>
+</div>
+</div>
+</div>
+<!-- Auditing Filter Ledger Strip -->
+<div class="bg-surface-container p-space-md rounded flex flex-col gap-space-md shadow-sm">
+<!-- Search and Volume Normalizer Row -->
+<div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-space-md">
+<!-- Search Bar with Archival Key Icon -->
+<div class="flex-1 relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-lowest text-on-surface font-body-md text-body-md rounded focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-outline shadow-sm" placeholder="Search NOM, distillery, batch code, vintage year, maestro mezcalero, or denomination..." type="text"/>
+</div>
+<!-- Normalizer Toggle and Sort Controls -->
+<div class="flex flex-wrap items-center gap-space-sm">
+<div class="flex items-center bg-surface-container-highest p-0.5 rounded text-on-surface">
+<button class="px-space-sm py-1 rounded bg-surface-container-lowest text-primary font-label-sm text-label-sm font-semibold shadow-sm" type="button">
+              $/Liter (Normalized)
+            </button>
+<button class="px-space-sm py-1 rounded text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm font-normal" type="button">
+              Shelf Bottle Price (Raw)
+            </button>
+</div>
+<div class="flex items-center gap-space-xs bg-surface-container-low px-space-sm py-1.5 rounded">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Sort:</span>
+<select class="bg-transparent text-on-surface font-label-sm text-label-sm font-semibold focus:outline-none cursor-pointer">
+<option>Value Score (Arbitrage + Spec Quality)</option>
+<option>$/Liter Valuation (Lowest to Highest)</option>
+<option>$/Liter Valuation (Highest to Lowest)</option>
+<option>Retail Spread Variance % (Max Arbitrage)</option>
+<option>Proof / ABV (Highest first)</option>
+</select>
+</div>
+</div>
+</div>
+<!-- Categories and Active Retailer Checkers -->
+<div class="flex flex-col xl:flex-row xl:items-center justify-between gap-space-md pt-space-xs">
+<!-- Category Filter Pills -->
+<div class="flex flex-wrap items-center gap-space-xs">
+<button class="px-space-md py-1 rounded-full bg-primary text-on-primary font-label-sm text-label-sm font-semibold shadow-sm" type="button">
+            All Registry (412)
+          </button>
+<button class="px-space-md py-1 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-sm text-label-sm" type="button">
+            Tequila CRT (114)
+          </button>
+<button class="px-space-md py-1 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-sm text-label-sm" type="button">
+            Mezcal Ancestral / Artesanal (78)
+          </button>
+<button class="px-space-md py-1 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-sm text-label-sm" type="button">
+            Single Malt &amp; Blended Whisky (126)
+          </button>
+<button class="px-space-md py-1 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-sm text-label-sm" type="button">
+            Cellar &amp; Library Wines (94)
+          </button>
+</div>
+<!-- 6 Retailer Presence Toggles -->
+<div class="flex flex-wrap items-center gap-space-xs font-label-sm text-label-sm text-on-surface-variant">
+<span class="uppercase tracking-wider mr-1 text-secondary font-semibold">Chains In Matrix:</span>
+<label class="flex items-center gap-1 bg-surface-container-low px-space-xs py-0.5 rounded cursor-pointer hover:bg-surface-container-highest">
+<input checked="" class="accent-primary w-3 h-3 rounded" type="checkbox"/>
+<span class="text-on-surface">La Europea</span>
+</label>
+<label class="flex items-center gap-1 bg-surface-container-low px-space-xs py-0.5 rounded cursor-pointer hover:bg-surface-container-highest">
+<input checked="" class="accent-primary w-3 h-3 rounded" type="checkbox"/>
+<span class="text-on-surface">Bodegas Alianza</span>
+</label>
+<label class="flex items-center gap-1 bg-surface-container-low px-space-xs py-0.5 rounded cursor-pointer hover:bg-surface-container-highest">
+<input checked="" class="accent-primary w-3 h-3 rounded" type="checkbox"/>
+<span class="text-on-surface">Costco</span>
+</label>
+<label class="flex items-center gap-1 bg-surface-container-low px-space-xs py-0.5 rounded cursor-pointer hover:bg-surface-container-highest">
+<input checked="" class="accent-primary w-3 h-3 rounded" type="checkbox"/>
+<span class="text-on-surface">Chedraui Selecto</span>
+</label>
+<label class="flex items-center gap-1 bg-surface-container-low px-space-xs py-0.5 rounded cursor-pointer hover:bg-surface-container-highest">
+<input checked="" class="accent-primary w-3 h-3 rounded" type="checkbox"/>
+<span class="text-on-surface">Walmart</span>
+</label>
+<label class="flex items-center gap-1 bg-surface-container-low px-space-xs py-0.5 rounded cursor-pointer hover:bg-surface-container-highest">
+<input checked="" class="accent-primary w-3 h-3 rounded" type="checkbox"/>
+<span class="text-on-surface">Liverpool</span>
+</label>
+</div>
+</div>
+</div>
+<!-- Matrix Info Subheader: Broad-sheet auction style ledger note -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between text-on-surface-variant font-label-sm text-label-sm px-space-xs">
+<div class="flex items-center gap-space-sm">
+<span class="text-primary font-semibold uppercase tracking-wider">Displaying 10 of 412 Verified Batches</span>
+<span>•</span>
+<span>Standard Audit Formula: [Price ÷ Volume (ml)] × 1,000</span>
+</div>
+<div class="flex items-center gap-space-md mt-2 sm:mt-0">
+<span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-primary-container"></span> Optimal Retail Yield</span>
+<span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-error"></span> Retail High (&gt;20% markup)</span>
+<span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-surface-container-highest"></span> Inventory Depleted</span>
+</div>
+</div>
+<!-- The Audited Ranking Matrix Table (Pure Typographic, No Images) -->
+<div class="w-full overflow-x-auto rounded shadow-sm bg-surface-container-lowest">
+<table class="w-full border-collapse text-left">
+<!-- Table Head -->
+<thead>
+<tr class="bg-surface-container-high text-on-surface font-label-sm text-label-sm uppercase tracking-wider">
+<th class="py-space-sm px-space-md text-center w-16">Rank</th>
+<th class="py-space-sm px-space-md w-72">Spirit Ledger Entry &amp; Provenance</th>
+<th class="py-space-sm px-space-md w-32">Spec / Proof</th>
+<th class="py-space-sm px-space-md w-40 text-right bg-surface-container-highest/80 text-primary font-bold">Standard $/L</th>
+<th class="py-space-sm px-space-md text-center">La Europea</th>
+<th class="py-space-sm px-space-md text-center">Bod. Alianza</th>
+<th class="py-space-sm px-space-md text-center">Costco</th>
+<th class="py-space-sm px-space-md text-center">Chedraui</th>
+<th class="py-space-sm px-space-md text-center">Walmart</th>
+<th class="py-space-sm px-space-md text-center">Liverpool</th>
+<th class="py-space-sm px-space-md w-36 text-right">Spread / Quota</th>
+<th class="py-space-sm px-space-md text-right w-36">Actions</th>
+</tr>
+</thead>
+<!-- Table Body -->
+<tbody class="divide-y-0 text-on-surface">
+<!-- Row 1: Fortaleza Blanco -->
+<tr class="hover:bg-surface-container-low transition-colors bg-surface-container-lowest">
+<td class="py-space-md px-space-md text-center align-top">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">#01</span>
+<div class="font-label-sm text-label-sm text-secondary mt-1">NOM 1493</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="font-headline-sm text-headline-sm text-on-surface leading-snug">Fortaleza Blanco Lot 150</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Destilería Los Abuelos • Tequila Valley, Jalisco</div>
+<div class="flex items-center gap-space-xs mt-space-xs">
+<span class="px-1.5 py-0.5 bg-surface-container-high text-on-surface font-label-sm text-label-sm rounded uppercase font-semibold">Tahona Crushed</span>
+<span class="px-1.5 py-0.5 bg-surface-container-high text-on-surface font-label-sm text-label-sm rounded uppercase font-semibold">Copper Pot</span>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top font-label-md text-label-md">
+<div class="font-semibold text-on-surface">46.0% ABV</div>
+<div class="text-on-surface-variant font-label-sm text-label-sm">750 ml Glass</div>
+<div class="text-primary font-label-sm text-label-sm mt-1">High Proof</div>
+</td>
+<td class="py-space-md px-space-md align-top text-right bg-surface-container/40">
+<div class="font-label-lg text-label-lg font-bold text-primary">$1,093.33</div>
+<span class="inline-block mt-0.5 px-1.5 py-0.5 bg-primary-container text-on-primary font-label-sm text-label-sm rounded font-medium">Optimal Value</span>
+</td>
+<!-- La Europea -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">$890</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">$1,186/L</div>
+</td>
+<!-- Bodegas Alianza -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">$940</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">$1,253/L</div>
+</td>
+<!-- Costco (Cheapest) -->
+<td class="py-space-md px-space-xs text-center align-top bg-secondary-container/30 rounded">
+<div class="font-label-md text-label-md font-bold text-primary">$820</div>
+<div class="font-label-sm text-label-sm text-secondary font-semibold">$1,093/L</div>
+<span class="inline-block mt-1 px-1 py-0.2 bg-primary text-on-primary font-label-sm text-[9px] rounded uppercase font-bold tracking-wider">Best Offer</span>
+</td>
+<!-- Chedraui Selecto -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">$915</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">$1,220/L</div>
+</td>
+<!-- Walmart (OOS) -->
+<td class="py-space-md px-space-xs text-center align-top text-outline-variant">
+<div class="font-label-sm text-label-sm font-semibold">OOS</div>
+<div class="font-label-sm text-label-sm">Depleted</div>
+</td>
+<!-- Liverpool (Highest) -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-error">$1,050</div>
+<div class="font-label-sm text-label-sm text-error font-medium">$1,400/L</div>
+<span class="inline-block font-label-sm text-[9px] text-error font-bold mt-0.5">+28.0%</span>
+</td>
+<!-- Spread & Quota -->
+<td class="py-space-md px-space-md align-top text-right">
+<div class="font-label-sm text-label-sm font-bold text-primary">Save $230 MXN</div>
+<div class="font-label-sm text-label-sm text-secondary">21.9% Spread</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant mt-1">Quota: 0.75 L (3.1%)</div>
+</td>
+<!-- Actions -->
+<td class="py-space-md px-space-md align-top text-right">
+<div class="flex flex-col items-end gap-1">
+<button class="px-space-xs py-0.5 text-on-primary bg-primary hover:bg-primary-container font-label-sm text-label-sm rounded transition-colors w-full text-center" type="button">Stage to Cart</button>
+<button class="px-space-xs py-0.5 bg-surface-container text-on-surface hover:bg-surface-container-high font-label-sm text-label-sm rounded transition-colors w-full text-center" type="button">Head-to-Head</button>
+</div>
+</td>
+</tr>
+<!-- Row 2: Cascahuín Tahona Blanco -->
+<tr class="hover:bg-surface-container-low transition-colors bg-surface-container-low/40">
+<td class="py-space-md px-space-md text-center align-top">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">#02</span>
+<div class="font-label-sm text-label-sm text-secondary mt-1">NOM 1123</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="font-headline-sm text-headline-sm text-on-surface leading-snug">Cascahuín Tahona Blanco</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Tequila Cascahuín • El Arenal, Jalisco</div>
+<div class="flex items-center gap-space-xs mt-space-xs">
+<span class="px-1.5 py-0.5 bg-surface-container-high text-on-surface font-label-sm text-label-sm rounded uppercase font-semibold">Pit Stone Tahona</span>
+<span class="px-1.5 py-0.5 bg-surface-container-high text-on-surface font-label-sm text-label-sm rounded uppercase font-semibold">Additive Free</span>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top font-label-md text-label-md">
+<div class="font-semibold text-on-surface">42.0% ABV</div>
+<div class="text-on-surface-variant font-label-sm text-label-sm">750 ml Glass</div>
+<div class="text-secondary font-label-sm text-label-sm mt-1">Estate Grown</div>
+</td>
+<td class="py-space-md px-space-md align-top text-right bg-surface-container/40">
+<div class="font-label-lg text-label-lg font-bold text-primary">$1,266.67</div>
+<span class="inline-block mt-0.5 px-1.5 py-0.5 bg-surface-container-highest text-on-surface font-label-sm text-label-sm rounded">High Cult Grade</span>
+</td>
+<!-- La Europea (Cheapest) -->
+<td class="py-space-md px-space-xs text-center align-top bg-secondary-container/30 rounded">
+<div class="font-label-md text-label-md font-bold text-primary">$950</div>
+<div class="font-label-sm text-label-sm text-secondary font-semibold">$1,266/L</div>
+<span class="inline-block mt-1 px-1 py-0.2 bg-primary text-on-primary font-label-sm text-[9px] rounded uppercase font-bold tracking-wider">Best Offer</span>
+</td>
+<!-- Bodegas Alianza -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">$990</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">$1,320/L</div>
+</td>
+<!-- Costco -->
+<td class="py-space-md px-space-xs text-center align-top text-outline-variant">
+<div class="font-label-sm text-label-sm font-semibold">N/R</div>
+<div class="font-label-sm text-label-sm">Unlisted</div>
+</td>
+<!-- Chedraui Selecto -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">$1,020</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">$1,360/L</div>
+</td>
+<!-- Walmart -->
+<td class="py-space-md px-space-xs text-center align-top text-outline-variant">
+<div class="font-label-sm text-label-sm font-semibold">N/R</div>
+<div class="font-label-sm text-label-sm">Unlisted</div>
+</td>
+<!-- Liverpool -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-error">$1,190</div>
+<div class="font-label-sm text-label-sm text-error font-medium">$1,586/L</div>
+<span class="inline-block font-label-sm text-[9px] text-error font-bold mt-0.5">+25.2%</span>
+</td>
+<!-- Spread & Quota -->
+<td class="py-space-md px-space-md align-top text-right">
+<div class="font-label-sm text-label-sm font-bold text-primary">Save $240 MXN</div>
+<div class="font-label-sm text-label-sm text-secondary">20.1% Spread</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant mt-1">Quota: 0.75 L (3.1%)</div>
+</td>
+<!-- Actions -->
+<td class="py-space-md px-space-md align-top text-right">
+<div class="flex flex-col items-end gap-1">
+<button class="px-space-xs py-0.5 text-on-primary bg-primary hover:bg-primary-container font-label-sm text-label-sm rounded transition-colors w-full text-center" type="button">Stage to Cart</button>
+<button class="px-space-xs py-0.5 bg-surface-container text-on-surface hover:bg-surface-container-high font-label-sm text-label-sm rounded transition-colors w-full text-center" type="button">Head-to-Head</button>
+</div>
+</td>
+</tr>
+<!-- Row 3: Rey Campero Tepextate -->
+<tr class="hover:bg-surface-container-low transition-colors bg-surface-container-lowest">
+<td class="py-space-md px-space-md text-center align-top">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">#03</span>
+<div class="font-label-sm text-label-sm text-secondary mt-1">NOM O140X</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="font-headline-sm text-headline-sm text-on-surface leading-snug">Rey Campero Tepextate</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Maestro Vicente Sánchez • Candelaria Yegolé, Oaxaca</div>
+<div class="flex items-center gap-space-xs mt-space-xs">
+<span class="px-1.5 py-0.5 bg-surface-container-high text-on-surface font-label-sm text-label-sm rounded uppercase font-semibold">Agave Marmorata 25-yr</span>
+<span class="px-1.5 py-0.5 bg-surface-container-high text-on-surface font-label-sm text-label-sm rounded uppercase font-semibold">Wild Agave</span>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top font-label-md text-label-md">
+<div class="font-semibold text-on-surface">48.6% ABV</div>
+<div class="text-on-surface-variant font-label-sm text-label-sm">750 ml Glass</div>
+<div class="text-primary font-label-sm text-label-sm mt-1">Ancestral Batch</div>
+</td>
+<td class="py-space-md px-space-md align-top text-right bg-surface-container/40">
+<div class="font-label-lg text-label-lg font-bold text-primary">$1,933.33</div>
+<span class="inline-block mt-0.5 px-1.5 py-0.5 bg-surface-container-highest text-on-surface font-label-sm text-label-sm rounded">Rarity Tier I</span>
+</td>
+<!-- La Europea -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">$1,490</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">$1,986/L</div>
+</td>
+<!-- Bodegas Alianza (Cheapest) -->
+<td class="py-space-md px-space-xs text-center align-top bg-secondary-container/30 rounded">
+<div class="font-label-md text-label-md font-bold text-primary">$1,450</div>
+<div class="font-label-sm text-label-sm text-secondary font-semibold">$1,933/L</div>
+<span class="inline-block mt-1 px-1 py-0.2 bg-primary text-on-primary font-label-sm text-[9px] rounded uppercase font-bold tracking-wider">Best Offer</span>
+</td>
+<!-- Costco -->
+<td class="py-space-md px-space-xs text-center align-top text-outline-variant">
+<div class="font-label-sm text-label-sm font-semibold">N/R</div>
+<div class="font-label-sm text-label-sm">Boutique Only</div>
+</td>
+<!-- Chedraui Selecto -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">$1,580</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">$2,106/L</div>
+</td>
+<!-- Walmart -->
+<td class="py-space-md px-space-xs text-center align-top text-outline-variant">
+<div class="font-label-sm text-label-sm font-semibold">N/R</div>
+<div class="font-label-sm text-label-sm">Unlisted</div>
+</td>
+<!-- Liverpool -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-error">$1,820</div>
+<div class="font-label-sm text-label-sm text-error font-medium">$2,426/L</div>
+<span class="inline-block font-label-sm text-[9px] text-error font-bold mt-0.5">+25.5%</span>
+</td>
+<!-- Spread & Quota -->
+<td class="py-space-md px-space-md align-top text-right">
+<div class="font-label-sm text-label-sm font-bold text-primary">Save $370 MXN</div>
+<div class="font-label-sm text-label-sm text-secondary">20.3% Spread</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant mt-1">Quota: 0.75 L (3.1%)</div>
+</td>
+<!-- Actions -->
+<td class="py-space-md px-space-md align-top text-right">
+<div class="flex flex-col items-end gap-1">
+<button class="px-space-xs py-0.5 text-on-primary bg-primary hover:bg-primary-container font-label-sm text-label-sm rounded transition-colors w-full text-center" type="button">Stage to Cart</button>
+<button class="px-space-xs py-0.5 bg-surface-container text-on-surface hover:bg-surface-container-high font-label-sm text-label-sm rounded transition-colors w-full text-center" type="button">Head-to-Head</button>
+</div>
+</td>
+</tr>
+<!-- Row 4: Ardbeg Uigeadail -->
+<tr class="hover:bg-surface-container-low transition-colors bg-surface-container-low/40">
+<td class="py-space-md px-space-md text-center align-top">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">#04</span>
+<div class="font-label-sm text-label-sm text-secondary mt-1">ISLAY DIST.</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="font-headline-sm text-headline-sm text-on-surface leading-snug">Ardbeg Uigeadail Cask Strength</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Ardbeg Distillery Ltd. • Isle of Islay, Scotland</div>
+<div class="flex items-center gap-space-xs mt-space-xs">
+<span class="px-1.5 py-0.5 bg-surface-container-high text-on-surface font-label-sm text-label-sm rounded uppercase font-semibold">Sherry Butt Finish</span>
+<span class="px-1.5 py-0.5 bg-surface-container-high text-on-surface font-label-sm text-label-sm rounded uppercase font-semibold">Non-Chill Filtered</span>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top font-label-md text-label-md">
+<div class="font-semibold text-on-surface">54.2% ABV</div>
+<div class="text-on-surface-variant font-label-sm text-label-sm">700 ml Glass</div>
+<div class="text-error font-label-sm text-label-sm mt-1">High Proof Tax</div>
+</td>
+<td class="py-space-md px-space-md align-top text-right bg-surface-container/40">
+<div class="font-label-lg text-label-lg font-bold text-primary">$2,428.57</div>
+<span class="inline-block mt-0.5 px-1.5 py-0.5 bg-secondary-container text-on-secondary-fixed font-label-sm text-label-sm rounded font-bold">Peat Benchmark</span>
+</td>
+<!-- La Europea -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">$1,790</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">$2,557/L</div>
+</td>
+<!-- Bodegas Alianza -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">$1,750</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">$2,500/L</div>
+</td>
+<!-- Costco (Cheapest) -->
+<td class="py-space-md px-space-xs text-center align-top bg-secondary-container/30 rounded">
+<div class="font-label-md text-label-md font-bold text-primary">$1,700</div>
+<div class="font-label-sm text-label-sm text-secondary font-semibold">$2,428/L</div>
+<span class="inline-block mt-1 px-1 py-0.2 bg-primary text-on-primary font-label-sm text-[9px] rounded uppercase font-bold tracking-wider">Best Offer</span>
+</td>
+<!-- Chedraui Selecto -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">$1,890</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">$2,700/L</div>
+</td>
+<!-- Walmart -->
+<td class="py-space-md px-space-xs text-center align-top text-outline-variant">
+<div class="font-label-sm text-label-sm font-semibold">OOS</div>
+<div class="font-label-sm text-label-sm">Depleted</div>
+</td>
+<!-- Liverpool -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-error">$2,190</div>
+<div class="font-label-sm text-label-sm text-error font-medium">$3,128/L</div>
+<span class="inline-block font-label-sm text-[9px] text-error font-bold mt-0.5">+28.8%</span>
+</td>
+<!-- Spread & Quota -->
+<td class="py-space-md px-space-md align-top text-right">
+<div class="font-label-sm text-label-sm font-bold text-primary">Save $490 MXN</div>
+<div class="font-label-sm text-label-sm text-secondary">22.4% Spread</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant mt-1">Quota: 0.70 L (2.9%)</div>
+</td>
+<!-- Actions -->
+<td class="py-space-md px-space-md align-top text-right">
+<div class="flex flex-col items-end gap-1">
+<button class="px-space-xs py-0.5 text-on-primary bg-primary hover:bg-primary-container font-label-sm text-label-sm rounded transition-colors w-full text-center" type="button">Stage to Cart</button>
+<button class="px-space-xs py-0.5 bg-surface-container text-on-surface hover:bg-surface-container-high font-label-sm text-label-sm rounded transition-colors w-full text-center" type="button">Head-to-Head</button>
+</div>
+</td>
+</tr>
+<!-- Row 5: Tequila Ocho Añejo Single Barrel -->
+<tr class="hover:bg-surface-container-low transition-colors bg-surface-container-lowest">
+<td class="py-space-md px-space-md text-center align-top">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">#05</span>
+<div class="font-label-sm text-label-sm text-secondary mt-1">NOM 1474</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="font-headline-sm text-headline-sm text-on-surface leading-snug">Tequila Ocho Añejo Single Estate</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Rancho El Tigre 2021 • Los Altos, Jalisco</div>
+<div class="flex items-center gap-space-xs mt-space-xs">
+<span class="px-1.5 py-0.5 bg-surface-container-high text-on-surface font-label-sm text-label-sm rounded uppercase font-semibold">Ex-Bourbon 12 Mo</span>
+<span class="px-1.5 py-0.5 bg-surface-container-high text-on-surface font-label-sm text-label-sm rounded uppercase font-semibold">Single Field</span>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top font-label-md text-label-md">
+<div class="font-semibold text-on-surface">40.0% ABV</div>
+<div class="text-on-surface-variant font-label-sm text-label-sm">750 ml Glass</div>
+<div class="text-secondary font-label-sm text-label-sm mt-1">Vintage Dated</div>
+</td>
+<td class="py-space-md px-space-md align-top text-right bg-surface-container/40">
+<div class="font-label-lg text-label-lg font-bold text-primary">$1,533.33</div>
+<span class="inline-block mt-0.5 px-1.5 py-0.5 bg-primary-container text-on-primary font-label-sm text-label-sm rounded font-medium">Optimal Value</span>
+</td>
+<!-- La Europea (Cheapest) -->
+<td class="py-space-md px-space-xs text-center align-top bg-secondary-container/30 rounded">
+<div class="font-label-md text-label-md font-bold text-primary">$1,150</div>
+<div class="font-label-sm text-label-sm text-secondary font-semibold">$1,533/L</div>
+<span class="inline-block mt-1 px-1 py-0.2 bg-primary text-on-primary font-label-sm text-[9px] rounded uppercase font-bold tracking-wider">Best Offer</span>
+</td>
+<!-- Bodegas Alianza -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">$1,220</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">$1,626/L</div>
+</td>
+<!-- Costco -->
+<td class="py-space-md px-space-xs text-center align-top text-outline-variant">
+<div class="font-label-sm text-label-sm font-semibold">N/R</div>
+<div class="font-label-sm text-label-sm">Unlisted</div>
+</td>
+<!-- Chedraui Selecto -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">$1,280</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">$1,706/L</div>
+</td>
+<!-- Walmart -->
+<td class="py-space-md px-space-xs text-center align-top text-outline-variant">
+<div class="font-label-sm text-label-sm font-semibold">N/R</div>
+<div class="font-label-sm text-label-sm">Unlisted</div>
+</td>
+<!-- Liverpool -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-error">$1,450</div>
+<div class="font-label-sm text-label-sm text-error font-medium">$1,933/L</div>
+<span class="inline-block font-label-sm text-[9px] text-error font-bold mt-0.5">+26.1%</span>
+</td>
+<!-- Spread & Quota -->
+<td class="py-space-md px-space-md align-top text-right">
+<div class="font-label-sm text-label-sm font-bold text-primary">Save $300 MXN</div>
+<div class="font-label-sm text-label-sm text-secondary">20.7% Spread</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant mt-1">Quota: 0.75 L (3.1%)</div>
+</td>
+<!-- Actions -->
+<td class="py-space-md px-space-md align-top text-right">
+<div class="flex flex-col items-end gap-1">
+<button class="px-space-xs py-0.5 text-on-primary bg-primary hover:bg-primary-container font-label-sm text-label-sm rounded transition-colors w-full text-center" type="button">Stage to Cart</button>
+<button class="px-space-xs py-0.5 bg-surface-container text-on-surface hover:bg-surface-container-high font-label-sm text-label-sm rounded transition-colors w-full text-center" type="button">Head-to-Head</button>
+</div>
+</td>
+</tr>
+<!-- Row 6: Vega Sicilia Único 2012 -->
+<tr class="hover:bg-surface-container-low transition-colors bg-surface-container-low/40">
+<td class="py-space-md px-space-md text-center align-top">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">#06</span>
+<div class="font-label-sm text-label-sm text-secondary mt-1">D.O. RIBERA</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="font-headline-sm text-headline-sm text-on-surface leading-snug">Vega Sicilia Único Cosecha 2012</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Bodegas Vega Sicilia • Valbuena de Duero, España</div>
+<div class="flex items-center gap-space-xs mt-space-xs">
+<span class="px-1.5 py-0.5 bg-surface-container-high text-on-surface font-label-sm text-label-sm rounded uppercase font-semibold">10-yr French &amp; Am Oak</span>
+<span class="px-1.5 py-0.5 bg-surface-container-high text-on-surface font-label-sm text-label-sm rounded uppercase font-semibold">Tinto Fino / Cabernet</span>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top font-label-md text-label-md">
+<div class="font-semibold text-on-surface">14.0% ABV</div>
+<div class="text-on-surface-variant font-label-sm text-label-sm">750 ml Cellar Glass</div>
+<div class="text-secondary font-label-sm text-label-sm mt-1">Temp Audited 14°C</div>
+</td>
+<td class="py-space-md px-space-md align-top text-right bg-surface-container/40">
+<div class="font-label-lg text-label-lg font-bold text-primary">$13,066.67</div>
+<span class="inline-block mt-0.5 px-1.5 py-0.5 bg-surface-container-highest text-on-surface font-label-sm text-label-sm rounded">Blue Chip Cellar</span>
+</td>
+<!-- La Europea (Cheapest) -->
+<td class="py-space-md px-space-xs text-center align-top bg-secondary-container/30 rounded">
+<div class="font-label-md text-label-md font-bold text-primary">$9,800</div>
+<div class="font-label-sm text-label-sm text-secondary font-semibold">$13,066/L</div>
+<span class="inline-block mt-1 px-1 py-0.2 bg-primary text-on-primary font-label-sm text-[9px] rounded uppercase font-bold tracking-wider">Best Offer</span>
+</td>
+<!-- Bodegas Alianza -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">$10,400</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">$13,866/L</div>
+</td>
+<!-- Costco -->
+<td class="py-space-md px-space-xs text-center align-top text-outline-variant">
+<div class="font-label-sm text-label-sm font-semibold">N/R</div>
+<div class="font-label-sm text-label-sm">Private Reserve</div>
+</td>
+<!-- Chedraui Selecto -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">$11,200</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">$14,933/L</div>
+</td>
+<!-- Walmart -->
+<td class="py-space-md px-space-xs text-center align-top text-outline-variant">
+<div class="font-label-sm text-label-sm font-semibold">N/R</div>
+<div class="font-label-sm text-label-sm">Unlisted</div>
+</td>
+<!-- Liverpool -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-error">$13,100</div>
+<div class="font-label-sm text-label-sm text-error font-medium">$17,466/L</div>
+<span class="inline-block font-label-sm text-[9px] text-error font-bold mt-0.5">+33.7%</span>
+</td>
+<!-- Spread & Quota -->
+<td class="py-space-md px-space-md align-top text-right">
+<div class="font-label-sm text-label-sm font-bold text-primary">Save $3,300 MXN</div>
+<div class="font-label-sm text-label-sm text-secondary">25.2% Spread</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant mt-1">Quota: 0.75 L (3.1%)</div>
+</td>
+<!-- Actions -->
+<td class="py-space-md px-space-md align-top text-right">
+<div class="flex flex-col items-end gap-1">
+<button class="px-space-xs py-0.5 text-on-primary bg-primary hover:bg-primary-container font-label-sm text-label-sm rounded transition-colors w-full text-center" type="button">Stage to Cart</button>
+<button class="px-space-xs py-0.5 bg-surface-container text-on-surface hover:bg-surface-container-high font-label-sm text-label-sm rounded transition-colors w-full text-center" type="button">Head-to-Head</button>
+</div>
+</td>
+</tr>
+<!-- Row 7: Lagavulin 16 Year Old -->
+<tr class="hover:bg-surface-container-low transition-colors bg-surface-container-lowest">
+<td class="py-space-md px-space-md text-center align-top">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">#07</span>
+<div class="font-label-sm text-label-sm text-secondary mt-1">ISLAY REG.</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="font-headline-sm text-headline-sm text-on-surface leading-snug">Lagavulin 16 Year Old Single Malt</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Lagavulin Distillery • Port Ellen, Isle of Islay</div>
+<div class="flex items-center gap-space-xs mt-space-xs">
+<span class="px-1.5 py-0.5 bg-surface-container-high text-on-surface font-label-sm text-label-sm rounded uppercase font-semibold">16-Yr Re-charred Oak</span>
+<span class="px-1.5 py-0.5 bg-surface-container-high text-on-surface font-label-sm text-label-sm rounded uppercase font-semibold">Peated Highland Malt</span>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top font-label-md text-label-md">
+<div class="font-semibold text-on-surface">43.0% ABV</div>
+<div class="text-on-surface-variant font-label-sm text-label-sm">700 ml Glass</div>
+<div class="text-secondary font-label-sm text-label-sm mt-1">Collector Anchor</div>
+</td>
+<td class="py-space-md px-space-md align-top text-right bg-surface-container/40">
+<div class="font-label-lg text-label-lg font-bold text-primary">$2,642.86</div>
+<span class="inline-block mt-0.5 px-1.5 py-0.5 bg-surface-container-highest text-on-surface font-label-sm text-label-sm rounded">Audited Par</span>
+</td>
+<!-- La Europea -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">$1,950</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">$2,785/L</div>
+</td>
+<!-- Bodegas Alianza -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">$1,890</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">$2,700/L</div>
+</td>
+<!-- Costco (Cheapest) -->
+<td class="py-space-md px-space-xs text-center align-top bg-secondary-container/30 rounded">
+<div class="font-label-md text-label-md font-bold text-primary">$1,850</div>
+<div class="font-label-sm text-label-sm text-secondary font-semibold">$2,642/L</div>
+<span class="inline-block mt-1 px-1 py-0.2 bg-primary text-on-primary font-label-sm text-[9px] rounded uppercase font-bold tracking-wider">Best Offer</span>
+</td>
+<!-- Chedraui Selecto -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">$2,100</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">$3,000/L</div>
+</td>
+<!-- Walmart -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">$2,080</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">$2,971/L</div>
+</td>
+<!-- Liverpool -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-error">$2,490</div>
+<div class="font-label-sm text-label-sm text-error font-medium">$3,557/L</div>
+<span class="inline-block font-label-sm text-[9px] text-error font-bold mt-0.5">+34.6%</span>
+</td>
+<!-- Spread & Quota -->
+<td class="py-space-md px-space-md align-top text-right">
+<div class="font-label-sm text-label-sm font-bold text-primary">Save $640 MXN</div>
+<div class="font-label-sm text-label-sm text-secondary">25.7% Spread</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant mt-1">Quota: 0.70 L (2.9%)</div>
+</td>
+<!-- Actions -->
+<td class="py-space-md px-space-md align-top text-right">
+<div class="flex flex-col items-end gap-1">
+<button class="px-space-xs py-0.5 text-on-primary bg-primary hover:bg-primary-container font-label-sm text-label-sm rounded transition-colors w-full text-center" type="button">Stage to Cart</button>
+<button class="px-space-xs py-0.5 bg-surface-container text-on-surface hover:bg-surface-container-high font-label-sm text-label-sm rounded transition-colors w-full text-center" type="button">Head-to-Head</button>
+</div>
+</td>
+</tr>
+<!-- Row 8: Siete Leguas Blanco -->
+<tr class="hover:bg-surface-container-low transition-colors bg-surface-container-low/40">
+<td class="py-space-md px-space-md text-center align-top">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">#08</span>
+<div class="font-label-sm text-label-sm text-secondary mt-1">NOM 1120</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="font-headline-sm text-headline-sm text-on-surface leading-snug">Siete Leguas Blanco Clásico</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Fábrica La Vencedora • Atotonilco El Alto, Jalisco</div>
+<div class="flex items-center gap-space-xs mt-space-xs">
+<span class="px-1.5 py-0.5 bg-surface-container-high text-on-surface font-label-sm text-label-sm rounded uppercase font-semibold">Mule Tahona + Molino</span>
+<span class="px-1.5 py-0.5 bg-surface-container-high text-on-surface font-label-sm text-label-sm rounded uppercase font-semibold">Historical Benchmark</span>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top font-label-md text-label-md">
+<div class="font-semibold text-on-surface">38.0% ABV</div>
+<div class="text-on-surface-variant font-label-sm text-label-sm">750 ml Glass</div>
+<div class="text-secondary font-label-sm text-label-sm mt-1">Daily Pour Index</div>
+</td>
+<td class="py-space-md px-space-md align-top text-right bg-surface-container/40">
+<div class="font-label-lg text-label-lg font-bold text-primary">$866.67</div>
+<span class="inline-block mt-0.5 px-1.5 py-0.5 bg-primary-container text-on-primary font-label-sm text-label-sm rounded font-medium">Optimal Value</span>
+</td>
+<!-- La Europea -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">$690</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">$920/L</div>
+</td>
+<!-- Bodegas Alianza (Cheapest) -->
+<td class="py-space-md px-space-xs text-center align-top bg-secondary-container/30 rounded">
+<div class="font-label-md text-label-md font-bold text-primary">$650</div>
+<div class="font-label-sm text-label-sm text-secondary font-semibold">$866/L</div>
+<span class="inline-block mt-1 px-1 py-0.2 bg-primary text-on-primary font-label-sm text-[9px] rounded uppercase font-bold tracking-wider">Best Offer</span>
+</td>
+<!-- Costco -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">$670</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">$893/L</div>
+</td>
+<!-- Chedraui Selecto -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">$710</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">$946/L</div>
+</td>
+<!-- Walmart -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">$695</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">$926/L</div>
+</td>
+<!-- Liverpool -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-error">$820</div>
+<div class="font-label-sm text-label-sm text-error font-medium">$1,093/L</div>
+<span class="inline-block font-label-sm text-[9px] text-error font-bold mt-0.5">+26.1%</span>
+</td>
+<!-- Spread & Quota -->
+<td class="py-space-md px-space-md align-top text-right">
+<div class="font-label-sm text-label-sm font-bold text-primary">Save $170 MXN</div>
+<div class="font-label-sm text-label-sm text-secondary">20.7% Spread</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant mt-1">Quota: 0.75 L (3.1%)</div>
+</td>
+<!-- Actions -->
+<td class="py-space-md px-space-md align-top text-right">
+<div class="flex flex-col items-end gap-1">
+<button class="px-space-xs py-0.5 text-on-primary bg-primary hover:bg-primary-container font-label-sm text-label-sm rounded transition-colors w-full text-center" type="button">Stage to Cart</button>
+<button class="px-space-xs py-0.5 bg-surface-container text-on-surface hover:bg-surface-container-high font-label-sm text-label-sm rounded transition-colors w-full text-center" type="button">Head-to-Head</button>
+</div>
+</td>
+</tr>
+<!-- Row 9: Real Minero Pechuga -->
+<tr class="hover:bg-surface-container-low transition-colors bg-surface-container-lowest">
+<td class="py-space-md px-space-md text-center align-top">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">#09</span>
+<div class="font-label-sm text-label-sm text-secondary mt-1">NOM O158X</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="font-headline-sm text-headline-sm text-on-surface leading-snug">Real Minero Pechuga Ancestral</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Familia Ángeles Carreño • Santa Catarina Minas, Oaxaca</div>
+<div class="flex items-center gap-space-xs mt-space-xs">
+<span class="px-1.5 py-0.5 bg-surface-container-high text-on-surface font-label-sm text-label-sm rounded uppercase font-semibold">Clay Pot Distilled</span>
+<span class="px-1.5 py-0.5 bg-surface-container-high text-on-surface font-label-sm text-label-sm rounded uppercase font-semibold">Seasonal Fruits &amp; Poultry</span>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top font-label-md text-label-md">
+<div class="font-semibold text-on-surface">51.8% ABV</div>
+<div class="text-on-surface-variant font-label-sm text-label-sm">750 ml Glass</div>
+<div class="text-primary font-label-sm text-label-sm mt-1">Ceremonial Tier</div>
+</td>
+<td class="py-space-md px-space-md align-top text-right bg-surface-container/40">
+<div class="font-label-lg text-label-lg font-bold text-primary">$4,533.33</div>
+<span class="inline-block mt-0.5 px-1.5 py-0.5 bg-surface-container-highest text-on-surface font-label-sm text-label-sm rounded">High Cult Grade</span>
+</td>
+<!-- La Europea (Cheapest) -->
+<td class="py-space-md px-space-xs text-center align-top bg-secondary-container/30 rounded">
+<div class="font-label-md text-label-md font-bold text-primary">$3,400</div>
+<div class="font-label-sm text-label-sm text-secondary font-semibold">$4,533/L</div>
+<span class="inline-block mt-1 px-1 py-0.2 bg-primary text-on-primary font-label-sm text-[9px] rounded uppercase font-bold tracking-wider">Best Offer</span>
+</td>
+<!-- Bodegas Alianza -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">$3,580</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">$4,773/L</div>
+</td>
+<!-- Costco -->
+<td class="py-space-md px-space-xs text-center align-top text-outline-variant">
+<div class="font-label-sm text-label-sm font-semibold">N/R</div>
+<div class="font-label-sm text-label-sm">Unlisted</div>
+</td>
+<!-- Chedraui Selecto -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">$3,750</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">$5,000/L</div>
+</td>
+<!-- Walmart -->
+<td class="py-space-md px-space-xs text-center align-top text-outline-variant">
+<div class="font-label-sm text-label-sm font-semibold">N/R</div>
+<div class="font-label-sm text-label-sm">Unlisted</div>
+</td>
+<!-- Liverpool -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-error">$4,350</div>
+<div class="font-label-sm text-label-sm text-error font-medium">$5,800/L</div>
+<span class="inline-block font-label-sm text-[9px] text-error font-bold mt-0.5">+27.9%</span>
+</td>
+<!-- Spread & Quota -->
+<td class="py-space-md px-space-md align-top text-right">
+<div class="font-label-sm text-label-sm font-bold text-primary">Save $950 MXN</div>
+<div class="font-label-sm text-label-sm text-secondary">21.8% Spread</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant mt-1">Quota: 0.75 L (3.1%)</div>
+</td>
+<!-- Actions -->
+<td class="py-space-md px-space-md align-top text-right">
+<div class="flex flex-col items-end gap-1">
+<button class="px-space-xs py-0.5 text-on-primary bg-primary hover:bg-primary-container font-label-sm text-label-sm rounded transition-colors w-full text-center" type="button">Stage to Cart</button>
+<button class="px-space-xs py-0.5 bg-surface-container text-on-surface hover:bg-surface-container-high font-label-sm text-label-sm rounded transition-colors w-full text-center" type="button">Head-to-Head</button>
+</div>
+</td>
+</tr>
+<!-- Row 10: Viña Tondonia Reserva 2011 -->
+<tr class="hover:bg-surface-container-low transition-colors bg-surface-container-low/40">
+<td class="py-space-md px-space-md text-center align-top">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">#10</span>
+<div class="font-label-sm text-label-sm text-secondary mt-1">D.O. RIOJA</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="font-headline-sm text-headline-sm text-on-surface leading-snug">Viña Tondonia Reserva 2011</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">R. López de Heredia • Haro, Rioja Alta</div>
+<div class="flex items-center gap-space-xs mt-space-xs">
+<span class="px-1.5 py-0.5 bg-surface-container-high text-on-surface font-label-sm text-label-sm rounded uppercase font-semibold">6-yr Botti Aging</span>
+<span class="px-1.5 py-0.5 bg-surface-container-high text-on-surface font-label-sm text-label-sm rounded uppercase font-semibold">Traditional Bodega</span>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top font-label-md text-label-md">
+<div class="font-semibold text-on-surface">13.5% ABV</div>
+<div class="text-on-surface-variant font-label-sm text-label-sm">750 ml Bottle</div>
+<div class="text-secondary font-label-sm text-label-sm mt-1">Cellar Essential</div>
+</td>
+<td class="py-space-md px-space-md align-top text-right bg-surface-container/40">
+<div class="font-label-lg text-label-lg font-bold text-primary">$1,720.00</div>
+<span class="inline-block mt-0.5 px-1.5 py-0.5 bg-primary-container text-on-primary font-label-sm text-label-sm rounded font-medium">Optimal Value</span>
+</td>
+<!-- La Europea -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">$1,350</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">$1,800/L</div>
+</td>
+<!-- Bodegas Alianza (Cheapest) -->
+<td class="py-space-md px-space-xs text-center align-top bg-secondary-container/30 rounded">
+<div class="font-label-md text-label-md font-bold text-primary">$1,290</div>
+<div class="font-label-sm text-label-sm text-secondary font-semibold">$1,720/L</div>
+<span class="inline-block mt-1 px-1 py-0.2 bg-primary text-on-primary font-label-sm text-[9px] rounded uppercase font-bold tracking-wider">Best Offer</span>
+</td>
+<!-- Costco -->
+<td class="py-space-md px-space-xs text-center align-top text-outline-variant">
+<div class="font-label-sm text-label-sm font-semibold">N/R</div>
+<div class="font-label-sm text-label-sm">Selective Drops</div>
+</td>
+<!-- Chedraui Selecto -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">$1,420</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">$1,893/L</div>
+</td>
+<!-- Walmart -->
+<td class="py-space-md px-space-xs text-center align-top text-outline-variant">
+<div class="font-label-sm text-label-sm font-semibold">N/R</div>
+<div class="font-label-sm text-label-sm">Unlisted</div>
+</td>
+<!-- Liverpool -->
+<td class="py-space-md px-space-xs text-center align-top">
+<div class="font-label-md text-label-md font-semibold text-error">$1,680</div>
+<div class="font-label-sm text-label-sm text-error font-medium">$2,240/L</div>
+<span class="inline-block font-label-sm text-[9px] text-error font-bold mt-0.5">+30.2%</span>
+</td>
+<!-- Spread & Quota -->
+<td class="py-space-md px-space-md align-top text-right">
+<div class="font-label-sm text-label-sm font-bold text-primary">Save $390 MXN</div>
+<div class="font-label-sm text-label-sm text-secondary">23.2% Spread</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant mt-1">Quota: 0.75 L (3.1%)</div>
+</td>
+<!-- Actions -->
+<td class="py-space-md px-space-md align-top text-right">
+<div class="flex flex-col items-end gap-1">
+<button class="px-space-xs py-0.5 text-on-primary bg-primary hover:bg-primary-container font-label-sm text-label-sm rounded transition-colors w-full text-center" type="button">Stage to Cart</button>
+<button class="px-space-xs py-0.5 bg-surface-container text-on-surface hover:bg-surface-container-high font-label-sm text-label-sm rounded transition-colors w-full text-center" type="button">Head-to-Head</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Ledger Pagination & Verification Stamp Footer Strip -->
+<div class="flex flex-col sm:flex-row items-center justify-between gap-space-md pt-space-xs pb-space-lg text-on-surface-variant font-label-sm text-label-sm">
+<div class="flex items-center gap-space-md">
+<span class="font-semibold text-on-surface">Audit Record 1 - 10 of 412 Verified</span>
+<span>•</span>
+<span>Cross-audited against SAT MARBETES Database</span>
+<span>•</span>
+<span class="text-primary font-semibold cursor-pointer hover:underline">Download Comprehensive Hash (SHA-256)</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="px-space-md py-1 bg-surface-container-high text-on-surface rounded disabled:opacity-50 font-label-sm text-label-sm" disabled="" type="button">Previous Page</button>
+<span class="px-space-sm py-1 font-bold text-primary">Page 1 of 42</span>
+<button class="px-space-md py-1 bg-surface-container-high hover:bg-surface-container-highest text-on-surface rounded font-label-sm text-label-sm" type="button">Next Page</button>
+</div>
+</div>
+</div>
+</div></main><footer class="w-full bg-surface-container-low mt-space-xl"><div class="w-full px-margin-desktop py-space-xl"><div class="grid grid-cols-1 md:grid-cols-4 gap-gutter-desktop mb-space-lg"><div class="col-span-1 md:col-span-2 flex flex-col gap-space-sm"><div class="flex items-center gap-space-sm"><span class="font-headline-md text-headline-md text-primary">Cantina Familiar</span><span class="font-label-sm text-label-sm px-space-xs py-0.5 bg-surface-container-highest text-on-surface rounded">EST. 2024 • MÉXICO</span></div><p class="font-body-sm text-body-sm text-on-surface-variant max-w-xl">A standardized registry for agave distillates, highland malt spirits, and cellar-grade vintages. We audit shelf prices, shelf availability, volume-adjusted value indices, and batch authenticity across national licensed purveyors every morning at 06:00 CST.</p><div class="flex items-center gap-space-md text-on-surface font-label-sm text-label-sm pt-space-xs"><span class="text-primary font-semibold">Audited Chains:</span><span>La Europea</span><span>•</span><span>Bodegas Alianza</span><span>•</span><span>Costco Wholesale</span><span>•</span><span>Walmart Supercenter</span><span>•</span><span>Chedraui Selecto</span><span>•</span><span>Liverpool Gourmet</span></div></div><div class="flex flex-col gap-space-xs"><span class="font-label-md text-label-md font-semibold text-on-surface uppercase tracking-wider">Auditing Standards</span><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface" data-path="methodology" href="#">$/L Metric Calculation</a><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface" data-path="methodology" href="#">NOM Agave Verification</a><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface" data-path="methodology" href="#">Retail Inventory Frequency</a><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface" data-path="methodology" href="#">Allocation Quota Thresholds</a></div><div class="flex flex-col gap-space-xs"><span class="font-label-md text-label-md font-semibold text-on-surface uppercase tracking-wider">Legal &amp; Provenance</span><span class="font-body-sm text-body-sm text-on-surface-variant">Data reflects audited shelf &amp; online pricing as of today at 06:00 CST. Independent audit not sponsored by retailers.</span><span class="font-label-sm text-label-sm text-secondary font-medium pt-space-xs">NOM CRT Registered • Mexican Spirits Index ID: CF-MX-8492</span></div></div><div class="flex flex-col sm:flex-row items-center justify-between pt-space-md bg-surface-container-high/40 px-space-md rounded-lg text-on-surface-variant font-label-sm text-label-sm"><p>© 2025 Cantina Familiar Gazette. Dedicated to transparent cellaring, responsible collection, and batch integrity.</p><div class="flex items-center gap-space-md pt-space-xs sm:pt-0"><span class="hover:text-on-surface cursor-pointer">Terms of Audit</span><span>•</span><span class="hover:text-on-surface cursor-pointer">Privacy Registry</span><span>•</span><span class="hover:text-on-surface cursor-pointer">API Feed</span></div></div></div></footer></body></html>

@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&amp;family=Source+Sans+3:ital,wght@0,400;0,600;1,400&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "inverse-surface": "#372f22",
+          "on-error-container": "#93000a",
+          "on-surface": "#211b0f",
+          "error-container": "#ffdad6",
+          "inverse-primary": "#ffb68f",
+          "on-secondary-fixed-variant": "#5d4121",
+          "on-secondary-container": "#7a5b38",
+          "on-secondary-fixed": "#2b1700",
+          "on-secondary": "#ffffff",
+          "on-tertiary": "#ffffff",
+          "surface-bright": "#fff8f3",
+          "on-primary-fixed": "#331200",
+          "outline-variant": "#d7c2b9",
+          "tertiary": "#57463d",
+          "on-primary-container": "#ffd4bf",
+          "error": "#ba1a1a",
+          "secondary": "#775836",
+          "outline": "#85746b",
+          "surface-container-highest": "#efe1cd",
+          "secondary-fixed-dim": "#e8bf95",
+          "on-tertiary-container": "#f1d9cc",
+          "surface-dim": "#e6d8c5",
+          "on-primary-fixed-variant": "#6c391a",
+          "tertiary-fixed-dim": "#d9c2b5",
+          "surface-container-high": "#f4e6d3",
+          "on-background": "#211b0f",
+          "primary-container": "#8c5332",
+          "inverse-on-surface": "#fdefdb",
+          "secondary-fixed": "#ffddba",
+          "surface-variant": "#efe1cd",
+          "background": "#fff8f3",
+          "on-surface-variant": "#52443c",
+          "primary": "#703c1d",
+          "on-tertiary-fixed-variant": "#54433a",
+          "primary-fixed-dim": "#ffb68f",
+          "tertiary-fixed": "#f6ded1",
+          "surface-tint": "#89502f",
+          "on-primary": "#ffffff",
+          "surface-container-lowest": "#ffffff",
+          "secondary-container": "#ffd6ab",
+          "on-error": "#ffffff",
+          "on-tertiary-fixed": "#251911",
+          "surface": "#fff8f3",
+          "surface-container": "#faecd8",
+          "tertiary-container": "#705e54",
+          "surface-container-low": "#fff2e1",
+          "primary-fixed": "#ffdbca"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "margin-desktop": "3.5rem",
+          "space-xl": "2.5rem",
+          "margin": "1rem",
+          "gutter-desktop": "2rem",
+          "space-lg": "1.5rem",
+          "margin-tablet": "2rem",
+          "space-sm": "0.5rem",
+          "gutter": "1.25rem",
+          "space-xs": "0.25rem",
+          "space-md": "1rem"
+        },
+        "fontFamily": {
+          "body-lg": ["\"Source Sans 3\""],
+          "label-md": ["JetBrains Mono"],
+          "body-sm": ["\"Source Sans 3\""],
+          "body-md": ["\"Source Sans 3\""],
+          "headline-sm": ["Playfair Display"],
+          "headline-lg": ["Playfair Display"],
+          "label-sm": ["JetBrains Mono"],
+          "display-lg-mobile": ["Playfair Display"],
+          "display-lg": ["Playfair Display"],
+          "headline-md": ["Playfair Display"],
+          "label-lg": ["JetBrains Mono"]
+        },
+        "fontSize": {
+          "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+          "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500"}],
+          "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+          "body-md": ["15px", {"lineHeight": "22px", "fontWeight": "400"}],
+          "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+          "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+          "label-sm": ["10px", {"lineHeight": "14px", "letterSpacing": "0.08em", "fontWeight": "600"}],
+          "display-lg-mobile": ["34px", {"lineHeight": "42px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+          "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "500"}],
+          "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}]
+        }
+      }
+    }
+  };</script></head><body class="bg-background font-body-md text-body-md text-on-surface antialiased"><header class="fixed top-0 w-full z-50 bg-surface/95 backdrop-blur-md shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-28 w-full px-margin-desktop flex flex-col justify-between py-space-xs"><div class="flex items-center justify-between border-b-0 py-space-xs"><div class="flex items-center gap-space-md"><img alt="Cantina Familiar Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1Wvp_X1itdZgJQPT57-xo5l8d4EoCYbT4MWNMnuogikvVyklf5jSY_opkpkjm_aaClUi9kTtIYka7re9zlIffaAO3j2YXWnYdiiQGjodB9Xcg0JfGx0qw2D15vNZTUW7ZjApYyxLuBiiZHNP_2UBXbElmpgmhCJYYX_PJEN_w4cJG_Apqp1NaH3EczyBztAoGeqH5LVG6xmq75vhPMjzeqybb3QXyCCDiqqs_60VIuMRlHOtvDMFdh5PrAv"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-primary tracking-tight">Cantina Familiar</span><span class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant">Audited Spirits &amp; Wine Register</span></div><div class="hidden xl:flex items-center gap-space-xs bg-surface-container px-space-sm py-0.5 rounded-lg text-on-surface"><span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span><span class="font-label-sm text-label-sm text-on-surface-variant font-semibold">Audited Daily • 6 Chains Verified • 1,280 SKUs</span></div></div><div class="flex items-center gap-space-lg"><div class="hidden lg:flex items-center gap-space-sm bg-surface-container-low px-space-md py-space-xs rounded-lg"><div class="flex flex-col text-right"><span class="font-label-sm text-label-sm text-on-surface-variant">Allocation Quota: 18.5L / 24.0L (77%)</span><span class="font-label-sm text-label-sm text-secondary font-semibold">Resale Warning: Compliant</span></div><div class="w-16 h-1.5 bg-surface-container-highest rounded-full overflow-hidden"><div class="h-full bg-primary-container w-[77%]"></div></div></div><div class="flex items-center gap-space-sm"><div class="bg-surface-container px-space-sm py-1 rounded-lg text-on-surface flex items-center gap-space-xs"><span class="font-label-sm text-label-sm font-semibold text-primary">MXN</span><span class="font-label-sm text-label-sm text-outline-variant">|</span><span class="font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface cursor-pointer">USD</span><span class="font-label-sm text-label-sm text-outline-variant">|</span><span class="font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface cursor-pointer">EUR</span></div><div class="hidden sm:flex items-center gap-1 bg-surface-container-high px-space-sm py-1 rounded-lg"><span class="font-label-sm text-label-sm text-on-surface-variant">Chain Filter:</span><span class="font-label-sm text-label-sm font-bold text-on-surface">All 6 Chains</span></div><div class="flex items-center gap-space-xs pl-space-xs"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="hidden md:flex flex-col"><span class="font-label-sm text-label-sm text-on-surface font-semibold leading-tight">Cellar Master</span><span class="font-label-sm text-label-sm text-secondary leading-tight">Tier III Verified</span></div></div></div></div></div><div class="flex items-center justify-between pb-space-xs"><nav class="flex items-center gap-space-xs" data-active-classes="bg-primary-container text-on-primary font-semibold rounded-lg"><a class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-label-md text-label-md" data-path="catalog-and-price-per-liter-rankings" href="#">Catalog &amp; $/L Rankings</a><a aria-current="page" class="px-space-md py-1.5 transition-colors bg-primary-container text-on-primary font-semibold rounded-lg" data-path="head-to-head-duel" href="#">Head-to-Head Duel</a><a class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-label-md text-label-md" data-path="multi-retailer-cart-builder" href="#">Multi-Retailer Cart Builder</a><a class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-label-md text-label-md" data-path="barrel-and-ageing-guide" href="#">Barrel &amp; Ageing Guide</a></nav><div class="hidden md:flex items-center gap-space-sm text-on-surface-variant font-label-sm text-label-sm"><span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#3d7042]"></span> Bodegas Alianza</span><span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#3d7042]"></span> La Europea</span><span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#3d7042]"></span> Costco</span><span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#3d7042]"></span> Liverpool</span><span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#3d7042]"></span> Selecto</span><span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#3d7042]"></span> Walmart</span></div></div></div></header><main class="w-full pt-28 bg-surface min-h-[calc(100vh-14rem)]"><div class="flex flex-col w-full">
+<!-- Top Archival Protocol Ribbon -->
+<section class="w-full bg-surface-container px-margin-desktop py-space-sm border-b border-surface-container-highest">
+<div class="flex flex-wrap items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-sm">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-primary font-bold">Ledger Protocol Ref:</span>
+<span class="font-label-sm text-label-sm bg-surface-container-high px-space-xs py-0.5 rounded text-on-surface">CF-DUEL-8942-AGV</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">• Audited 06:00 CST • Exchange Index: 1.000 MXN</span>
+</div>
+<div class="flex items-center gap-space-md">
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-sm text-secondary">verified_user</span> Dual-Batch Laboratory Cross-Checked
+        </span>
+<div class="hidden md:flex items-center gap-space-xs bg-surface-container-lowest px-space-sm py-0.5 rounded shadow-sm">
+<span class="font-label-sm text-label-sm text-tertiary">Dispersion Index:</span>
+<span class="font-label-sm text-label-sm font-bold text-primary">High (+26.8% Variance Across Purveyors)</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Duel Setup Cockpit Header -->
+<section class="w-full px-margin-desktop pt-space-xl pb-space-lg bg-surface">
+<div class="flex flex-col gap-space-md max-w-6xl">
+<div class="flex items-center gap-space-sm">
+<span class="font-label-sm text-label-sm uppercase tracking-widest bg-primary-container text-on-primary px-space-sm py-1 rounded">Module II</span>
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-bold">Forensic Head-to-Head Comparative Valuation</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-primary tracking-tight">The Master Duel: Forensic Comparative Valuation</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-4xl">
+        Simultaneous side-by-side audit of standardized $/liter, chemical extraction methodology, NOM certifications, and price dispersion across 6 verified chains. Data compiled through independent store audits and certified laboratory assays.
+      </p>
+</div>
+<!-- Quick Archival Presets Strip -->
+<div class="mt-space-lg pt-space-md border-t border-surface-container-high">
+<div class="flex flex-wrap items-center gap-space-sm">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant tracking-wider font-semibold mr-space-xs">Standardized Flight Presets:</span>
+<button class="px-space-md py-1.5 rounded bg-primary text-on-primary font-label-sm text-label-sm font-semibold hover:bg-inverse-surface transition-colors shadow-sm flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-sm">bolt</span> High-Proof Blancos Battle
+        </button>
+<button class="px-space-md py-1.5 rounded bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-sm text-label-sm transition-colors flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-sm">local_fire_department</span> Traditional Mezcal Pechuga Faceoff
+        </button>
+<button class="px-space-md py-1.5 rounded bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-sm text-label-sm transition-colors flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-sm">grain</span> Islay Peat vs Highland Oak
+        </button>
+<button class="px-space-md py-1.5 rounded bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-sm text-label-sm transition-colors flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-sm">wine_bar</span> Ribera del Duero vs Rioja Alta
+        </button>
+</div>
+</div>
+</section>
+<!-- Dual Interactive Selection Bays -->
+<section class="w-full px-margin-desktop py-space-md bg-surface">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-gutter-desktop items-stretch relative">
+<!-- Contender A Bay -->
+<div class="relative bg-surface-container-low rounded-xl p-space-lg shadow-sm flex flex-col justify-between">
+<div class="absolute -top-3 left-6 bg-surface-container-highest text-on-surface font-label-sm text-label-sm px-space-sm py-0.5 rounded border border-surface-variant uppercase tracking-wider font-bold">
+          Contender Alpha [Reference 1123]
+        </div>
+<div>
+<div class="flex items-start justify-between gap-space-sm mb-space-md">
+<div>
+<span class="font-label-sm text-label-sm text-secondary font-semibold uppercase tracking-widest">Tequila 100% De Agave • Blanco</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface mt-1">Cascahuín Tahona Blanco</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">NOM 1123 • Destilería Cascahuín • El Arenal, Jalisco (Valle)</p>
+</div>
+<div class="px-space-sm py-1 bg-surface-container rounded text-right">
+<span class="font-label-sm text-label-sm text-on-surface-variant block uppercase">Batch</span>
+<span class="font-label-md text-label-md font-bold text-primary">T-04-2024</span>
+</div>
+</div>
+<!-- Bottle Visual & Metric Capsule -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-space-md bg-surface-container-lowest p-space-md rounded-lg shadow-sm mb-space-md">
+<div class="md:col-span-4 relative flex items-center justify-center p-2 rounded bg-surface-container-low">
+<img class="w-full h-48 object-contain" data-alt="An artisanal clear glass bottle of Cascahuin Tahona Blanco artisanal tequila on a warm stone surface with dried agave leaves, warm candlelight, deep amber tones, studio archival photography with a natural tactile warm almond and linen background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZFSk2_FrvnlL2Nf1-YDiQ7SizaG3Tl2MVzfSa8KTtdfJCwp65DIzmja72DmkLbspb_1VMi70heiUhek_A_BAjO2MwWjFrnb7PwZX5KMBz2k-BGxrQGAbVad6IBWUl_twZ2vFl0RcYh492Sv3exTKijmHDbXir1u5MHJ8VCiRhpv1pxHL2Bi-ocOynK77DgKR20ORiI7L3Zr1ymGmnYf3QtLREq_kanPrKy5VzR8GRnFU-Nj9HJAw7rA"/>
+<span class="absolute top-2 left-2 px-1.5 py-0.5 bg-primary text-on-primary font-label-sm text-label-sm rounded uppercase">42.0% ABV</span>
+</div>
+<div class="md:col-span-8 flex flex-col justify-between">
+<div>
+<div class="flex items-baseline justify-between mb-1">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant">Calculated $/Liter:</span>
+<span class="font-label-lg text-label-lg font-bold text-primary">$1,320.00 MXN / L</span>
+</div>
+<div class="flex items-baseline justify-between mb-space-sm">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant">Lowest Unit Price:</span>
+<span class="font-headline-sm text-headline-sm font-semibold text-on-surface">$990.00 MXN <span class="text-body-sm font-normal text-on-surface-variant">(750ml)</span></span>
+</div>
+<div class="bg-surface-container-high/60 p-space-xs rounded flex items-center justify-between font-label-sm text-label-sm mb-2">
+<span class="text-on-surface-variant">Best Purchase Chain:</span>
+<span class="font-semibold text-primary flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-primary"></span> Bodegas Alianza
+                  </span>
+</div>
+</div>
+<!-- Quick Chemical Specs badges -->
+<div class="flex flex-wrap gap-1">
+<span class="px-2 py-0.5 bg-surface-container rounded font-label-sm text-label-sm text-on-surface">Tahona Crushed</span>
+<span class="px-2 py-0.5 bg-surface-container rounded font-label-sm text-label-sm text-on-surface">Masonry Hornos</span>
+<span class="px-2 py-0.5 bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-semibold">100% Additive Free Verified</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-xs">
+<button class="px-space-md py-1.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm transition-colors flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-sm">swap_horiz</span> Change Contender A
+          </button>
+<span class="font-label-sm text-label-sm text-on-surface-variant italic">Cellar Ledger ID: SKU-1123-09</span>
+</div>
+</div>
+<!-- Duel Versus Seal Divider for large screens -->
+<div class="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex-col items-center pointer-events-none">
+<div class="w-12 h-12 rounded-full bg-inverse-surface text-inverse-on-surface flex items-center justify-center font-label-md text-label-md font-bold shadow-xl border-2 border-surface-container">
+          VS
+        </div>
+</div>
+<!-- Contender B Bay -->
+<div class="relative bg-surface-container-low rounded-xl p-space-lg shadow-sm flex flex-col justify-between">
+<div class="absolute -top-3 left-6 bg-surface-container-highest text-on-surface font-label-sm text-label-sm px-space-sm py-0.5 rounded border border-surface-variant uppercase tracking-wider font-bold">
+          Contender Beta [Reference 1493]
+        </div>
+<div>
+<div class="flex items-start justify-between gap-space-sm mb-space-md">
+<div>
+<span class="font-label-sm text-label-sm text-secondary font-semibold uppercase tracking-widest">Tequila 100% De Agave • Blanco</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface mt-1">Fortaleza Blanco</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">NOM 1493 • Destilería La Fortaleza • Tequila, Jalisco (Los Valles)</p>
+</div>
+<div class="px-space-sm py-1 bg-surface-container rounded text-right">
+<span class="font-label-sm text-label-sm text-on-surface-variant block uppercase">Batch</span>
+<span class="font-label-md text-label-md font-bold text-primary">Lot 152-B</span>
+</div>
+</div>
+<!-- Bottle Visual & Metric Capsule -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-space-md bg-surface-container-lowest p-space-md rounded-lg shadow-sm mb-space-md">
+<div class="md:col-span-4 relative flex items-center justify-center p-2 rounded bg-surface-container-low">
+<img class="w-full h-48 object-contain" data-alt="An authentic blown glass hand-labeled bottle of Fortaleza Blanco with an agave piña stopper, standing majestically on an aged oak tasting bench, delicate parchment light, rich raw sienna reflections, archival editorial product capture." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdK9QLEBw9KYPp1wL947863LVtqRl-OkW3syrAJFkC-E78PqWO00FHv3sg1jiLmbkrH8RhHZO2YjmZVh2CeAgNUup-lus5B68keVUFuYzkhcXzbEimIr1Fyh41EN88weyyzm-hhtj7Q-PLJOCrGERtIdQ_Q5WEC_Z-JWiSJAJb_IsntSmMul7OyuCx0KypfmLesgz7Wtoy89TgV5cqcnYRZVWOKD2_58hyh6Djx9iI1vw8VTmKCJWNvA"/>
+<span class="absolute top-2 left-2 px-1.5 py-0.5 bg-surface-container-highest text-on-surface font-label-sm text-label-sm rounded uppercase">40.0% ABV</span>
+</div>
+<div class="md:col-span-8 flex flex-col justify-between">
+<div>
+<div class="flex items-baseline justify-between mb-1">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant">Calculated $/Liter:</span>
+<span class="font-label-lg text-label-lg font-bold text-primary">$1,586.66 MXN / L</span>
+</div>
+<div class="flex items-baseline justify-between mb-space-sm">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant">Lowest Unit Price:</span>
+<span class="font-headline-sm text-headline-sm font-semibold text-on-surface">$1,190.00 MXN <span class="text-body-sm font-normal text-on-surface-variant">(750ml)</span></span>
+</div>
+<div class="bg-surface-container-high/60 p-space-xs rounded flex items-center justify-between font-label-sm text-label-sm mb-2">
+<span class="text-on-surface-variant">Best Purchase Chain:</span>
+<span class="font-semibold text-primary flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-primary"></span> Costco Wholesale
+                  </span>
+</div>
+</div>
+<!-- Quick Chemical Specs badges -->
+<div class="flex flex-wrap gap-1">
+<span class="px-2 py-0.5 bg-surface-container rounded font-label-sm text-label-sm text-on-surface">Volcanic Tahona</span>
+<span class="px-2 py-0.5 bg-surface-container rounded font-label-sm text-label-sm text-on-surface">Small Brick Oven</span>
+<span class="px-2 py-0.5 bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-semibold">100% Additive Free Verified</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-xs">
+<button class="px-space-md py-1.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm transition-colors flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-sm">swap_horiz</span> Change Contender B
+          </button>
+<span class="font-label-sm text-label-sm text-on-surface-variant italic">Cellar Ledger ID: SKU-1493-01</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Core Forensic Price Verdict Banner -->
+<section class="w-full px-margin-desktop py-space-md">
+<div class="bg-inverse-surface text-inverse-on-surface rounded-xl p-space-lg shadow-md flex flex-col lg:flex-row items-center justify-between gap-space-lg">
+<div class="flex items-start gap-space-md">
+<div class="w-12 h-12 rounded-lg bg-primary-container text-on-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[28px]">gavel</span>
+</div>
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed">Forensic Liquid Efficiency Verdict</span>
+<h3 class="font-headline-md text-headline-md text-inverse-on-surface mt-0.5">
+            Cascahuín Tahona Blanco yields <span class="text-inverse-primary underline decoration-primary font-bold">+20.1% more active spirit</span> per peso expended.
+          </h3>
+<p class="font-body-sm text-body-sm text-surface-variant max-w-2xl mt-1">
+            Standardized delta: -$266.66 MXN per audited liter. When evaluated at 42% ABV vs 40% ABV, the pure ethanol value index favors Cascahuín by an additional +5.0% proof-corrected dividend.
+          </p>
+</div>
+</div>
+<div class="flex flex-row lg:flex-col items-end gap-space-xs shrink-0 bg-surface-container-highest/10 p-space-md rounded-lg">
+<span class="font-label-sm text-label-sm text-surface-variant uppercase tracking-wider">Yield Optimization Ratio</span>
+<span class="font-label-lg text-label-lg font-bold text-inverse-primary">1.201 : 1.000</span>
+<span class="font-label-sm text-label-sm text-surface-dim font-medium">Auditor Consensus: Unanimous Buy</span>
+</div>
+</div>
+</section>
+<!-- Side-by-Side 6-Retailer Price Duel Board -->
+<section class="w-full px-margin-desktop py-space-lg">
+<div class="flex flex-col gap-space-md">
+<div class="flex flex-col sm:flex-row sm:items-end justify-between gap-space-sm">
+<div>
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-widest font-bold">Six Purveyor Cross-Verification</span>
+<h2 class="font-headline-lg text-headline-lg text-primary">6-Retailer Live Dispersion Matrix</h2>
+</div>
+<div class="flex items-center gap-space-sm font-label-sm text-label-sm text-on-surface-variant">
+<span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#3d7042]"></span> Verified In-Stock</span>
+<span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-error"></span> Stock Depleted</span>
+<span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-secondary"></span> Allocation Limited</span>
+</div>
+</div>
+<!-- Comparative Ledger Table -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-high text-on-surface font-label-sm text-label-sm uppercase tracking-wider">
+<th class="py-space-md px-space-lg w-1/4">Audited Purveyor</th>
+<th class="py-space-md px-space-md w-1/4">Contender A: Cascahuín (750ml)</th>
+<th class="py-space-md px-space-md w-1/4">Contender B: Fortaleza (750ml)</th>
+<th class="py-space-md px-space-lg w-1/4 text-right">Instant Duel Spread</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-high font-body-sm text-body-sm text-on-surface">
+<!-- Row 1: Bodegas Alianza -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex items-center gap-space-sm">
+<span class="w-2 h-2 rounded-full bg-[#3d7042]"></span>
+<div>
+<span class="font-label-md text-label-md font-semibold text-on-surface block">Bodegas Alianza</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Central Warehouse Stock (312 units)</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md bg-secondary-container/20">
+<div class="flex items-baseline gap-space-sm">
+<span class="font-label-md text-label-md font-bold text-primary">$990.00 MXN</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.2 bg-primary text-on-primary rounded font-bold">BEST A</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">$1,320.00 / L</span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-label-md text-label-md font-medium text-on-surface">$1,350.00 MXN</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant block">$1,800.00 / L</span>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<span class="font-label-md text-label-md font-bold text-primary">-$360.00 MXN</span>
+<span class="font-label-sm text-label-sm text-secondary block font-semibold">Cascahuín saves 26.6%</span>
+</td>
+</tr>
+<!-- Row 2: Costco Wholesale -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex items-center gap-space-sm">
+<span class="w-2 h-2 rounded-full bg-[#3d7042]"></span>
+<div>
+<span class="font-label-md text-label-md font-semibold text-on-surface block">Costco Wholesale</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Member Allocation Portal</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-label-md text-label-md font-medium text-on-surface">$1,049.00 MXN</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant block">$1,398.66 / L</span>
+</td>
+<td class="py-space-md px-space-md bg-secondary-container/20">
+<div class="flex items-baseline gap-space-sm">
+<span class="font-label-md text-label-md font-bold text-primary">$1,190.00 MXN</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.2 bg-primary-container text-on-primary rounded font-bold">BEST B</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block">$1,586.66 / L</span>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<span class="font-label-md text-label-md font-bold text-primary">-$141.00 MXN</span>
+<span class="font-label-sm text-label-sm text-secondary block font-semibold">Cascahuín saves 11.8%</span>
+</td>
+</tr>
+<!-- Row 3: La Europea -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex items-center gap-space-sm">
+<span class="w-2 h-2 rounded-full bg-[#3d7042]"></span>
+<div>
+<span class="font-label-md text-label-md font-semibold text-on-surface block">La Europea</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">National Boutiques</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-label-md text-label-md font-medium text-on-surface">$1,085.00 MXN</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant block">$1,446.66 / L</span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-label-md text-label-md font-medium text-on-surface">$1,420.00 MXN</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant block">$1,893.33 / L</span>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<span class="font-label-md text-label-md font-bold text-primary">-$335.00 MXN</span>
+<span class="font-label-sm text-label-sm text-secondary block font-semibold">Cascahuín saves 23.5%</span>
+</td>
+</tr>
+<!-- Row 4: Liverpool Gourmet -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex items-center gap-space-sm">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<div>
+<span class="font-label-md text-label-md font-semibold text-on-surface block">Liverpool Gourmet</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Experiencia Gourmet Cellar</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-label-md text-label-md font-medium text-on-surface">$1,199.00 MXN</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant block">$1,598.66 / L</span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-label-md text-label-md font-medium text-on-surface">$1,650.00 MXN</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant block">$2,200.00 / L</span>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<span class="font-label-md text-label-md font-bold text-primary">-$451.00 MXN</span>
+<span class="font-label-sm text-label-sm text-secondary block font-semibold">Cascahuín saves 27.3%</span>
+</td>
+</tr>
+<!-- Row 5: Chedraui Selecto -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex items-center gap-space-sm">
+<span class="w-2 h-2 rounded-full bg-[#3d7042]"></span>
+<div>
+<span class="font-label-md text-label-md font-semibold text-on-surface block">Chedraui Selecto</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Selecto Spirits Vault</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-label-md text-label-md font-medium text-on-surface">$1,120.00 MXN</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant block">$1,493.33 / L</span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-label-md text-label-md font-medium text-on-surface">$1,490.00 MXN</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant block">$1,986.66 / L</span>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<span class="font-label-md text-label-md font-bold text-primary">-$370.00 MXN</span>
+<span class="font-label-sm text-label-sm text-secondary block font-semibold">Cascahuín saves 24.8%</span>
+</td>
+</tr>
+<!-- Row 6: Walmart Supercenter -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex items-center gap-space-sm">
+<span class="w-2 h-2 rounded-full bg-error"></span>
+<div>
+<span class="font-label-md text-label-md font-semibold text-on-surface block">Walmart Supercenter</span>
+<span class="font-label-sm text-label-sm text-error">Limited Regional Assortment</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-label-md text-label-md font-medium text-error">Allocation Out of Stock</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Restock: 48h</span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-label-md text-label-md font-medium text-error">Allocation Out of Stock</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Restock: Unavailable</span>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<span class="font-label-md text-label-md text-on-surface-variant">—</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Not comparable</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-space-lg py-space-sm bg-surface-container-high/40 flex flex-wrap items-center justify-between font-label-sm text-label-sm text-on-surface-variant">
+<span>Purveyor price telemetry audited automatically via verified shelf tags &amp; merchant direct EDI feeds.</span>
+<span class="font-semibold text-primary">Regional Jurisdiction: CDMX, Jalisco &amp; Nuevo León</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Forensic Production Assay Matrix -->
+<section class="w-full px-margin-desktop py-space-lg">
+<div class="flex flex-col gap-space-md">
+<div>
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-widest font-bold">Physical &amp; Chemical Assay</span>
+<h2 class="font-headline-lg text-headline-lg text-primary">Forensic Technical Specification Matrix</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Direct comparison of industrial extraction mechanics, fermentation vessels, and chemical certification.</p>
+</div>
+<div class="bg-surface-container-low rounded-xl p-space-lg shadow-sm">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter-desktop border-b border-surface-container-highest pb-space-md mb-space-md">
+<div class="font-label-md text-label-md font-bold uppercase text-on-surface-variant tracking-wider">Assay Metric</div>
+<div class="font-label-md text-label-md font-bold uppercase text-primary tracking-wider">Cascahuín Tahona Blanco</div>
+<div class="font-label-md text-label-md font-bold uppercase text-on-surface tracking-wider">Fortaleza Blanco</div>
+</div>
+<!-- Metric 1: Agave Sourcing -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter-desktop py-space-sm border-b border-surface-container-high">
+<div class="flex items-center gap-space-xs font-label-sm text-label-sm font-semibold uppercase text-on-surface">
+<span class="material-symbols-outlined text-sm text-primary">spa</span> Agave Variety &amp; Terroir
+          </div>
+<div class="font-body-sm text-body-sm text-on-surface">
+            100% Blue Weber (Tequilana), 7-8 yr estate agaves from Lowland valleys (El Arenal, 1,450m elevation).
+          </div>
+<div class="font-body-sm text-body-sm text-on-surface">
+            100% Blue Weber (Tequilana), 7-9 yr single-estate hillside agaves (Tequila Valley, 1,200m elevation).
+          </div>
+</div>
+<!-- Metric 2: Cooking & Extraction -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter-desktop py-space-sm border-b border-surface-container-high">
+<div class="flex items-center gap-space-xs font-label-sm text-label-sm font-semibold uppercase text-on-surface">
+<span class="material-symbols-outlined text-sm text-primary">outdoor_grill</span> Cooking &amp; Extraction
+          </div>
+<div class="font-body-sm text-body-sm text-on-surface">
+            Traditional masonry stone ovens (72 hrs slow-steamed). 100% Tahona stone mill powered by tractor.
+          </div>
+<div class="font-body-sm text-body-sm text-on-surface">
+            Small brick ovens (36 hrs cooking, 24 hrs resting). Volcanic stone Tahona pulled by electric motor.
+          </div>
+</div>
+<!-- Metric 3: Fermentation -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter-desktop py-space-sm border-b border-surface-container-high">
+<div class="flex items-center gap-space-xs font-label-sm text-label-sm font-semibold uppercase text-on-surface">
+<span class="material-symbols-outlined text-sm text-primary">bubble_chart</span> Fermentation Kinetics
+          </div>
+<div class="font-body-sm text-body-sm text-on-surface">
+            Subterranean cement tanks with agave fiber (bagasse) included. Wild open-air ambient yeast strains.
+          </div>
+<div class="font-body-sm text-body-sm text-on-surface">
+            Small open-top wood vats (tinajas de roble). Proprietary ambient airborne yeast from historical distillery estate.
+          </div>
+</div>
+<!-- Metric 4: Distillation -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter-desktop py-space-sm border-b border-surface-container-high">
+<div class="flex items-center gap-space-xs font-label-sm text-label-sm font-semibold uppercase text-on-surface">
+<span class="material-symbols-outlined text-sm text-primary">science</span> Distillation System &amp; ABV
+          </div>
+<div class="font-body-sm text-body-sm text-on-surface">
+            Double distilled in historic small copper pot stills with copper serpentine. Bottled at 42.0% ABV (84 Proof).
+          </div>
+<div class="font-body-sm text-body-sm text-on-surface">
+            Double distilled in tiny century-old copper pot stills with copper coils. Bottled at 40.0% ABV (80 Proof).
+          </div>
+</div>
+<!-- Metric 5: Additive Verification -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter-desktop py-space-sm">
+<div class="flex items-center gap-space-xs font-label-sm text-label-sm font-semibold uppercase text-on-surface">
+<span class="material-symbols-outlined text-sm text-primary">verified</span> Additive-Free Laboratory Audit
+          </div>
+<div>
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded font-bold">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> 100% Zero Additives Verified (TMM-CRT)
+            </span>
+</div>
+<div>
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded font-bold">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> 100% Zero Additives Verified (TMM-CRT)
+            </span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Interactive Sensory Radar & Tasting Audit Strip -->
+<section class="w-full px-margin-desktop py-space-lg">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter-desktop items-center">
+<!-- Visual Organoleptic SVG Radial Graph -->
+<div class="lg:col-span-5 bg-surface-container-low rounded-xl p-space-lg shadow-sm flex flex-col items-center">
+<div class="w-full flex items-center justify-between mb-space-md">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-primary font-bold">Organoleptic Geometry</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Blind Jury N=12</span>
+</div>
+<!-- SVG Radar Chart -->
+<div class="relative w-64 h-64 flex items-center justify-center">
+<svg aria-label="Sensory Profile Radar Chart" class="w-full h-full" viewbox="0 0 200 200">
+<!-- Background Web Rings -->
+<polygon class="text-surface-container-highest" fill="none" points="100,20 176,75 147,165 53,165 24,75" stroke="currentColor" stroke-width="1.5"></polygon>
+<polygon class="text-surface-container-highest" fill="none" points="100,45 152,83 132,145 68,145 48,83" stroke="currentColor" stroke-width="1.5"></polygon>
+<polygon class="text-surface-container-highest" fill="none" points="100,70 128,90 117,125 83,125 72,90" stroke="currentColor" stroke-width="1"></polygon>
+<!-- Axis lines -->
+<line class="text-surface-variant" stroke="currentColor" stroke-dasharray="2,2" x1="100" x2="100" y1="100" y2="20"></line>
+<line class="text-surface-variant" stroke="currentColor" stroke-dasharray="2,2" x1="100" x2="176" y1="100" y2="75"></line>
+<line class="text-surface-variant" stroke="currentColor" stroke-dasharray="2,2" x1="100" x2="147" y1="100" y2="165"></line>
+<line class="text-surface-variant" stroke="currentColor" stroke-dasharray="2,2" x1="100" x2="53" y1="100" y2="165"></line>
+<line class="text-surface-variant" stroke="currentColor" stroke-dasharray="2,2" x1="100" x2="24" y1="100" y2="75"></line>
+<!-- Contender A Polygon (Cascahuin: Rust Fill) -->
+<polygon fill="rgba(140, 83, 50, 0.45)" points="100,24 165,82 138,155 58,158 35,78" stroke="#8C5332" stroke-width="2"></polygon>
+<!-- Contender B Polygon (Fortaleza: Charcoal Overlay Fill) -->
+<polygon fill="rgba(87, 70, 61, 0.25)" points="100,32 158,80 125,142 66,150 42,88" stroke="#57463D" stroke-dasharray="4,2" stroke-width="1.8"></polygon>
+<!-- Key Center Marker -->
+<circle class="text-primary" cx="100" cy="100" fill="currentColor" r="2.5"></circle>
+</svg>
+</div>
+<div class="flex items-center gap-space-lg mt-space-md text-label-sm font-label-sm">
+<div class="flex items-center gap-1.5">
+<span class="w-3 h-3 rounded-full bg-primary-container"></span>
+<span class="text-on-surface font-semibold">Cascahuín Tahona (Overall: 94.6)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-3 h-3 rounded-full bg-tertiary"></span>
+<span class="text-on-surface font-semibold">Fortaleza Blanco (Overall: 93.8)</span>
+</div>
+</div>
+</div>
+<!-- Linear Organoleptic Score Bars -->
+<div class="lg:col-span-7 flex flex-col gap-space-md bg-surface-container-lowest p-space-lg rounded-xl shadow-sm">
+<div>
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-widest font-bold">Jury Spectrum Breakdown</span>
+<h3 class="font-headline-md text-headline-md text-primary">Five Sensory Audit Dimensions</h3>
+</div>
+<div class="flex flex-col gap-space-md pt-space-xs">
+<!-- Dimension 1 -->
+<div>
+<div class="flex justify-between font-label-sm text-label-sm mb-1">
+<span class="font-semibold text-on-surface">Agave Purity &amp; Cooked Sweetness</span>
+<span class="text-on-surface-variant font-mono">Cascahuín 9.8 • Fortaleza 9.7</span>
+</div>
+<div class="w-full h-3 bg-surface-container-high rounded-full overflow-hidden flex flex-col justify-center gap-0.5 p-0.5">
+<div class="h-1 bg-primary rounded-full w-[98%]"></div>
+<div class="h-1 bg-tertiary rounded-full w-[97%]"></div>
+</div>
+</div>
+<!-- Dimension 2 -->
+<div>
+<div class="flex justify-between font-label-sm text-label-sm mb-1">
+<span class="font-semibold text-on-surface">Mineral Density &amp; Earthiness</span>
+<span class="text-on-surface-variant font-mono">Cascahuín 9.6 • Fortaleza 9.0</span>
+</div>
+<div class="w-full h-3 bg-surface-container-high rounded-full overflow-hidden flex flex-col justify-center gap-0.5 p-0.5">
+<div class="h-1 bg-primary rounded-full w-[96%]"></div>
+<div class="h-1 bg-tertiary rounded-full w-[90%]"></div>
+</div>
+</div>
+<!-- Dimension 3 -->
+<div>
+<div class="flex justify-between font-label-sm text-label-sm mb-1">
+<span class="font-semibold text-on-surface">White Pepper &amp; Spice Complexity</span>
+<span class="text-on-surface-variant font-mono">Cascahuín 9.4 • Fortaleza 9.1</span>
+</div>
+<div class="w-full h-3 bg-surface-container-high rounded-full overflow-hidden flex flex-col justify-center gap-0.5 p-0.5">
+<div class="h-1 bg-primary rounded-full w-[94%]"></div>
+<div class="h-1 bg-tertiary rounded-full w-[91%]"></div>
+</div>
+</div>
+<!-- Dimension 4 -->
+<div>
+<div class="flex justify-between font-label-sm text-label-sm mb-1">
+<span class="font-semibold text-on-surface">Finish Persistence (Seconds of Palate Residue)</span>
+<span class="text-on-surface-variant font-mono">Cascahuín 9.2 (48s) • Fortaleza 9.3 (52s)</span>
+</div>
+<div class="w-full h-3 bg-surface-container-high rounded-full overflow-hidden flex flex-col justify-center gap-0.5 p-0.5">
+<div class="h-1 bg-primary rounded-full w-[92%]"></div>
+<div class="h-1 bg-tertiary rounded-full w-[93%]"></div>
+</div>
+</div>
+<!-- Dimension 5 -->
+<div>
+<div class="flex justify-between font-label-sm text-label-sm mb-1">
+<span class="font-semibold text-on-surface">Standardized Value Quotient ($/L vs Sensory)</span>
+<span class="text-on-surface-variant font-mono">Cascahuín 9.9 • Fortaleza 8.1</span>
+</div>
+<div class="w-full h-3 bg-surface-container-high rounded-full overflow-hidden flex flex-col justify-center gap-0.5 p-0.5">
+<div class="h-1 bg-primary rounded-full w-[99%]"></div>
+<div class="h-1 bg-tertiary rounded-full w-[81%]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Interactive Monthly Allocation Quota Calculator -->
+<section class="w-full px-margin-desktop py-space-lg">
+<div class="bg-surface-container rounded-xl p-space-lg shadow-sm">
+<div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-space-lg mb-space-lg">
+<div>
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-widest font-bold">Cellar Capacity Simulation</span>
+<h3 class="font-headline-md text-headline-md text-on-surface mt-0.5">Personal Allocation Quota Impact</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Simulate purchasing 2 bottles (1.5L aggregate liquid volume) of either contender against your remaining personal statutory reserve.</p>
+</div>
+<div class="bg-surface-container-lowest px-space-md py-space-sm rounded-lg text-right shadow-sm">
+<span class="font-label-sm text-label-sm text-on-surface-variant block uppercase">Monthly Quota Available</span>
+<span class="font-headline-sm text-headline-sm font-bold text-primary" id="quota-display">5.50 Liters Remaining</span>
+</div>
+</div>
+<!-- Interactive Simulators -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter-desktop">
+<!-- Simulator Scenario A -->
+<div class="bg-surface-container-lowest p-space-md rounded-lg shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-space-sm">
+<span class="font-label-md text-label-md font-bold text-on-surface">Option Alpha: 2x Cascahuín Tahona (1.50L)</span>
+<span class="font-label-sm text-label-sm text-primary font-bold">$1,980.00 MXN Total</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">Source: Bodegas Alianza ($990 / 750ml). Consumes exactly 27.2% of your remaining 5.5L allocation capacity.</p>
+<!-- Quota Bar Before vs After -->
+<div class="flex flex-col gap-1 mb-2">
+<div class="flex justify-between font-label-sm text-label-sm text-on-surface-variant">
+<span>Post-Acquisition Balance:</span>
+<span class="font-bold text-on-surface">4.00L Remaining (83.3% Allocated)</span>
+</div>
+<div class="w-full h-2.5 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 83.3%;"></div>
+</div>
+</div>
+</div>
+<button class="w-full mt-space-md py-2 bg-primary text-on-primary rounded font-label-sm text-label-sm font-semibold hover:bg-inverse-surface transition-colors flex items-center justify-center gap-1 shadow-sm" type="button">
+<span class="material-symbols-outlined text-sm">shopping_cart_checkout</span> Add 2x Cascahuín to Cart Builder
+          </button>
+</div>
+<!-- Simulator Scenario B -->
+<div class="bg-surface-container-lowest p-space-md rounded-lg shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-space-sm">
+<span class="font-label-md text-label-md font-bold text-on-surface">Option Beta: 2x Fortaleza Blanco (1.50L)</span>
+<span class="font-label-sm text-label-sm text-primary font-bold">$2,380.00 MXN Total</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">Source: Costco Wholesale ($1,190 / 750ml). Requires membership; consumes 27.2% volume, costs +$400 MXN premium.</p>
+<!-- Quota Bar Before vs After -->
+<div class="flex flex-col gap-1 mb-2">
+<div class="flex justify-between font-label-sm text-label-sm text-on-surface-variant">
+<span>Post-Acquisition Balance:</span>
+<span class="font-bold text-on-surface">4.00L Remaining (83.3% Allocated)</span>
+</div>
+<div class="w-full h-2.5 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-secondary" style="width: 83.3%;"></div>
+</div>
+</div>
+</div>
+<button class="w-full mt-space-md py-2 bg-surface-container-highest text-on-surface rounded font-label-sm text-label-sm font-semibold hover:bg-surface-variant transition-colors flex items-center justify-center gap-1" type="button">
+<span class="material-symbols-outlined text-sm">shopping_cart_checkout</span> Add 2x Fortaleza to Cart Builder
+          </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Official Auditor's Stamp & Certificate of Distinction -->
+<section class="w-full px-margin-desktop py-space-xl">
+<div class="bg-surface-container-lowest rounded-xl p-space-xl shadow-md border-2 border-surface-container-high relative overflow-hidden">
+<!-- Watermark Badge Background -->
+<div class="absolute -right-8 -bottom-8 opacity-5 pointer-events-none select-none text-primary">
+<span class="material-symbols-outlined text-[240px]">workspace_premium</span>
+</div>
+<div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-space-lg relative z-10">
+<div class="flex items-start gap-space-md">
+<div class="w-16 h-16 rounded-full bg-primary-container text-on-primary flex items-center justify-center shrink-0 shadow-sm border-2 border-primary-fixed">
+<span class="material-symbols-outlined text-[36px]">military_tech</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-primary font-bold">Official Seal of Audit</span>
+<span class="px-space-xs py-0.5 bg-surface-container-high text-on-surface font-label-sm text-label-sm rounded">NOM-CRT-2024</span>
+</div>
+<h3 class="font-headline-lg text-headline-lg text-on-surface mt-1">Auditor’s Superior Value Distinction</h3>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl mt-1">
+              Cascahuín Tahona Blanco is solemnly recognized with the <strong>2024 Superior Value NOM Certification</strong>. It demonstrates an optimal convergence of traditional tahona maceration, natural open fermentation, 42% ABV potency, and unbeatable price efficiency across audited retail chains.
+            </p>
+</div>
+</div>
+<div class="flex flex-col sm:flex-row md:flex-col items-end gap-space-xs shrink-0">
+<div class="text-right">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant block">Auditing Master</span>
+<span class="font-headline-sm text-headline-sm text-primary font-serif italic">H. Del Real, Cellar Regent</span>
+<span class="font-label-sm text-label-sm text-secondary block">Accreditation CRT-8492-MX</span>
+</div>
+<button class="mt-space-sm px-space-md py-1.5 bg-primary text-on-primary rounded font-label-sm text-label-sm font-semibold hover:bg-inverse-surface transition-colors shadow-sm flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-sm">print</span> Download Certified Duel Assay (PDF)
+          </button>
+</div>
+</div>
+</div>
+</section>
+</div></main><footer class="w-full bg-surface-container-low mt-space-xl"><div class="w-full px-margin-desktop py-space-xl"><div class="grid grid-cols-1 md:grid-cols-4 gap-gutter-desktop mb-space-lg"><div class="col-span-1 md:col-span-2 flex flex-col gap-space-sm"><div class="flex items-center gap-space-sm"><span class="font-headline-md text-headline-md text-primary">Cantina Familiar</span><span class="font-label-sm text-label-sm px-space-xs py-0.5 bg-surface-container-highest text-on-surface rounded">EST. 2024 • MÉXICO</span></div><p class="font-body-sm text-body-sm text-on-surface-variant max-w-xl">A standardized registry for agave distillates, highland malt spirits, and cellar-grade vintages. We audit shelf prices, shelf availability, volume-adjusted value indices, and batch authenticity across national licensed purveyors every morning at 06:00 CST.</p><div class="flex items-center gap-space-md text-on-surface font-label-sm text-label-sm pt-space-xs"><span class="text-primary font-semibold">Audited Chains:</span><span>La Europea</span><span>•</span><span>Bodegas Alianza</span><span>•</span><span>Costco Wholesale</span><span>•</span><span>Walmart Supercenter</span><span>•</span><span>Chedraui Selecto</span><span>•</span><span>Liverpool Gourmet</span></div></div><div class="flex flex-col gap-space-xs"><span class="font-label-md text-label-md font-semibold text-on-surface uppercase tracking-wider">Auditing Standards</span><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface" data-path="methodology" href="#">$/L Metric Calculation</a><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface" data-path="methodology" href="#">NOM Agave Verification</a><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface" data-path="methodology" href="#">Retail Inventory Frequency</a><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface" data-path="methodology" href="#">Allocation Quota Thresholds</a></div><div class="flex flex-col gap-space-xs"><span class="font-label-md text-label-md font-semibold text-on-surface uppercase tracking-wider">Legal &amp; Provenance</span><span class="font-body-sm text-body-sm text-on-surface-variant">Data reflects audited shelf &amp; online pricing as of today at 06:00 CST. Independent audit not sponsored by retailers.</span><span class="font-label-sm text-label-sm text-secondary font-medium pt-space-xs">NOM CRT Registered • Mexican Spirits Index ID: CF-MX-8492</span></div></div><div class="flex flex-col sm:flex-row items-center justify-between pt-space-md bg-surface-container-high/40 px-space-md rounded-lg text-on-surface-variant font-label-sm text-label-sm"><p>© 2025 Cantina Familiar Gazette. Dedicated to transparent cellaring, responsible collection, and batch integrity.</p><div class="flex items-center gap-space-md pt-space-xs sm:pt-0"><span class="hover:text-on-surface cursor-pointer">Terms of Audit</span><span>•</span><span class="hover:text-on-surface cursor-pointer">Privacy Registry</span><span>•</span><span class="hover:text-on-surface cursor-pointer">API Feed</span></div></div></div></footer></body></html>
