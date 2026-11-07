@@ -415,7 +415,7 @@ def test_generar_etiqueta_condicion():
 
     # Botella normal con descuento
     cond4 = generar_etiqueta_condicion("Mezcal 400 Conejos Joven 100% Cosecha Salvaje 700 ml", 900.0, 849.0)
-    assert cond4 == "Descuento directo Aniversario Web"
+    assert cond4 == "Descuento directo Bombazo Web"
 
 
 def test_sincronizar_clasificacion_catalogo():

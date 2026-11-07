@@ -168,7 +168,7 @@ def generar_etiqueta_condicion(nombre: str, precio_regular: float, precio_promo:
         return f"🎁 Edición con obsequio ({obs_str})"
 
     if es_promo_precio:
-        return "Descuento directo Aniversario Web"
+        return "Descuento directo Bombazo Web"
     return "Precio regular catálogo"
 
 

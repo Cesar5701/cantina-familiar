@@ -24,17 +24,17 @@ TEMPLATE_PATH = TEMPLATES_DIR / "dashboard_template.html"
 PATRON_INCLUDE = re.compile(r"<!--\s*@include\s+([^\s]+)\s*-->\n?")
 
 # =====================================================================
-# MATRIZ OFICIAL DE VIGENCIAS Y PROMOCIONES MULTITIENDA (OCTUBRE 2026)
+# MATRIZ OFICIAL DE VIGENCIAS Y PROMOCIONES MULTITIENDA (NOVIEMBRE 2026)
 # =====================================================================
 CONFIG_VIGENCIA = {
-    "corte_auditoria": "Octubre 2026",
+    "corte_auditoria": "Noviembre 2026",
     "resumen_whatsapp": (
-        "Bodegas Alianza: hasta 25 Oct (Aniversario)\n"
-        "Sam's Club: hasta 2 Nov (Cuponera)\n"
-        "Costco: hasta 31 Oct (Cuponera Ahorros)\n"
-        "Chedraui: hasta 31 Oct (Quincena)\n"
-        "Soriana: hasta 22 Oct (Folleto semanal)\n"
-        "Walmart: hasta 31 Oct (Rebajas)"
+        "Bodegas Alianza: hasta 12 Nov (Bombazo de Precios) / 17 Nov (Buen Fin)\n"
+        "Sam's Club: hasta 18 Nov (El Fin Irresistible)\n"
+        "Costco: hasta 15 Nov (Cuponera de Temporada)\n"
+        "Chedraui: hasta 17 Nov (Preventa Modo Fin / Buen Fin)\n"
+        "Soriana: hasta 17 Nov (Pre Buen Fin / Precios Reventados)\n"
+        "Walmart: hasta 18 Nov (El Fin Irresistible)"
     ),
 }
 

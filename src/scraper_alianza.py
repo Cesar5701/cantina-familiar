@@ -71,9 +71,7 @@ def consultar_api_alianza(
                 resumen.registrar_descarte("precio invalido")
             continue
 
-        condicion = (
-            "Descuento directo Aniversario Web" if (precio_regular > precio_promo) else "Precio regular catálogo"
-        )
+        condicion = "Descuento directo Bombazo Web" if (precio_regular > precio_promo) else "Precio regular catálogo"
 
         productos.append(
             {

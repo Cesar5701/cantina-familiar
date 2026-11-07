@@ -38,6 +38,7 @@ from src.clasificacion import (
     normalizar_medidas_en_nombre,
     sincronizar_clasificacion_catalogo,
 )
+from src.historial import registrar_precios_historicos
 from src.io_utils import guardar_csv_atomico, guardar_json_atomico
 from src.logger import get_logger
 
@@ -122,6 +123,9 @@ def actualizar_todo(archivos_fuente: list[str] | None = None, carpeta_salida: st
 
     # Guardar catálogo completo con trazabilidad de outliers (H10 / H25)
     guardar_csv_atomico(df, os.path.join(carpeta_salida, "catalogo_completo_consolidado.csv"))
+
+    # Acumular snapshot en el registro histórico persistente de precios
+    registrar_precios_historicos(df, os.path.join(carpeta_salida, "historial_precios.csv"))
 
     # Guardar ranking general limpio de outliers para comparativas fiables (H25)
     df_ranking = df[~df["es_outlier_lujo"]].sort_values(by=["categoria", "precio_por_litro"]).reset_index(drop=True)
