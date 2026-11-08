@@ -4,8 +4,10 @@ Verifica la estructura del DOM, presencia de controles reactivos, atributos data
 y coherencia del JavaScript embebido sin depender de un navegador headless.
 """
 
+import base64
 import json
 
+import pytest
 from bs4 import BeautifulSoup
 
 from src.generar_dashboard_v4 import (
@@ -13,6 +15,7 @@ from src.generar_dashboard_v4 import (
     TEMPLATE_PATH,
     TEMPLATES_DIR,
     cargar_plantilla_dashboard,
+    ensamblar_plantilla_modular,
     renderizar_plantilla,
 )
 
@@ -204,3 +207,50 @@ def test_arquitectura_modular_plantillas():
     ensamblado = cargar_plantilla_dashboard()
     assert "@include" not in ensamblado
     assert len(ensamblado.splitlines()) > 2700
+
+
+def test_identidad_visual_favicon_y_emblema():
+    """Valida que el favicon, el apple-touch-icon y el emblema del agave queden incrustados en el HTML."""
+    for rel in ["assets/favicon.svg", "assets/apple-touch-icon.png", "assets/agave_emblema.svg"]:
+        assert (TEMPLATES_DIR / rel).exists(), f"Falta el recurso de identidad visual: {rel}"
+
+    ensamblado = cargar_plantilla_dashboard()
+    assert "@datauri" not in ensamblado
+
+    soup = BeautifulSoup(ensamblado, "html.parser")
+    icono = soup.find("link", rel="icon")
+    assert icono is not None
+    assert icono["href"].startswith("data:image/svg+xml;base64,")
+    favicon_decodificado = base64.b64decode(icono["href"].split(",", 1)[1]).decode("utf-8")
+    assert "<svg" in favicon_decodificado
+
+    touch = soup.find("link", rel="apple-touch-icon")
+    assert touch is not None
+    assert touch["href"].startswith("data:image/png;base64,")
+
+    assert soup.find("meta", attrs={"name": "theme-color"}) is not None
+
+    cabecera = soup.find("header")
+    assert cabecera is not None
+    assert cabecera.find("svg") is not None, "La cabecera debe mostrar el emblema SVG del agave"
+
+
+def test_datauri_recurso_inexistente_o_no_soportado(tmp_path):
+    """La directiva @datauri falla de forma explícita ante recursos ausentes o de tipo desconocido."""
+    with pytest.raises(FileNotFoundError):
+        ensamblar_plantilla_modular('<link href="<!-- @datauri no_existe.svg -->">', base_dir=tmp_path)
+
+    (tmp_path / "datos.txt").write_text("hola", encoding="utf-8")
+    with pytest.raises(ValueError):
+        ensamblar_plantilla_modular('<link href="<!-- @datauri datos.txt -->">', base_dir=tmp_path)
+
+
+def test_include_anidado_y_circular(tmp_path):
+    """Los @include anidados se resuelven y las referencias circulares se detectan."""
+    (tmp_path / "a.html").write_text("A[<!-- @include b.html -->]", encoding="utf-8")
+    (tmp_path / "b.html").write_text("B", encoding="utf-8")
+    assert ensamblar_plantilla_modular("<!-- @include a.html -->", base_dir=tmp_path) == "A[B]"
+
+    (tmp_path / "c.html").write_text("<!-- @include c.html -->", encoding="utf-8")
+    with pytest.raises(RecursionError):
+        ensamblar_plantilla_modular("<!-- @include c.html -->", base_dir=tmp_path)

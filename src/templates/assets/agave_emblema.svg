@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="100%" height="100%" aria-hidden="true" focusable="false">
+  <!-- Emblema de cabecera Cantina Familiar: sello de latón con doble anillo y agave terracota -->
+  <defs><clipPath id="cf-emblema-base"><rect width="64" height="46.5"/></clipPath></defs>
+  <circle cx="32" cy="32" r="30.5" fill="#FDFBF7" stroke="#C8A27A" stroke-width="2.5"/>
+  <circle cx="32" cy="32" r="26.5" fill="none" stroke="#C8A27A" stroke-width="1.2"/>
+  <g transform="translate(32 33) scale(0.76) translate(-32 -27)">
+    <g clip-path="url(#cf-emblema-base)" fill="#8C5332" stroke="#FDFBF7" stroke-width="1.5" stroke-linejoin="round">
+      <path d="M31.84 44.25C38.85 36.34 52.42 33.61 58.5 31C54.02 35.87 46.95 47.76 37.16 51.75Z"/>
+      <path d="M26.84 51.75C17.05 47.76 9.98 35.87 5.5 31C11.58 33.61 25.15 36.34 32.16 44.25Z"/>
+      <path d="M29.12 46.04C32 33.25 43.89 21.28 48.5 14.5C46.51 22.46 45.5 39.3 37.88 49.96Z"/>
+      <path d="M26.12 49.96C18.5 39.3 17.49 22.46 15.5 14.5C20.11 21.28 32 33.25 34.88 46.04Z"/>
+      <path d="M26.6 48.5C23.8 33.98 30.38 16.13 32 7C33.62 16.13 40.2 33.98 37.4 48.5Z"/>
+    </g>
+  </g>
+</svg>

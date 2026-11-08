@@ -4,6 +4,7 @@ Desacoplado en arquitectura modular de plantillas (CSS, parciales HTML y módulo
 que se ensamblan en un index.html autocontenido para publicación en GitHub Pages (H29).
 """
 
+import base64
 import os
 import re
 import sys
@@ -22,6 +23,14 @@ TEMPLATES_DIR = ROOT_DIR / "src" / "templates"
 TEMPLATE_PATH = TEMPLATES_DIR / "dashboard_template.html"
 
 PATRON_INCLUDE = re.compile(r"<!--\s*@include\s+([^\s]+)\s*-->\n?")
+PATRON_DATAURI = re.compile(r"<!--\s*@datauri\s+([^\s]+)\s*-->")
+PROFUNDIDAD_MAX_INCLUDE = 5
+MIME_RECURSOS = {
+    ".svg": "image/svg+xml",
+    ".png": "image/png",
+    ".ico": "image/x-icon",
+    ".webp": "image/webp",
+}
 
 # =====================================================================
 # MATRIZ OFICIAL DE VIGENCIAS Y PROMOCIONES MULTITIENDA (NOVIEMBRE 2026)
@@ -40,7 +49,11 @@ CONFIG_VIGENCIA = {
 
 
 def ensamblar_plantilla_modular(template_content: str, base_dir: Path | None = None) -> str:
-    """Expande las directivas <!-- @include ruta --> leyendo los submódulos de CSS, HTML y JS."""
+    """
+    Expande las directivas <!-- @include ruta --> leyendo los submódulos de CSS, HTML y JS,
+    y las directivas <!-- @datauri ruta --> incrustando recursos (favicon, íconos) como data: URI
+    en base64 para mantener el index.html autocontenido.
+    """
     directorio_base = base_dir or TEMPLATES_DIR
 
     def _reemplazar_include(match: re.Match) -> str:
@@ -50,7 +63,27 @@ def ensamblar_plantilla_modular(template_content: str, base_dir: Path | None = N
             raise FileNotFoundError(f"Módulo de plantilla no encontrado: {inc_path}")
         return inc_path.read_text(encoding="utf-8")
 
-    return PATRON_INCLUDE.sub(_reemplazar_include, template_content)
+    def _reemplazar_datauri(match: re.Match) -> str:
+        rel_path = match.group(1)
+        recurso = directorio_base / rel_path
+        if not recurso.exists():
+            raise FileNotFoundError(f"Recurso de plantilla no encontrado: {recurso}")
+        mime = MIME_RECURSOS.get(recurso.suffix.lower())
+        if mime is None:
+            raise ValueError(f"Tipo de recurso no soportado para @datauri: {recurso.suffix}")
+        codificado = base64.b64encode(recurso.read_bytes()).decode("ascii")
+        return f"data:{mime};base64,{codificado}"
+
+    expandida = template_content
+    for _ in range(PROFUNDIDAD_MAX_INCLUDE):
+        if not PATRON_INCLUDE.search(expandida):
+            break
+        expandida = PATRON_INCLUDE.sub(_reemplazar_include, expandida)
+    if PATRON_INCLUDE.search(expandida):
+        raise RecursionError(
+            f"Inclusiones anidadas más allá de {PROFUNDIDAD_MAX_INCLUDE} niveles (¿referencia circular?)"
+        )
+    return PATRON_DATAURI.sub(_reemplazar_datauri, expandida)
 
 
 def cargar_plantilla_dashboard(template_path: Path | str | None = None) -> str:
