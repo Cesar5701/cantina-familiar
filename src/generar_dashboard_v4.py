@@ -119,6 +119,37 @@ def cargar_plantilla_dashboard(template_path: Path | str | None = None) -> str:
     return ensamblar_plantilla_modular(raw_content, base_dir=tpl_path.parent)
 
 
+CAMPOS_OMITIR_FRONTEND = {
+    "ofertas_cross_tienda",
+    "precio_por_litro_minimo_cross",
+    "tienda_mas_cara",
+    "precio_maximo_cross",
+}
+
+
+def compactar_datos_para_frontend(datos_json_str: str) -> str:
+    """
+    Elimina campos anidados redundantes que no se usan en el cliente (como ofertas_cross_tienda)
+    y serializa el JSON de forma compacta sin espacios innecesarios para reducir el peso de index.html.
+    """
+    if len(datos_json_str) < 1000 and not any(c in datos_json_str for c in CAMPOS_OMITIR_FRONTEND):
+        return datos_json_str
+
+    try:
+        datos = json.loads(datos_json_str)
+    except json.JSONDecodeError:
+        return datos_json_str
+
+    if not isinstance(datos, list):
+        return datos_json_str
+
+    optimizados = [
+        {k: v for k, v in item.items() if k not in CAMPOS_OMITIR_FRONTEND} if isinstance(item, dict) else item
+        for item in datos
+    ]
+    return json.dumps(optimizados, ensure_ascii=False, separators=(",", ":"))
+
+
 def renderizar_plantilla(
     template_content: str,
     datos_json_str: str,
@@ -132,12 +163,15 @@ def renderizar_plantilla(
     corte = corte_auditoria or cfg["corte_auditoria"]
     whatsapp = resumen_whatsapp or cfg["resumen_whatsapp"]
     campanas_str = (
-        campanas_json_str if campanas_json_str is not None else json.dumps(cfg["campanas"], ensure_ascii=False)
+        campanas_json_str
+        if campanas_json_str is not None
+        else json.dumps(cfg["campanas"], ensure_ascii=False, separators=(",", ":"))
     )
+    datos_compactos = compactar_datos_para_frontend(datos_json_str)
     ensamblada = ensamblar_plantilla_modular(template_content, base_dir=base_dir)
 
     return (
-        ensamblada.replace("__DATA_JSON__", datos_json_str)
+        ensamblada.replace("__DATA_JSON__", datos_compactos)
         .replace("__CAMPANAS_JSON__", campanas_str)
         .replace("__CORTE_AUDITORIA__", corte)
         .replace("__RESUMEN_WHATSAPP_VIGENCIAS__", whatsapp)

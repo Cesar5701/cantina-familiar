@@ -1,7 +1,87 @@
-    function filtrarSelectoresVersusPorCategoria() {
-      const filtroCat = document.getElementById("select-versus-categoria-filtro").value;
+    let opcionesBaseVersus = [];
+
+    function construirEtiquetaOpcionVersus(item) {
+      const prodNom = item.producto.length > 48 ? item.producto.slice(0, 47).trim() + "…" : item.producto;
+      return `${prodNom} ($${item.precio_promo.toFixed(2)} | $${item.precio_por_litro.toFixed(2)}/L) — ${item.tienda}`;
+    }
+
+    function poblarSelectorVersus(lado, listaItems, valorPreferido = null) {
+      const idSel = lado === "A" ? "select-versus-a" : "select-versus-b";
+      const idBadge = lado === "A" ? "badge-conteo-versus-a" : "badge-conteo-versus-b";
+      const sel = document.getElementById(idSel);
+      const badge = document.getElementById(idBadge);
+      if (!sel) return;
+
+      const valorPrevio = valorPreferido !== null ? String(valorPreferido) : sel.value;
+      sel.innerHTML = "";
+
+      listaItems.forEach(({ item, idx }) => {
+        const opt = new Option(construirEtiquetaOpcionVersus(item), idx);
+        opt.title = `${item.producto} — ${item.tienda}`;
+        sel.add(opt);
+      });
+
+      if (listaItems.length > 0) {
+        const existePrevio = listaItems.some(x => String(x.idx) === String(valorPrevio));
+        if (existePrevio) {
+          sel.value = valorPrevio;
+        } else {
+          sel.value = lado === "B" && listaItems.length > 1 ? listaItems[1].idx : listaItems[0].idx;
+        }
+      }
+
+      if (badge) {
+        badge.innerText = `${listaItems.length} opciones`;
+      }
+    }
+
+    function filtrarOpcionesSelectorVersus(lado) {
+      const idInput = lado === "A" ? "input-busqueda-versus-a" : "input-busqueda-versus-b";
+      const inputEl = document.getElementById(idInput);
+      const qNorm = normalizarTextoBusqueda(inputEl ? inputEl.value : "");
+      const tokens = qNorm.split(" ").filter(Boolean);
+
+      const filtrados = tokens.length === 0
+        ? opcionesBaseVersus
+        : opcionesBaseVersus.filter(({ item }) => {
+            const textoItem = normalizarTextoBusqueda(`${item.producto} ${item.marca} ${item.tienda} ${item.ml}ml`);
+            const pTokens = textoItem.split(" ").filter(Boolean);
+            return tokens.every(tok => tokenCoincide(pTokens, tok));
+          });
+
+      poblarSelectorVersus(lado, filtrados);
+      if (filtrados.length > 0) {
+        renderizarVersus();
+      }
+    }
+
+    function intercambiarContendientesVersus() {
       const selA = document.getElementById("select-versus-a");
       const selB = document.getElementById("select-versus-b");
+      const inpA = document.getElementById("input-busqueda-versus-a");
+      const inpB = document.getElementById("input-busqueda-versus-b");
+      if (!selA || !selB) return;
+
+      const valA = selA.value;
+      const valB = selB.value;
+      if (inpA && inpB && (inpA.value || inpB.value)) {
+        const qA = inpA.value;
+        inpA.value = inpB.value;
+        inpB.value = qA;
+        filtrarOpcionesSelectorVersus("A");
+        filtrarOpcionesSelectorVersus("B");
+      }
+      selA.value = valB;
+      selB.value = valA;
+      renderizarVersus();
+    }
+
+    function filtrarSelectoresVersusPorCategoria() {
+      const filtroCat = document.getElementById("select-versus-categoria-filtro").value;
+      const inpA = document.getElementById("input-busqueda-versus-a");
+      const inpB = document.getElementById("input-busqueda-versus-b");
+      if (inpA) inpA.value = "";
+      if (inpB) inpB.value = "";
 
       let items = [];
       let catEfectiva = filtroCat;
@@ -14,24 +94,11 @@
           .filter(x => x.item.categoria_comparable === filtroCat);
       }
 
-      selA.innerHTML = "";
-      selB.innerHTML = "";
-
-      items.forEach(({ item, idx }) => {
-        const prodNom = item.producto.length > 48 ? item.producto.slice(0, 47).trim() + "…" : item.producto;
-        const label = `${prodNom} ($${item.precio_promo.toFixed(2)} | $${item.precio_por_litro.toFixed(2)}/L) — ${item.tienda}`;
-        const optA = new Option(label, idx);
-        optA.title = item.producto;
-        const optB = new Option(label, idx);
-        optB.title = item.producto;
-        selA.add(optA);
-        selB.add(optB);
-      });
-
-      if (items.length > 0) {
-        selA.value = items[0].idx;
-        selB.value = items.length > 1 ? items[1].idx : items[0].idx;
-      }
+      opcionesBaseVersus = items;
+      const defA = items.length > 0 ? items[0].idx : null;
+      const defB = items.length > 1 ? items[1].idx : defA;
+      poblarSelectorVersus("A", items, defA);
+      poblarSelectorVersus("B", items, defB);
 
       renderizarSugerenciasVersus(catEfectiva);
       renderizarVersus();

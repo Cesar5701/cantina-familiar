@@ -78,26 +78,46 @@
       </section>
 
       <!-- BAHÍAS DE SELECCIÓN DE CONTENDIENTES (CONTENDER ALPHA [A] VS CONTENDER BETA [B]) -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
-        <div class="bg-surface-container rounded-lg p-4 border-t-4 border-t-primary border-x border-b border-outline-variant/70 space-y-2 min-w-0 overflow-hidden">
-          <div class="flex items-center justify-between">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0 relative">
+        <div class="bg-surface-container rounded-lg p-4 border-t-4 border-t-primary border-x border-b border-outline-variant/70 space-y-2.5 min-w-0 overflow-hidden">
+          <div class="flex items-center justify-between gap-2">
             <label for="select-versus-a" class="archival-badge text-primary flex items-center gap-1.5">
               <span class="px-1.5 py-0.5 rounded bg-primary text-on-primary font-mono text-[10px] font-bold">A</span>
               Contendiente Alpha
             </label>
-            <span class="font-mono text-[10px] text-on-surface-variant uppercase"> Espécimen Izquierdo</span>
+            <span class="font-mono text-[10px] text-on-surface-variant uppercase" id="badge-conteo-versus-a">Espécimen Izquierdo</span>
+          </div>
+          <div class="relative">
+            <span class="material-symbols-outlined text-outline text-[16px] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">search</span>
+            <input type="search" id="input-busqueda-versus-a" aria-label="Filtrar opciones de Contendiente Alpha"
+                   oninput="filtrarOpcionesSelectorVersus('A')"
+                   placeholder="Buscar botella o tienda en Alpha (ej. Dobel, Costco)..."
+                   class="w-full md3-input pl-8 pr-2.5 py-1.5 text-xs font-mono">
           </div>
           <select id="select-versus-a" onchange="actualizarVersusManual('A')" class="w-full min-w-0 max-w-full md3-input p-2.5 text-xs sm:text-sm font-medium truncate cursor-pointer">
           </select>
         </div>
 
-        <div class="bg-surface-container rounded-lg p-4 border-t-4 border-t-secondary border-x border-b border-outline-variant/70 space-y-2 min-w-0 overflow-hidden">
-          <div class="flex items-center justify-between">
+        <div class="bg-surface-container rounded-lg p-4 border-t-4 border-t-secondary border-x border-b border-outline-variant/70 space-y-2.5 min-w-0 overflow-hidden">
+          <div class="flex items-center justify-between gap-2">
             <label for="select-versus-b" class="archival-badge text-secondary flex items-center gap-1.5">
               <span class="px-1.5 py-0.5 rounded bg-secondary text-on-secondary font-mono text-[10px] font-bold">B</span>
               Contendiente Beta
             </label>
-            <span class="font-mono text-[10px] text-on-surface-variant uppercase">Espécimen Derecho</span>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="intercambiarContendientesVersus()" title="Intercambiar Contendiente A y B"
+                      class="px-2 py-0.5 rounded bg-surface-container-lowest border border-outline-variant hover:bg-secondary-container text-on-surface font-mono text-[10px] font-semibold cursor-pointer transition-colors inline-flex items-center gap-1">
+                <span class="material-symbols-outlined text-[13px]">swap_horiz</span> Invertir A/B
+              </button>
+              <span class="font-mono text-[10px] text-on-surface-variant uppercase" id="badge-conteo-versus-b">Espécimen Derecho</span>
+            </div>
+          </div>
+          <div class="relative">
+            <span class="material-symbols-outlined text-outline text-[16px] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">search</span>
+            <input type="search" id="input-busqueda-versus-b" aria-label="Filtrar opciones de Contendiente Beta"
+                   oninput="filtrarOpcionesSelectorVersus('B')"
+                   placeholder="Buscar botella o tienda en Beta (ej. 1800, Alianza)..."
+                   class="w-full md3-input pl-8 pr-2.5 py-1.5 text-xs font-mono">
           </div>
           <select id="select-versus-b" onchange="actualizarVersusManual('B')" class="w-full min-w-0 max-w-full md3-input p-2.5 text-xs sm:text-sm font-medium truncate cursor-pointer">
           </select>

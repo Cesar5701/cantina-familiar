@@ -77,6 +77,42 @@
       if (id) cambiarTab(id);
     });
 
+    function toggleFiltrosMovil() {
+      const cont = document.getElementById("contenedor-controles-filtro");
+      const icono = document.getElementById("icono-toggle-filtros-movil");
+      if (!cont) return;
+      const oculto = cont.classList.toggle("hidden");
+      if (icono) {
+        icono.textContent = oculto ? "expand_more" : "expand_less";
+      }
+    }
+
+    function restablecerFiltros() {
+      const elMacro = document.getElementById("filtro-macro-categoria");
+      const elTienda = document.getElementById("filtro-tienda");
+      const elBusq = document.getElementById("filtro-busqueda");
+      const chkMejor = document.getElementById("filtro-mejor-precio");
+      const chkDesc = document.getElementById("filtro-descuento");
+      const chkDisp = document.getElementById("filtro-disponible");
+      const chkPaq1 = document.getElementById("filtro-paquete");
+      const chkPaq2 = document.getElementById("filtro-paquete-pill");
+
+      if (elMacro) elMacro.value = "Todas";
+      if (elTienda) elTienda.value = "Todas";
+      if (elBusq) elBusq.value = "";
+      if (chkMejor) chkMejor.checked = true;
+      if (chkDesc) chkDesc.checked = false;
+      if (chkDisp) chkDisp.checked = true;
+      if (chkPaq1) chkPaq1.checked = false;
+      if (chkPaq2) chkPaq2.checked = false;
+
+      columnaOrden = "precio_por_litro";
+      ordenAsc = true;
+      actualizarSubtiposCatalogo();
+      actualizarEstadoOrden();
+      mostrarToast("Filtros restablecidos al catálogo general");
+    }
+
     function sincronizarFiltroPaquete(estado) {
       const chk1 = document.getElementById("filtro-paquete");
       const chk2 = document.getElementById("filtro-paquete-pill");
@@ -112,6 +148,27 @@
       const soloMejor = chkMejor ? chkMejor.checked : true;
       const chkDisp = document.getElementById("filtro-disponible");
       const soloDisp = chkDisp ? chkDisp.checked : false;
+
+      // Contabilizar filtros no predeterminados activos para feedback visual
+      let nFiltrosActivos = 0;
+      if (busq.trim()) nFiltrosActivos++;
+      if (macroCat !== "Todas") nFiltrosActivos++;
+      if (subCat !== "Todas" && subCat !== "Todos_Macro") nFiltrosActivos++;
+      if (tienda !== "Todas") nFiltrosActivos++;
+      if (soloDesc) nFiltrosActivos++;
+      if (soloPaquete) nFiltrosActivos++;
+      if (!soloMejor) nFiltrosActivos++;
+      if (!soloDisp) nFiltrosActivos++;
+
+      const badgeFiltros = document.getElementById("badge-filtros-activos");
+      if (badgeFiltros) {
+        if (nFiltrosActivos > 0) {
+          badgeFiltros.textContent = String(nFiltrosActivos);
+          badgeFiltros.classList.remove("hidden");
+        } else {
+          badgeFiltros.classList.add("hidden");
+        }
+      }
 
       // Actualizar estado visual y disponibilidad del toggle según la tienda seleccionada
       if (chkMejor) {
@@ -236,11 +293,25 @@
       const paginaItems = datosFiltrados.slice(inicio, fin);
 
       if (paginaItems.length === 0) {
+        const emptyStateHtml = `
+          <div class="p-8 text-center space-y-3 max-w-md mx-auto">
+            <span class="material-symbols-outlined text-3xl text-outline">search_off</span>
+            <p class="font-headline font-bold text-base text-on-surface">Sin coincidencias con los filtros actuales</p>
+            <p class="font-mono text-xs text-on-surface-variant leading-relaxed">
+              Prueba ampliar la categoría, limpiar el texto de búsqueda o desactivar los filtros de "Solo ofertas" / "Solo paquetes".
+            </p>
+            <button type="button" onclick="restablecerFiltros()"
+                    class="mt-1 px-4 py-2 rounded md3-btn-filled font-mono text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer">
+              <span class="material-symbols-outlined text-[16px]">restart_alt</span>
+              <span>Restablecer todos los filtros</span>
+            </button>
+          </div>
+        `;
         if (tbody) {
-          tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center font-mono text-xs text-on-surface-variant">No se encontraron botellas con los filtros seleccionados.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="8">${emptyStateHtml}</td></tr>`;
         }
         if (contMovil) {
-          contMovil.innerHTML = `<div class="p-8 text-center font-mono text-xs text-on-surface-variant">No se encontraron botellas con los filtros seleccionados.</div>`;
+          contMovil.innerHTML = emptyStateHtml;
         }
         return;
       }

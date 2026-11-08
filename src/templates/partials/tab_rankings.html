@@ -97,102 +97,126 @@
       </section>
 
       <!-- BARRA DE FILTRADO DE REGISTRO EN 2 NIVELES (STITCH AUDITING FILTER LEDGER STRIP) -->
-      <section class="bg-surface-container rounded-lg p-5 border border-outline-variant/80 shadow-sm space-y-4">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 items-end">
-          <!-- Paso 01: Categoría de Bebida -->
-          <div class="lg:col-span-3">
-            <label for="filtro-macro-categoria" class="archival-badge text-on-surface-variant block mb-1.5">
-              Paso 01 • Categoría de Bebida
-            </label>
-            <select id="filtro-macro-categoria" onchange="actualizarSubtiposCatalogo()" class="w-full md3-input px-3 py-2 font-semibold cursor-pointer">
-              <option value="Todas" selected>Todas las Bebidas (931)</option>
-              <option value="Tequila">Tequila (259)</option>
-              <option value="Mezcal">Mezcal (237)</option>
-              <option value="Whisky">Whisky Escocés (226)</option>
-              <option value="Licor de Whisky">Licor Whisky (Honey &amp; Apple) (15)</option>
-              <option value="Vino">Vino Tinto (194)</option>
-            </select>
-          </div>
-
-          <!-- Paso 02: Tipo de Bebida / Subcategoría -->
-          <div class="lg:col-span-3">
-            <label for="filtro-categoria" id="label-filtro-categoria" class="archival-badge text-[#8A7B6B] block mb-1.5 transition-colors">
-              Paso 02 • Tipo / Añejamiento
-            </label>
-            <select id="filtro-categoria" onchange="aplicarFiltros()" disabled class="w-full md3-input px-3 py-2 font-medium opacity-60 bg-[#EFE8DC]/50 cursor-not-allowed transition-all">
-              <option value="Todas" selected>Selecciona primero una categoría...</option>
-            </select>
-          </div>
-
-          <!-- Paso 03: Cadena Comercial -->
-          <div class="lg:col-span-3">
-            <label for="filtro-tienda" class="archival-badge text-on-surface-variant block mb-1.5">
-              03 • Tienda / Cadena Comercial
-            </label>
-            <select id="filtro-tienda" onchange="aplicarFiltros()" class="w-full md3-input px-3 py-2 font-medium cursor-pointer">
-              <option value="Todas">Todas las Tiendas (6)</option>
-              <option value="Bodegas Alianza">Bodegas Alianza</option>
-              <option value="Sam's Club">Sam's Club</option>
-              <option value="Costco">Costco</option>
-              <option value="Chedraui">Chedraui</option>
-              <option value="Soriana">Soriana</option>
-              <option value="Walmart">Walmart</option>
-            </select>
-          </div>
-
-          <!-- Paso 04: Búsqueda por Etiqueta o Marca -->
-          <div class="lg:col-span-3">
-            <label for="filtro-busqueda" class="archival-badge text-on-surface-variant block mb-1.5">
-              04 • Buscar Etiqueta o Marca
-            </label>
-            <div class="relative">
-              <span class="material-symbols-outlined text-outline text-[18px] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">search</span>
-              <input type="text" id="filtro-busqueda" oninput="aplicarFiltros()" placeholder="Ej. Dobel, 1800, Amarás, Kirkland..."
-                     class="w-full md3-input pl-9 pr-3 py-2">
-            </div>
-          </div>
+      <section class="bg-surface-container rounded-lg p-4 sm:p-5 border border-outline-variant/80 shadow-sm space-y-4">
+        <!-- Cabecera compacta móvil para colapsar/expandir filtros y botón Restablecer -->
+        <div class="flex items-center justify-between gap-2 pb-2 border-b border-outline-variant/50 sm:hidden">
+          <button type="button" onclick="toggleFiltrosMovil()" id="btn-toggle-filtros-movil"
+                  class="inline-flex items-center gap-1.5 font-mono text-xs font-bold text-on-surface cursor-pointer">
+            <span class="material-symbols-outlined text-[18px] text-primary">tune</span>
+            <span>Filtros de Auditoría</span>
+            <span id="icono-toggle-filtros-movil" class="material-symbols-outlined text-[16px] text-outline">expand_less</span>
+          </button>
+          <button type="button" onclick="restablecerFiltros()"
+                  class="px-2.5 py-1 rounded bg-surface-container-lowest border border-outline-variant text-[11px] font-mono font-semibold text-primary cursor-pointer inline-flex items-center gap-1">
+            <span class="material-symbols-outlined text-[14px]">restart_alt</span> Restablecer
+          </button>
         </div>
 
-        <!-- Fila Inferior: Toggles de Auditoría Rápida & Controles de Ordenación -->
-        <div class="pt-3 border-t border-outline-variant/60 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-          <!-- Filtros Rápidos (Pills) -->
-          <div class="flex flex-wrap items-center gap-2">
-            <span class="archival-badge text-outline mr-1">Filtros Rápidos:</span>
+        <div id="contenedor-controles-filtro" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 items-end">
+            <!-- Paso 01: Categoría de Bebida -->
+            <div class="lg:col-span-3">
+              <label for="filtro-macro-categoria" class="archival-badge text-on-surface-variant block mb-1.5">
+                Paso 01 • Categoría de Bebida
+              </label>
+              <select id="filtro-macro-categoria" onchange="actualizarSubtiposCatalogo()" class="w-full md3-input px-3 py-2 font-semibold cursor-pointer">
+                <option value="Todas" selected>Todas las Bebidas (931)</option>
+                <option value="Tequila">Tequila (259)</option>
+                <option value="Mezcal">Mezcal (237)</option>
+                <option value="Whisky">Whisky Escocés (226)</option>
+                <option value="Licor de Whisky">Licor Whisky (Honey &amp; Apple) (15)</option>
+                <option value="Vino">Vino Tinto (194)</option>
+              </select>
+            </div>
 
-            <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-surface-container-lowest border border-outline-variant hover:bg-[#EFE8DC] text-on-surface font-mono text-xs font-medium cursor-pointer transition-colors select-none" title="Mostrar únicamente la opción más barata por cada producto (oculta ofertas repetidas de tiendas más caras)">
-              <input type="checkbox" id="filtro-mejor-precio" onchange="aplicarFiltros()" checked class="w-3.5 h-3.5 rounded accent-[#703c1d]">
-              <span class="font-semibold text-on-surface text-[11px] sm:text-xs">Solo mejor precio</span>
-            </label>
+            <!-- Paso 02: Tipo de Bebida / Subcategoría -->
+            <div class="lg:col-span-3">
+              <label for="filtro-categoria" id="label-filtro-categoria" class="archival-badge text-[#8A7B6B] block mb-1.5 transition-colors">
+                Paso 02 • Tipo / Añejamiento
+              </label>
+              <select id="filtro-categoria" onchange="aplicarFiltros()" disabled class="w-full md3-input px-3 py-2 font-medium opacity-60 bg-[#EFE8DC]/50 cursor-not-allowed transition-all">
+                <option value="Todas" selected>Selecciona primero una categoría...</option>
+              </select>
+            </div>
 
-            <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-surface-container-lowest border border-outline-variant hover:bg-[#EFE8DC] text-primary font-mono text-xs font-medium cursor-pointer transition-colors select-none" title="Mostrar únicamente botellas con descuento directo verificado">
-              <input type="checkbox" id="filtro-descuento" onchange="aplicarFiltros()" class="w-3.5 h-3.5 rounded accent-[#703c1d]">
-              <span class="font-semibold text-primary text-[11px] sm:text-xs">Solo ofertas</span>
-            </label>
+            <!-- Paso 03: Cadena Comercial -->
+            <div class="lg:col-span-3">
+              <label for="filtro-tienda" class="archival-badge text-on-surface-variant block mb-1.5">
+                03 • Tienda / Cadena Comercial
+              </label>
+              <select id="filtro-tienda" onchange="aplicarFiltros()" class="w-full md3-input px-3 py-2 font-medium cursor-pointer">
+                <option value="Todas">Todas las Tiendas (6)</option>
+                <option value="Bodegas Alianza">Bodegas Alianza</option>
+                <option value="Sam's Club">Sam's Club</option>
+                <option value="Costco">Costco</option>
+                <option value="Chedraui">Chedraui</option>
+                <option value="Soriana">Soriana</option>
+                <option value="Walmart">Walmart</option>
+              </select>
+            </div>
 
-            <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-surface-container-lowest border border-outline-variant hover:bg-[#EFE8DC] text-[#24592a] font-mono text-xs font-medium cursor-pointer transition-colors select-none" title="Ocultar botellas agotadas y mostrar únicamente las que tienen existencia verificada">
-              <input type="checkbox" id="filtro-disponible" onchange="aplicarFiltros()" checked class="w-3.5 h-3.5 rounded accent-[#24592a]">
-              <span class="font-semibold text-[#24592a] text-[11px] sm:text-xs">Solo en existencia</span>
-            </label>
-
-            <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-surface-container-lowest border border-outline-variant hover:bg-[#EFE8DC] text-[#93000a] font-mono text-xs font-medium cursor-pointer transition-colors select-none" title="Mostrar únicamente botellas en paquete, combos o con obsequios incluidos">
-              <input type="checkbox" id="filtro-paquete-pill" onchange="sincronizarFiltroPaquete(this.checked)" class="w-3.5 h-3.5 rounded accent-[#93000a]">
-              <span class="font-bold text-[#93000a] text-[11px] sm:text-xs">Solo paquetes y combos</span>
-            </label>
-            <input type="checkbox" id="filtro-paquete" class="hidden" aria-hidden="true" tabindex="-1">
+            <!-- Paso 04: Búsqueda por Etiqueta o Marca -->
+            <div class="lg:col-span-3">
+              <label for="filtro-busqueda" class="archival-badge text-on-surface-variant block mb-1.5">
+                04 • Buscar Etiqueta o Marca
+              </label>
+              <div class="relative">
+                <span class="material-symbols-outlined text-outline text-[18px] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">search</span>
+                <input type="search" id="filtro-busqueda" oninput="aplicarFiltros()" placeholder="Ej. Dobel, 1800, Amarás, Kirkland..."
+                       class="w-full md3-input pl-9 pr-3 py-2">
+              </div>
+            </div>
           </div>
 
-          <!-- Controles de Ordenación -->
-          <div class="flex items-center gap-2 self-start lg:self-auto">
-            <span class="archival-badge text-outline whitespace-nowrap">Ordenar Registro:</span>
-            <div class="flex items-center gap-1.5">
-              <button data-orden="precio_por_litro" onclick="ordenarPor('precio_por_litro')"
-                      class="px-3 py-1.5 rounded font-mono font-semibold text-xs transition-colors cursor-pointer min-h-[34px]">
-                Menor $/Litro <span class="orden-flecha"></span>
+          <!-- Fila Inferior: Toggles de Auditoría Rápida & Controles de Ordenación -->
+          <div class="pt-3 border-t border-outline-variant/60 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+            <!-- Filtros Rápidos (Pills) -->
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="archival-badge text-outline mr-1">Filtros Rápidos:</span>
+
+              <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-surface-container-lowest border border-outline-variant hover:bg-[#EFE8DC] text-on-surface font-mono text-xs font-medium cursor-pointer transition-colors select-none" title="Mostrar únicamente la opción más barata por cada producto (oculta ofertas repetidas de tiendas más caras)">
+                <input type="checkbox" id="filtro-mejor-precio" onchange="aplicarFiltros()" checked class="w-3.5 h-3.5 rounded accent-[#703c1d]">
+                <span class="font-semibold text-on-surface text-[11px] sm:text-xs">Solo mejor precio</span>
+              </label>
+
+              <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-surface-container-lowest border border-outline-variant hover:bg-[#EFE8DC] text-primary font-mono text-xs font-medium cursor-pointer transition-colors select-none" title="Mostrar únicamente botellas con descuento directo verificado">
+                <input type="checkbox" id="filtro-descuento" onchange="aplicarFiltros()" class="w-3.5 h-3.5 rounded accent-[#703c1d]">
+                <span class="font-semibold text-primary text-[11px] sm:text-xs">Solo ofertas</span>
+              </label>
+
+              <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-surface-container-lowest border border-outline-variant hover:bg-[#EFE8DC] text-[#24592a] font-mono text-xs font-medium cursor-pointer transition-colors select-none" title="Ocultar botellas agotadas y mostrar únicamente las que tienen existencia verificada">
+                <input type="checkbox" id="filtro-disponible" onchange="aplicarFiltros()" checked class="w-3.5 h-3.5 rounded accent-[#24592a]">
+                <span class="font-semibold text-[#24592a] text-[11px] sm:text-xs">Solo en existencia</span>
+              </label>
+
+              <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-surface-container-lowest border border-outline-variant hover:bg-[#EFE8DC] text-[#93000a] font-mono text-xs font-medium cursor-pointer transition-colors select-none" title="Mostrar únicamente botellas en paquete, combos o con obsequios incluidos">
+                <input type="checkbox" id="filtro-paquete-pill" onchange="sincronizarFiltroPaquete(this.checked)" class="w-3.5 h-3.5 rounded accent-[#93000a]">
+                <span class="font-bold text-[#93000a] text-[11px] sm:text-xs">Solo paquetes y combos</span>
+              </label>
+              <input type="checkbox" id="filtro-paquete" class="hidden" aria-hidden="true" tabindex="-1">
+
+              <button type="button" id="btn-restablecer-filtros" onclick="restablecerFiltros()"
+                      class="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 rounded bg-surface-container-high hover:bg-secondary-container border border-outline-variant text-on-surface font-mono text-[11px] font-semibold cursor-pointer transition-colors"
+                      title="Restablecer todos los filtros al estado inicial">
+                <span class="material-symbols-outlined text-[14px]">restart_alt</span>
+                <span>Restablecer</span>
+                <span id="badge-filtros-activos" class="hidden px-1.5 py-0.2 rounded-full bg-primary text-on-primary text-[10px] font-bold">0</span>
               </button>
-              <button data-orden="precio_promo" onclick="ordenarPor('precio_promo')"
-                      class="px-3 py-1.5 rounded font-mono font-semibold text-xs transition-colors cursor-pointer min-h-[34px]">
-                Precio Botella <span class="orden-flecha"></span>
-              </button>
+            </div>
+
+            <!-- Controles de Ordenación -->
+            <div class="flex items-center gap-2 self-start lg:self-auto">
+              <span class="archival-badge text-outline whitespace-nowrap">Ordenar Registro:</span>
+              <div class="flex items-center gap-1.5">
+                <button data-orden="precio_por_litro" onclick="ordenarPor('precio_por_litro')"
+                        class="px-3 py-1.5 rounded font-mono font-semibold text-xs transition-colors cursor-pointer min-h-[34px]">
+                  Menor $/Litro <span class="orden-flecha"></span>
+                </button>
+                <button data-orden="precio_promo" onclick="ordenarPor('precio_promo')"
+                        class="px-3 py-1.5 rounded font-mono font-semibold text-xs transition-colors cursor-pointer min-h-[34px]">
+                  Precio Botella <span class="orden-flecha"></span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

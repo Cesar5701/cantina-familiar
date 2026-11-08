@@ -393,13 +393,29 @@
       document.getElementById("sim-total-piezas").innerText = `${totalPiezas} ${totalPiezas === 1 ? 'unidad' : 'unidades'}`;
       document.getElementById("sim-total-volumen").innerText = `${litros.toFixed(2)} Litros`;
 
-      document.getElementById("sim-total-alianza").innerText = `$${subAlianza.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-      document.getElementById("sim-total-sams").innerText = `$${subSams.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-      const elCostco = document.getElementById("sim-total-costco");
-      if (elCostco) elCostco.innerText = `$${subCostco.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-      document.getElementById("sim-total-walmart").innerText = `$${subWalmart.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-      document.getElementById("sim-total-chedraui").innerText = `$${subChedraui.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-      document.getElementById("sim-total-soriana").innerText = `$${subSoriana.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      const mapaSubTiendas = [
+        ["sim-total-alianza", subAlianza],
+        ["sim-total-sams", subSams],
+        ["sim-total-costco", subCostco],
+        ["sim-total-walmart", subWalmart],
+        ["sim-total-chedraui", subChedraui],
+        ["sim-total-soriana", subSoriana]
+      ];
+      mapaSubTiendas.forEach(([idEl, monto]) => {
+        const el = document.getElementById(idEl);
+        if (!el) return;
+        el.innerText = `$${monto.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        const card = el.parentElement;
+        if (card) {
+          if (monto > 0) {
+            card.classList.remove("opacity-60", "bg-surface-container-low", "border-outline-variant/60");
+            card.classList.add("bg-surface-container-lowest", "border-primary", "shadow-xs");
+          } else {
+            card.classList.add("opacity-60", "bg-surface-container-low", "border-outline-variant/60");
+            card.classList.remove("bg-surface-container-lowest", "border-primary", "shadow-xs");
+          }
+        }
+      });
       document.getElementById("sim-gran-total").innerText = `$${granTotal.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
 
       if (COOPERADORES_TOTAL > 0) {

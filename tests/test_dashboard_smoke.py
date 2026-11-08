@@ -73,6 +73,7 @@ def test_dashboard_smoke_renderizado_completo():
     assert soup.find(id="filtro-mejor-precio") is not None
     assert soup.find(id="filtro-descuento") is not None
     assert soup.find(id="filtro-paquete") is not None
+    assert soup.find(id="btn-restablecer-filtros") is not None
 
     # 4. Inputs de presupuesto
     assert soup.find(id="input-presupuesto-global") is not None
@@ -82,6 +83,8 @@ def test_dashboard_smoke_renderizado_completo():
     assert soup.find(id="select-versus-macro") is not None
     assert soup.find(id="select-versus-a") is not None
     assert soup.find(id="select-versus-b") is not None
+    assert soup.find(id="input-busqueda-versus-a") is not None
+    assert soup.find(id="input-busqueda-versus-b") is not None
     assert soup.find(id="select-cross-tienda-duelo") is not None
     assert soup.find(id="versus-tarjetas-container") is not None
 
@@ -121,20 +124,24 @@ def test_dashboard_smoke_datos_json_embebidos():
         "es_comparable_cross_tienda": True,
         "es_precio_mas_bajo": False,
         "es_paquete": False,
+        "ofertas_cross_tienda": [{"tienda": "Walmart", "precio": 750.0}],
     }
     html = renderizar_plantilla(template_str, datos_json_str=json.dumps([item_test]))
 
     assert "__DATA_JSON__" not in html
     assert '"Whisky Johnnie Walker Black 750 ml"' in html
+    assert "ofertas_cross_tienda" not in html
 
 
 def test_dashboard_smoke_funciones_javascript_criticas():
-    """Valida la presencia exacta de las funciones JS esenciales de UI y lógica de negocio (H44 / B5)."""
+    """Valida la presencia exacta de las funciones JS esenciales de UI y lógica de negocio (H44 / B5 / P3)."""
     template_str = cargar_plantilla_dashboard()
 
     funciones_esperadas = [
         "function actualizarSubtiposCatalogo(",
         "function aplicarFiltros(",
+        "function restablecerFiltros(",
+        "function toggleFiltrosMovil(",
         "function ordenarPor(",
         "function actualizarEstadoOrden(",
         "function agregarDesdeTabla(",
@@ -146,6 +153,8 @@ def test_dashboard_smoke_funciones_javascript_criticas():
         "function sincronizarMetricasGlobalesDOM(",
         "function actualizarSubtiposVersus(",
         "function actualizarVersusManual(",
+        "function filtrarOpcionesSelectorVersus(",
+        "function intercambiarContendientesVersus(",
         "function cargarDueloDirecto(",
         "function renderizarTabla(",
         "function nombreSinCategoria(",
