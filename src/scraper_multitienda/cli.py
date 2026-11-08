@@ -35,6 +35,7 @@ def main():
         "whisky william lawsons",
         "whisky chivas",
         "whisky buchanans",
+        "jack daniels",
         "jack daniels honey",
         "jack daniels apple",
         "vino tinto california",

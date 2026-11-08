@@ -56,6 +56,8 @@ KEYWORDS_BLENDED_WHISKY = [
     "old parr",
     "gold label",
     "swing",
+    "jack daniel",
+    "jack daniels",
 ]
 
 PALABRAS_EXCLUIDAS = [

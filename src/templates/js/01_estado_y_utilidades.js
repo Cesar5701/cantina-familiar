@@ -360,7 +360,8 @@
           elListaVig.innerHTML = Object.entries(CAMPANAS_ACTIVAS).map(([tienda, info]) => {
             const color = colores[tienda] || "text-on-surface";
             const nom = nombresCortos[tienda] || tienda;
-            return `<li>• ${nom}: <strong class="${color}">${info.vigencia_corta}</strong> (${info.campana})</li>`;
+            const fullText = `• ${nom}: ${info.vigencia_corta} (${info.campana})`;
+            return `<li class="truncate" title="${fullText}">• ${nom}: <strong class="${color}">${info.vigencia_corta}</strong> (${info.campana})</li>`;
           }).join("");
         }
       }

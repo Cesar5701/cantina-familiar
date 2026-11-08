@@ -40,6 +40,7 @@ def scrapear_chedraui(terminos: list[str] | None = None) -> list[dict]:
             "black & white",
             "ballantines",
             "william lawsons",
+            "jack daniels",
             "jack daniels honey",
             "jack daniels apple",
             "vino tinto",

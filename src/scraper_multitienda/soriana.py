@@ -43,6 +43,7 @@ def scrapear_soriana(terminos: list[str] | None = None) -> list[dict]:
             "whisky black & white",
             "whisky ballantines",
             "whisky william lawsons",
+            "jack daniels",
             "jack daniels honey",
             "jack daniels apple",
             "vino tinto california",

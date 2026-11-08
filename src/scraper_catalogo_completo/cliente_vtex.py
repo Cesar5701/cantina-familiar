@@ -70,6 +70,7 @@ def procesar_catalogo_completo(
             "mezcal cupreata",
             "whisky",
             "whisky blended",
+            "jack daniels",
             "jack daniels honey",
             "jack daniels apple",
             "vino tinto",

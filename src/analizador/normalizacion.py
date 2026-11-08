@@ -67,6 +67,15 @@ REGLAS_NORMALIZACION_CLAVE: tuple[ReglaNormalizacion, ...] = (
         r"\1 reposado cristalino",
         "marcas_reposado_cristalino",
     ),
+    # 10. Normalización de Jack Daniel's Old No. 7 estándar (cuando el súper omite 'Old No. 7' o 'No. 7')
+    ReglaNormalizacion(
+        re.compile(
+            r"\bjack\s+daniels?\b(?!\s+(?:honey|apple|gentleman|single\s+barrel|blackberry|fire|cola|mclaren|rye|sin\s+alcohol))\s*(?:old\s*no\.?\s*7|no\.?\s*7)?",
+            re.IGNORECASE,
+        ),
+        "jack daniels old no 7",
+        "jack_daniels_old_no_7",
+    ),
 )
 
 STOP_WORDS_CLAVE: frozenset[str] = frozenset({"de", "del", "el", "la", "los", "las", "en", "para", "licor", "100"})

@@ -154,6 +154,23 @@ def test_evaluar_y_normalizar_producto_whiskies_y_licores():
     assert jw["categoria"] == "Whisky"
     assert jw["subcategoria"] == "Blended Scotch"
 
+    # Jack Daniel's Old No. 7 (Tennessee Whiskey clasificado en vista general de Whisky)
+    jd_old7 = evaluar_y_normalizar_producto(
+        tienda="Bodegas Alianza",
+        nombre="Whiskey Jack Daniel’s Old No. 7 Tennessee 1 L",
+        marca="Jack Daniel's",
+        precio_regular=550.0,
+        precio_promo=504.0,
+        disponible="disponible",
+        url="https://bodegasalianza.com/jd7",
+        condicion="Oferta",
+        fuente="Bodegas Alianza",
+        fecha_actual=fecha,
+    )
+    assert jd_old7 is not None
+    assert jd_old7["categoria"] == "Whisky"
+    assert jd_old7["subcategoria"] == "Blended Scotch"
+
     # Honey Liqueur (Jack Daniel's Honey)
     jd_honey = evaluar_y_normalizar_producto(
         tienda="Walmart",

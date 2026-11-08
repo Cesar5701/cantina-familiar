@@ -209,9 +209,11 @@ def evaluar_y_normalizar_producto(
         or "william lawson" in nom_l
     ):
         if any(
-            ign in nom_l
-            for ign in ["single malt", "malt scotch", "bourbon", "tennessee", "apple", "fire", "peach", "blackberry"]
+            ign in nom_l for ign in ["single malt", "malt scotch", "bourbon", "apple", "fire", "peach", "blackberry"]
         ):
+            return None
+        # Excluir 'tennessee' únicamente si no es Jack Daniel's
+        if "tennessee" in nom_l and not ("jack daniel" in nom_l or "jack daniels" in nom_l):
             return None
         if precio_promo < 160:
             return None
