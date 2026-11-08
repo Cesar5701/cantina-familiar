@@ -20,6 +20,7 @@ RAIZ_PROYECTO = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if RAIZ_PROYECTO not in sys.path:
     sys.path.insert(0, RAIZ_PROYECTO)
 
+from src.clasificacion import normalizar_medidas_en_nombre
 from src.io_utils import guardar_csv_atomico
 from src.logger import get_logger
 
@@ -231,6 +232,84 @@ def registrar_precios_historicos(
         f"Historial actualizado con lote actual: {len(df_consolidado)} registros históricos totales en {ruta_historial}"
     )
     return df_consolidado
+
+
+def enriquecer_con_metricas_historicas(df: pd.DataFrame, df_historial: pd.DataFrame) -> pd.DataFrame:
+    """
+    Cruza el catálogo actual contra el historial de precios para calcular el semáforo anti-inflación:
+    - 'descuento_inflado': la tienda subió el precio_regular por encima de su regular histórico para abultar el descuento.
+    - 'minimo_historico': el producto está en su precio mínimo histórico con variación real respecto a su máximo.
+    - 'subio_vs_minimo': el producto está más caro que su mejor precio histórico registrado en esa misma tienda.
+    - 'estable': precio sin variación relevante en al menos 2 capturas históricas.
+    - 'nuevo': producto con menos de 2 capturas históricas.
+    """
+    df_out = df.copy()
+    if df_out.empty or df_historial is None or df_historial.empty:
+        df_out["precio_min_historico"] = df_out.get("precio_promo", 0.0)
+        df_out["precio_max_historico"] = df_out.get("precio_promo", 0.0)
+        df_out["precio_reg_min_historico"] = df_out.get("precio_regular", 0.0)
+        df_out["capturas_historicas"] = 1
+        df_out["semaforo_historico"] = "nuevo"
+        return df_out
+
+    hist = df_historial.copy()
+    hist["_prod_key"] = hist["producto"].astype(str).apply(normalizar_medidas_en_nombre)
+    hist["ml"] = pd.to_numeric(hist["ml"], errors="coerce").fillna(0).astype(int)
+    hist["precio_promo"] = pd.to_numeric(hist["precio_promo"], errors="coerce").fillna(0.0)
+    hist["precio_regular"] = pd.to_numeric(hist["precio_regular"], errors="coerce").fillna(0.0)
+    hist = hist[hist["precio_promo"] > 0]
+
+    stats = hist.groupby(["tienda", "_prod_key", "ml"], as_index=False).agg(
+        capturas_historicas=("fecha_dia", "nunique"),
+        precio_min_historico=("precio_promo", "min"),
+        precio_max_historico=("precio_promo", "max"),
+        precio_reg_min_historico=("precio_regular", "min"),
+    )
+
+    df_out["_prod_key"] = df_out["producto"].astype(str).apply(normalizar_medidas_en_nombre)
+    df_out["_ml_int"] = pd.to_numeric(df_out["ml"], errors="coerce").fillna(0).astype(int)
+
+    df_merged = df_out.merge(
+        stats,
+        left_on=["tienda", "_prod_key", "_ml_int"],
+        right_on=["tienda", "_prod_key", "ml"],
+        how="left",
+        suffixes=("", "_hist"),
+    )
+
+    p_promo = pd.to_numeric(df_merged["precio_promo"], errors="coerce").fillna(0.0)
+    p_reg = pd.to_numeric(df_merged["precio_regular"], errors="coerce").fillna(p_promo)
+    ahorro = pd.to_numeric(df_merged.get("ahorro_verificable", 0.0), errors="coerce").fillna(0.0)
+
+    df_out["capturas_historicas"] = df_merged["capturas_historicas"].fillna(1).astype(int)
+    df_out["precio_min_historico"] = df_merged["precio_min_historico"].fillna(p_promo).round(2)
+    df_out["precio_max_historico"] = df_merged["precio_max_historico"].fillna(p_promo).round(2)
+    df_out["precio_reg_min_historico"] = df_merged["precio_reg_min_historico"].fillna(p_reg).round(2)
+
+    semaforos = []
+    for i in range(len(df_out)):
+        n_cap = int(df_out["capturas_historicas"].iloc[i])
+        actual = float(p_promo.iloc[i])
+        reg_actual = float(p_reg.iloc[i])
+        ah_actual = float(ahorro.iloc[i])
+        min_h = float(df_out["precio_min_historico"].iloc[i])
+        max_h = float(df_out["precio_max_historico"].iloc[i])
+        reg_min_h = float(df_out["precio_reg_min_historico"].iloc[i])
+
+        if n_cap < 2:
+            semaforos.append("nuevo")
+        elif ah_actual > 0 and reg_min_h > 0 and reg_actual > reg_min_h + 1.0:
+            semaforos.append("descuento_inflado")
+        elif actual <= min_h + 0.05 and max_h > min_h + 1.0:
+            semaforos.append("minimo_historico")
+        elif actual > min_h + 1.0:
+            semaforos.append("subio_vs_minimo")
+        else:
+            semaforos.append("estable")
+
+    df_out["semaforo_historico"] = semaforos
+    df_out = df_out.drop(columns=["_prod_key", "_ml_int"], errors="ignore")
+    return df_out
 
 
 def consultar_historial(

@@ -40,7 +40,7 @@ from src.clasificacion import (
     normalizar_medidas_en_nombre,
     sincronizar_clasificacion_catalogo,
 )
-from src.historial import registrar_precios_historicos
+from src.historial import enriquecer_con_metricas_historicas, registrar_precios_historicos
 from src.io_utils import guardar_csv_atomico, guardar_json_atomico
 from src.logger import get_logger
 
@@ -123,11 +123,12 @@ def actualizar_todo(archivos_fuente: list[str] | None = None, carpeta_salida: st
     n_outliers = int(df["es_outlier_lujo"].sum())
     logger.info(f"Detección de ultra-lujo: {n_outliers} botellas marcadas como outliers fuera de alcance familiar")
 
-    # Guardar catálogo completo con trazabilidad de outliers (H10 / H25)
-    guardar_csv_atomico(df, os.path.join(carpeta_salida, "catalogo_completo_consolidado.csv"))
+    # Acumular snapshot en el registro histórico persistente de precios y enriquecer semáforo histórico
+    df_historial = registrar_precios_historicos(df, os.path.join(carpeta_salida, "historial_precios.csv"))
+    df = enriquecer_con_metricas_historicas(df, df_historial)
 
-    # Acumular snapshot en el registro histórico persistente de precios
-    registrar_precios_historicos(df, os.path.join(carpeta_salida, "historial_precios.csv"))
+    # Guardar catálogo completo con trazabilidad de outliers y métricas históricas (H10 / H25)
+    guardar_csv_atomico(df, os.path.join(carpeta_salida, "catalogo_completo_consolidado.csv"))
 
     # Guardar ranking general limpio de outliers para comparativas fiables (H25)
     df_ranking = df[~df["es_outlier_lujo"]].sort_values(by=["categoria", "precio_por_litro"]).reset_index(drop=True)
@@ -153,6 +154,10 @@ def actualizar_todo(archivos_fuente: list[str] | None = None, carpeta_salida: st
         "precio_por_litro",
         "ahorro_verificable",
         "porcentaje_ahorro",
+        "semaforo_historico",
+        "precio_min_historico",
+        "precio_max_historico",
+        "precio_reg_min_historico",
         "disponibilidad",
         "stock_unidades",
         "url",

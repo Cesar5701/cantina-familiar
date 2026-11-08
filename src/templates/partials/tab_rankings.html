@@ -189,6 +189,11 @@
                 <span class="font-semibold text-[#24592a] text-[11px] sm:text-xs">Solo en existencia</span>
               </label>
 
+              <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-surface-container-lowest border border-outline-variant hover:bg-[#EFE8DC] text-[#175223] font-mono text-xs font-medium cursor-pointer transition-colors select-none" title="Mostrar únicamente botellas que hoy se encuentran en su precio más bajo registrado en el historial">
+                <input type="checkbox" id="filtro-minimo-historico" onchange="aplicarFiltros()" class="w-3.5 h-3.5 rounded accent-[#175223]">
+                <span class="font-bold text-[#175223] text-[11px] sm:text-xs">🟢 Mínimo histórico</span>
+              </label>
+
               <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-surface-container-lowest border border-outline-variant hover:bg-[#EFE8DC] text-[#93000a] font-mono text-xs font-medium cursor-pointer transition-colors select-none" title="Mostrar únicamente botellas en paquete, combos o con obsequios incluidos">
                 <input type="checkbox" id="filtro-paquete-pill" onchange="sincronizarFiltroPaquete(this.checked)" class="w-3.5 h-3.5 rounded accent-[#93000a]">
                 <span class="font-bold text-[#93000a] text-[11px] sm:text-xs">Solo paquetes y combos</span>

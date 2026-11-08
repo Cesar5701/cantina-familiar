@@ -330,7 +330,11 @@
           if (info && info.vigencia_corta) {
             el.textContent = info.vigencia_corta;
             if (info.campana) {
-              el.title = `${info.campana} · Verificado al ${info.fecha_auditoria || ''}`;
+              const tooltip = `${t}: ${info.campana} (hasta ${info.vigencia_corta}) · Verificado al ${info.fecha_auditoria || ''}`;
+              el.title = tooltip;
+              if (el.parentElement && el.parentElement.tagName === "SPAN" && el.parentElement.hasAttribute("title")) {
+                el.parentElement.title = tooltip;
+              }
             }
           }
         });

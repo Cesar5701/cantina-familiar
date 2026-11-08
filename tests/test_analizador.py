@@ -15,16 +15,20 @@ import pandas as pd
 import pytest
 
 from src.analizador import (
+    METADATOS_CAMPANAS_TIENDAS,
     REGLAS_NORMALIZACION_CLAVE,
     STOP_WORDS_CLAVE,
     ReglaNormalizacion,
     auditar_datos_faltantes,
     calcular_grupos_cross_tienda,
     calcular_metricas,
+    detectar_campanas_por_tienda,
     detectar_duplicados,
     enriquecer_registros_cross_tienda,
     es_producto_paquete,
+    extraer_vigencia_de_textos,
     generar_rankings_por_categoria,
+    generar_resumen_whatsapp,
     marcar_outliers_lujo,
     normalizar_texto_clave,
     obtener_comparativa_cross_tienda,
@@ -975,3 +979,121 @@ def test_arbitraje_descarta_precios_fantasma_agotados():
     assert oferta_ched["es_mejor_precio"] is False
     assert oferta_ched["disponibilidad"] == "agotado"
     assert oferta_ched["stock_unidades"] == 0
+
+
+# =====================================================================
+# Pruebas de Auditoría de Campañas Comerciales y Vigencias de Ofertas
+# =====================================================================
+def test_extraer_vigencia_de_textos():
+    """Valida la extracción precisa de fechas de vigencia a partir de textos promocionales."""
+    textos_1 = ["Rebaja en línea", "Vigencia al 18 de noviembre de 2026", "Ahorra $300"]
+    assert extraer_vigencia_de_textos(textos_1) == "18 Nov"
+
+    textos_2 = ["Hasta el 12 de nov", "Bombazo de Precios"]
+    assert extraer_vigencia_de_textos(textos_2) == "12 Nov"
+
+    textos_3 = ["Promoción especial del 7 al 17 de noviembre"]
+    assert extraer_vigencia_de_textos(textos_3) == "17 Nov"
+
+    textos_4 = ["Sin fecha explícita", "Precio regular"]
+    assert extraer_vigencia_de_textos(textos_4) is None
+
+
+def test_detectar_campanas_vigencias_comerciales_vs_auditoria():
+    """
+    Verifica que la vigencia corta represente el fin comercial de la campaña (12 Nov, 18 Nov, etc.)
+    y NO la fecha de ejecución técnica del scraper (fecha_auditoria).
+    """
+    df_muestra = pd.DataFrame(
+        [
+            {
+                "tienda": "Bodegas Alianza",
+                "producto": "Tequila Don Julio 70 700 ml",
+                "condiciones": "Descuento directo Bombazo Web",
+                "precio_regular": 1100.0,
+                "precio_promo": 850.0,
+                "ahorro_verificable": 250.0,
+                "fecha_consulta": "2026-11-07 19:04:00",
+            },
+            {
+                "tienda": "Sam's Club",
+                "producto": "Whisky Johnnie Walker Black 1000 ml",
+                "condiciones": "Rebaja en línea (Ahorra $350)",
+                "precio_regular": 1050.0,
+                "precio_promo": 700.0,
+                "ahorro_verificable": 350.0,
+                "fecha_consulta": "2026-11-07 19:04:00",
+            },
+            {
+                "tienda": "Walmart",
+                "producto": "Tequila Dobel Diamante 700 ml",
+                "condiciones": "Rebaja en línea (Ahorra $200)",
+                "precio_regular": 800.0,
+                "precio_promo": 600.0,
+                "ahorro_verificable": 200.0,
+                "fecha_consulta": "2026-10-24 19:48:00",
+            },
+            {
+                "tienda": "Costco",
+                "producto": "Whisky Chivas Regal 12 1000 ml",
+                "condiciones": "Oferta Costco (Ahorra $250)",
+                "precio_regular": 850.0,
+                "precio_promo": 600.0,
+                "ahorro_verificable": 250.0,
+                "fecha_consulta": "2026-11-07 19:06:00",
+            },
+            {
+                "tienda": "Chedraui",
+                "producto": "Mezcal 400 Conejos 750 ml",
+                "condiciones": "Oferta en línea Chedraui",
+                "precio_regular": 600.0,
+                "precio_promo": 480.0,
+                "ahorro_verificable": 120.0,
+                "fecha_consulta": "2026-11-07 19:04:00",
+            },
+            {
+                "tienda": "Soriana",
+                "producto": "Vino Tinto Concha y Toro 750 ml",
+                "condiciones": "Precio regular (Promoción 3 x 2)",
+                "precio_regular": 200.0,
+                "precio_promo": 133.33,
+                "ahorro_verificable": 66.67,
+                "fecha_consulta": "2026-11-07 19:05:00",
+            },
+        ]
+    )
+
+    campanas = detectar_campanas_por_tienda(df_muestra)
+
+    # Validar coherencia con los metadatos oficiales de campaña por cadena
+    for tienda, meta in METADATOS_CAMPANAS_TIENDAS.items():
+        assert campanas[tienda]["vigencia_corta"] == meta["vigencia_corta"]
+        assert campanas[tienda]["campana"] == meta["campana"]
+
+    # 1. Alianza
+    assert "2026-11-07" in campanas["Bodegas Alianza"]["fecha_auditoria"]
+
+    # 2. Sam's Club
+    assert "2026-11-07" in campanas["Sam's Club"]["fecha_auditoria"]
+
+    # 3. Walmart (con fecha antigua 24 Oct, su vigencia comercial sigue siendo la del Fin Irresistible)
+    assert "2026-10-24" in campanas["Walmart"]["fecha_auditoria"]
+
+
+def test_generar_resumen_whatsapp_vigencias():
+    """Verifica que el resumen generado para WhatsApp incluya vigencias comerciales correctas."""
+    mock_campanas = {
+        "Bodegas Alianza": {"campana": "Bombazo de Precios", "vigencia_corta": "12 Nov"},
+        "Sam's Club": {"campana": "El Fin Irresistible", "vigencia_corta": "18 Nov"},
+        "Costco": {"campana": "Cuponera de Temporada", "vigencia_corta": "15 Nov"},
+        "Walmart": {"campana": "El Fin Irresistible", "vigencia_corta": "18 Nov"},
+        "Chedraui": {"campana": "Preventa Modo Fin / Buen Fin", "vigencia_corta": "17 Nov"},
+        "Soriana": {"campana": "Pre Buen Fin / Reventados", "vigencia_corta": "17 Nov"},
+    }
+    resumen = generar_resumen_whatsapp(mock_campanas)
+    assert "Bodegas Alianza: hasta 12 Nov (Bombazo de Precios)" in resumen
+    assert "Sam's Club: hasta 18 Nov (El Fin Irresistible)" in resumen
+    assert "Costco: hasta 15 Nov (Cuponera de Temporada)" in resumen
+    assert "Walmart: hasta 18 Nov (El Fin Irresistible)" in resumen
+    assert "Chedraui: hasta 17 Nov (Preventa Modo Fin / Buen Fin)" in resumen
+    assert "Soriana: hasta 17 Nov (Pre Buen Fin / Precios Reventados)" in resumen

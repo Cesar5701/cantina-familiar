@@ -5,8 +5,10 @@ y generar rankings estrictamente separados por categorías comparables.
 """
 
 from src.analizador.campanas import (
+    METADATOS_CAMPANAS_TIENDAS,
     detectar_campanas_por_tienda,
     detectar_nombre_campana,
+    extraer_vigencia_de_textos,
     formatear_fecha_auditoria_detallada,
     formatear_fecha_corte,
     generar_resumen_whatsapp,
@@ -45,6 +47,7 @@ from src.analizador.rankings_y_cli import (
 
 __all__ = [
     "COLUMNAS_OBLIGATORIAS",
+    "METADATOS_CAMPANAS_TIENDAS",
     "REGLAS_NORMALIZACION_CLAVE",
     "STOP_WORDS_CLAVE",
     "ReglaNormalizacion",
@@ -57,6 +60,7 @@ __all__ = [
     "detectar_nombre_campana",
     "enriquecer_registros_cross_tienda",
     "es_producto_paquete",
+    "extraer_vigencia_de_textos",
     "filtrar_catalogo_dashboard",
     "formatear_fecha_auditoria_detallada",
     "formatear_fecha_corte",
