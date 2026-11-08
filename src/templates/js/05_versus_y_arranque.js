@@ -114,7 +114,7 @@
       if (c.includes("Mezcal - Añejo")) return "Maduración ≥12 meses en roble con notas profundas de cacao y frutos secos.";
       if (c.includes("Mezcal - Silvestre")) return "Agaves silvestres (Tobalá, Cupreata, Cuishe) de 8 a 15 años de maduración en monte.";
       if (c.includes("Whisky")) return "Blended Scotch madurado mínimo 3 años en barricas de roble escocés.";
-      if (c.includes("Honey")) return "Licor de whiskey infusionado con miel natural de abeja.";
+      if (c.includes("Honey")) return "Licor de whiskey infusionado con miel natural de abeja o manzana verde crujiente.";
       if (c.includes("Vino")) return "Vino tinto frutal ideal para clericot o servicio directo en mesa.";
       return "Destilación artesanal certificada.";
     }

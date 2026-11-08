@@ -58,16 +58,16 @@ def detectar_categoria_base(nombre: str) -> str:
         return "Tequila"
     if "mezcal" in nom_l:
         return "Mezcal"
-    # Licor Honey de marcas de whisky
+    # Licor Honey o Apple de marcas de whisky
     if (
         "jack daniel" in nom_l
         or "passport" in nom_l
         or "jim beam" in nom_l
         or "wild turkey" in nom_l
         or "william lawson" in nom_l
-    ) and ("honey" in nom_l or "miel" in nom_l):
+    ) and ("honey" in nom_l or "miel" in nom_l or "apple" in nom_l or "manzana" in nom_l):
         return "Licor de Whisky"
-    if "honey" in nom_l and ("whisky" in nom_l or "whiskey" in nom_l):
+    if ("honey" in nom_l or "apple" in nom_l) and ("whisky" in nom_l or "whiskey" in nom_l):
         return "Licor de Whisky"
     if "whisky" in nom_l or "whiskey" in nom_l or any(k in nom_l for k in KEYWORDS_BLENDED_WHISKY):
         return "Whisky"
@@ -201,6 +201,7 @@ def clasificar_estricto(row_o_nombre: Union[dict, Any, str], categoria: Optional
         cat == "Licor de Whisky"
         or "honey" in nom_l
         or "miel" in nom_l
+        or (("jack daniel" in nom_l or "jack daniel's" in nom_l) and ("apple" in nom_l or "manzana" in nom_l))
         or ("licor" in nom_l and ("whisky" in nom_l or "whiskey" in nom_l))
     ):
         return "Licor de Whisky - Honey", "Honey Liqueur", "Honey Liqueur"

@@ -28,7 +28,7 @@
         { value: "Whisky - Blended Scotch", label: "Blended Scotch (175)" }
       ],
       "Licor de Whisky": [
-        { value: "Licor de Whisky - Honey", label: "Licor de Whisky con Miel / Honey (9)" }
+        { value: "Licor de Whisky - Honey", label: "Licor de Whisky: Honey & Apple" }
       ],
       "Vino": [
         { value: "Vino - Tinto Clericot", label: "Vino Tinto para Clericot y Mesa (155)" }
@@ -105,6 +105,7 @@
         { a: "William Lawson's", storeA: "Bodegas Alianza", b: "Black & White  1.75", storeB: "Sam's Club", label: "William Lawson's 1.75L Alianza ($470) vs Black & White 1.75L Sam's ($491)" }
       ],
       "Licor de Whisky - Honey": [
+        { a: "Apple Tennessee 700", storeA: "Bodegas Alianza", b: "Tennesse Apple 700", storeB: "Sam's Club", label: "Jack Daniel's Apple Sam's ($360.10) vs Alianza ($378)" },
         { a: "Honey Tennessee 700", storeA: "Bodegas Alianza", b: "Tennessee Honey 700ml", storeB: "Chedraui", label: "Jack Daniel's Honey Alianza ($378) vs Chedraui ($395)" },
         { a: "Honey Tennessee 700", storeA: "Bodegas Alianza", b: "Tennessee Honey 1 L", storeB: "Sam's Club", label: "Jack Daniel's Honey 700ml Alianza ($378) vs 1.0L Sam's ($562.65)" },
         { a: "Passport Honey 700ml", storeA: "Chedraui", b: "Honey Tennessee 700", storeB: "Bodegas Alianza", label: "Passport Honey Chedraui ($185) vs Jack Daniel's Honey ($378)" }

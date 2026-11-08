@@ -271,6 +271,15 @@ def test_clasificacion_estricta_otras_bebidas():
     assert cat == "Licor de Whisky - Honey"
     assert sub == "Honey Liqueur"
 
+    # Jack Daniel's Tennessee Apple en misma categoría de Honey
+    cat, sub, cla = clasificar_estricto("Whiskey Jack Daniel's Tennessee Apple 700 ml")
+    assert cat == "Licor de Whisky - Honey"
+    assert sub == "Honey Liqueur"
+
+    cat, sub, cla = clasificar_estricto("Whisky Jack Daniel’s Apple Tennessee 700 ml")
+    assert cat == "Licor de Whisky - Honey"
+    assert sub == "Honey Liqueur"
+
     # Vino Tinto Clericot
     cat, sub, cla = clasificar_estricto("Vino Tinto Carlo Rossi California 4 L", "Vino")
     assert cat == "Vino - Tinto Clericot"
@@ -288,6 +297,10 @@ def test_clasificar_categoria_compatibilidad():
     assert sub == "Silvestre"
 
     cat, sub = clasificar_categoria("Jack Daniel's Honey 700 ml")
+    assert cat == "Licor de Whisky"
+    assert sub == "Honey Liqueur"
+
+    cat, sub = clasificar_categoria("Jack Daniel's Apple 700 ml")
     assert cat == "Licor de Whisky"
     assert sub == "Honey Liqueur"
 
@@ -463,6 +476,13 @@ def test_sincronizar_clasificacion_catalogo():
             "precio_regular": 250.0,
             "precio_promo": 210.0,
         },
+        # 6. Licor de Whisky Apple legítimo (misma categoría Honey)
+        {
+            "producto": "Whiskey Jack Daniel's Tennessee Apple 700 ml",
+            "categoria": "Whisky",
+            "precio_regular": 550.0,
+            "precio_promo": 480.0,
+        },
     ]
     df = pd.DataFrame(data)
     df_res = sincronizar_clasificacion_catalogo(df)
@@ -478,10 +498,14 @@ def test_sincronizar_clasificacion_catalogo():
     assert "Cupreata" in row_mezcal["especie_agave"]
     assert "🎁" in str(row_mezcal["condiciones"])
 
-    # 3. Jack Daniel's Honey debe quedar en categoria = 'Licor de Whisky'
-    row_honey = df_res[df_res["producto"].str.contains("Jack Daniel")].iloc[0]
+    # 3. Jack Daniel's Honey y Apple deben quedar en categoria = 'Licor de Whisky' y 'Licor de Whisky - Honey'
+    row_honey = df_res[df_res["producto"].str.contains("Honey")].iloc[0]
     assert row_honey["categoria"] == "Licor de Whisky"
     assert row_honey["categoria_comparable"] == "Licor de Whisky - Honey"
+
+    row_apple = df_res[df_res["producto"].str.contains("Apple")].iloc[0]
+    assert row_apple["categoria"] == "Licor de Whisky"
+    assert row_apple["categoria_comparable"] == "Licor de Whisky - Honey"
 
     # 4. Black & White debe ser Whisky Blended Scotch
     row_whisky = df_res[df_res["producto"].str.contains("Black & White")].iloc[0]

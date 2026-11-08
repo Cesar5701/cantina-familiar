@@ -155,15 +155,18 @@ def evaluar_y_normalizar_producto(
         }
 
     # -------------------------------------------------------------
-    # C. LICOR DE WHISKY HONEY
+    # C. LICOR DE WHISKY HONEY & APPLE
     # -------------------------------------------------------------
     if (
-        "jack daniel" in nom_l
-        or "passport" in nom_l
-        or "jim beam" in nom_l
-        or "wild turkey" in nom_l
-        or "william lawson" in nom_l
-    ) and ("honey" in nom_l or "miel" in nom_l):
+        (
+            "jack daniel" in nom_l
+            or "passport" in nom_l
+            or "jim beam" in nom_l
+            or "wild turkey" in nom_l
+            or "william lawson" in nom_l
+        )
+        and ("honey" in nom_l or "miel" in nom_l)
+    ) or ("jack daniel" in nom_l and ("apple" in nom_l or "manzana" in nom_l)):
         if precio_promo < 150:
             return None
         return {

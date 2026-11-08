@@ -171,6 +171,23 @@ def test_evaluar_y_normalizar_producto_whiskies_y_licores():
     assert jd_honey["categoria"] == "Licor de Whisky"
     assert jd_honey["subcategoria"] == "Honey Liqueur"
 
+    # Apple Liqueur (Jack Daniel's Apple) en la misma categoría de Honey
+    jd_apple = evaluar_y_normalizar_producto(
+        tienda="Sam's Club",
+        nombre="Whiskey Jack Daniel's Tennesse Apple 700 ml",
+        marca="Jack Daniel's",
+        precio_regular=450.0,
+        precio_promo=360.10,
+        disponible="disponible",
+        url="https://sams.com.mx/jd-apple",
+        condicion="Precio socio",
+        fuente="Sam's Club",
+        fecha_actual=fecha,
+    )
+    assert jd_apple is not None
+    assert jd_apple["categoria"] == "Licor de Whisky"
+    assert jd_apple["subcategoria"] == "Honey Liqueur"
+
 
 def test_evaluar_y_normalizar_producto_vinos_tintos():
     """Valida la clasificación de Vino Tinto Clericot y garrafas familiares."""

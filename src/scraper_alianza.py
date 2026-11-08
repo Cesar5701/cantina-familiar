@@ -88,7 +88,9 @@ def consultar_api_alianza(
                 "productor": marca,
                 "sello_regulador": "sí" if categoria in ["Tequila", "Mezcal"] else "no_aplica",
                 "ml": ml,
-                "abv": 38.0 if categoria in ["Tequila", "Mezcal"] else (40.0 if categoria == "Whisky" else 12.0),
+                "abv": 35.0
+                if categoria == "Licor de Whisky"
+                else (38.0 if categoria in ["Tequila", "Mezcal"] else (40.0 if categoria == "Whisky" else 12.0)),
                 "precio_regular": float(precio_regular),
                 "precio_promo": float(precio_promo),
                 "unidades_promo": 1,

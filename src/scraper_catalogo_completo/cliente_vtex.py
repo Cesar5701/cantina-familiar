@@ -71,6 +71,7 @@ def procesar_catalogo_completo(
             "whisky",
             "whisky blended",
             "jack daniels honey",
+            "jack daniels apple",
             "vino tinto",
             "vino california",
             "vino reservado",

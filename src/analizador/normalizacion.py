@@ -36,7 +36,7 @@ REGLAS_NORMALIZACION_CLAVE: tuple[ReglaNormalizacion, ...] = (
     ReglaNormalizacion(re.compile(r"\blicor\s+de\s+whisky\b", re.IGNORECASE), "whisky", "licor_de_whisky"),
     ReglaNormalizacion(re.compile(r"\blicor\s+de\b", re.IGNORECASE), " ", "prefijo_licor"),
     # 4. Omitir descriptores regionales/opcionales en marcas reconocidas (ej. Tennessee en Jack Daniel's)
-    ReglaNormalizacion(re.compile(r"\btennessee\b", re.IGNORECASE), " ", "descriptor_regional"),
+    ReglaNormalizacion(re.compile(r"\btennessee?\b", re.IGNORECASE), " ", "descriptor_regional"),
     # 5. Abreviaturas de reposado frecuentes en retail (Rep -> reposado)
     ReglaNormalizacion(re.compile(r"\brep\.?(?!\w)", re.IGNORECASE), "reposado", "abreviatura_reposado"),
     # 6. Descriptores de pureza de agave / artesanales / envase genérico en Tequila y Mezcal

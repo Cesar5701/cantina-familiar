@@ -156,8 +156,8 @@ def evaluar_item_alianza(p: dict, fecha_actual: str, resumen: ResumenScraping) -
             "confianza": "Confirmado",
         }
 
-    # 3. LICOR DE WHISKY (HONEY)
-    if "honey" in nom_l or "miel" in nom_l:
+    # 3. LICOR DE WHISKY (HONEY & APPLE)
+    if "honey" in nom_l or "miel" in nom_l or ("jack daniel" in nom_l and ("apple" in nom_l or "manzana" in nom_l)):
         resumen.registrar_exito()
         return {
             "tienda": "Bodegas Alianza",

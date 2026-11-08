@@ -206,9 +206,9 @@ def sincronizar_clasificacion_catalogo(df: pd.DataFrame) -> pd.DataFrame:
     categorias_permitidas = set(CATEGORIAS_COMPARABLES_VALIDAS) - categorias_excluidas
     df = df[df["categoria_comparable"].isin(categorias_permitidas)].copy()
 
-    # En Licor de Whisky - Honey, asegurar que sea realmente Honey
+    # En Licor de Whisky - Honey, asegurar que sea realmente Honey o Apple
     mask_honey_invalido = (df["categoria_comparable"] == "Licor de Whisky - Honey") & (
-        ~df["producto"].str.lower().str.contains("honey|miel", regex=True, na=False)
+        ~df["producto"].str.lower().str.contains("honey|miel|apple|manzana", regex=True, na=False)
     )
     df = df[~mask_honey_invalido].copy()
 
