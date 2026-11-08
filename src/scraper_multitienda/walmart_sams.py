@@ -126,8 +126,21 @@ def scrapear_nextjs_walmart_platform(
                     full_url = f"https://{base_domain}{canon}" if canon.startswith("/") else (canon or url)
 
                     avail_obj = it.get("availabilityStatusV2") or {}
-                    avail_val = avail_obj.get("value", "IN_STOCK") if isinstance(avail_obj, dict) else "IN_STOCK"
-                    if avail_val == "OUT_OF_STOCK" or it.get("isOutOfStock"):
+                    avail_val = avail_obj.get("value", "") if isinstance(avail_obj, dict) else str(avail_obj)
+                    avail_disp = str(avail_obj.get("display", "")).lower() if isinstance(avail_obj, dict) else ""
+                    status = str(it.get("availabilityStatus", "")).upper()
+                    show_atc = it.get("showAtc")
+                    can_atc = it.get("canAddToCart")
+
+                    is_out_of_stock = (
+                        it.get("isOutOfStock") is True
+                        or avail_val in ["OUT_OF_STOCK", "NOT_AVAILABLE", "UNAVAILABLE"]
+                        or status in ["OUT_OF_STOCK", "NOT_AVAILABLE", "UNAVAILABLE"]
+                        or avail_disp in ["out of stock", "agotado", "no disponible"]
+                        or show_atc is False
+                        or can_atc is False
+                    )
+                    if is_out_of_stock:
                         resumen.registrar_descarte("agotado")
                         continue
 

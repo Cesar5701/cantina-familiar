@@ -19,6 +19,7 @@ def _construir_registro_producto(
     condicion: str,
     url: str,
     fecha_consulta: str,
+    disponibilidad: str = "disponible",
 ) -> dict:
     """Construye un diccionario estandarizado para un producto extraído vía DOM."""
     cat, subcat = clasificar_categoria(nombre)
@@ -43,7 +44,7 @@ def _construir_registro_producto(
         "unidades_promo": 1,
         "precio_total_promo": precio_promo,
         "condiciones": condicion,
-        "disponibilidad": "disponible",
+        "disponibilidad": disponibilidad,
         "stock_unidades": None,
         "url": url,
         "fecha_consulta": fecha_consulta,

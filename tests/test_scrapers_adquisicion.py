@@ -423,11 +423,32 @@ def test_scrapear_nextjs_walmart_platform_mock():
                                             "savings": "$170",
                                         },
                                     },
-                                    # Item agotado
+                                    # Item agotado vía availabilityStatusV2.value
                                     {
                                         "usItemId": "wm_002",
                                         "name": "Whisky Black & White 700 ml",
                                         "availabilityStatusV2": {"value": "OUT_OF_STOCK"},
+                                    },
+                                    # Item agotado vía showAtc = False (ej. bundle marketplace agotado)
+                                    {
+                                        "usItemId": "wm_003",
+                                        "name": "Whisky Johnnie Walker Black Label 1L X3",
+                                        "showAtc": False,
+                                        "priceInfo": {"linePrice": "$1,799.00"},
+                                    },
+                                    # Item agotado vía canAddToCart = False
+                                    {
+                                        "usItemId": "wm_004",
+                                        "name": "Tequila El Tequileño Cristalino 750 ml",
+                                        "canAddToCart": False,
+                                        "priceInfo": {"linePrice": "$450.00"},
+                                    },
+                                    # Item agotado vía availabilityStatusV2.display = "Agotado"
+                                    {
+                                        "usItemId": "wm_005",
+                                        "name": "Mezcal Ojo de Tigre 750 ml",
+                                        "availabilityStatusV2": {"display": "Agotado"},
+                                        "priceInfo": {"linePrice": "$520.00"},
                                     },
                                 ]
                             }
