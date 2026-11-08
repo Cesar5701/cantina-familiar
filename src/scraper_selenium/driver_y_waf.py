@@ -2,6 +2,7 @@
 Inicialización de WebDriver (Chrome/Firefox), pausas humanas y detección/resolución de desafíos WAF/CAPTCHA.
 """
 
+import os
 import random
 import time
 
@@ -13,6 +14,7 @@ from selenium.common.exceptions import (
     WebDriverException,
 )
 from selenium.webdriver.chrome.options import Options as ChromeOptions
+from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 
@@ -43,6 +45,38 @@ INDICADORES_CHALLENGE = [
 ]
 
 
+def _buscar_par_chrome_cache() -> tuple[str | None, str | None]:
+    """Busca un par de versión coincidente entre Chrome y ChromeDriver en ~/.cache/selenium."""
+    cache_base = os.path.expanduser("~/.cache/selenium")
+    chrome_dir = os.path.join(cache_base, "chrome", "linux64")
+    driver_dir = os.path.join(cache_base, "chromedriver", "linux64")
+    if not (os.path.isdir(chrome_dir) and os.path.isdir(driver_dir)):
+        return None, None
+    try:
+        for ver in sorted(os.listdir(chrome_dir), reverse=True):
+            bin_chrome = os.path.join(chrome_dir, ver, "chrome")
+            bin_driver = os.path.join(driver_dir, ver, "chromedriver")
+            if os.path.isfile(bin_chrome) and os.path.isfile(bin_driver):
+                return bin_chrome, bin_driver
+    except OSError:
+        pass
+    return None, None
+
+
+def _aplicar_stealth_chrome(driver: webdriver.Remote) -> None:
+    """Oculta la propiedad navigator.webdriver mediante Chrome DevTools Protocol."""
+    driver.execute_cdp_cmd(
+        "Page.addScriptToEvaluateOnNewDocument",
+        {
+            "source": """
+            Object.defineProperty(navigator, 'webdriver', {
+                get: () => undefined
+            });
+        """
+        },
+    )
+
+
 def inicializar_driver(headless: bool = False, navegador: str = "chrome") -> webdriver.Remote:
     """Inicializa Selenium en Chrome (o Firefox) con User-Agent y banderas de navegador real."""
     if navegador.lower() == "chrome":
@@ -58,18 +92,19 @@ def inicializar_driver(headless: bool = False, navegador: str = "chrome") -> web
         options.add_experimental_option("useAutomationExtension", False)
         try:
             driver = webdriver.Chrome(options=options)
-            # Evadir la detección de navigator.webdriver en Chrome
-            driver.execute_cdp_cmd(
-                "Page.addScriptToEvaluateOnNewDocument",
-                {
-                    "source": """
-                    Object.defineProperty(navigator, 'webdriver', {
-                        get: () => undefined
-                    });
-                """
-                },
-            )
+            _aplicar_stealth_chrome(driver)
         except (WebDriverException, SessionNotCreatedException, FileNotFoundError, OSError) as e:
+            bin_chrome, bin_driver = _buscar_par_chrome_cache()
+            if bin_chrome and bin_driver:
+                try:
+                    options.binary_location = bin_chrome
+                    service = ChromeService(executable_path=bin_driver)
+                    driver = webdriver.Chrome(service=service, options=options)
+                    _aplicar_stealth_chrome(driver)
+                    driver.set_page_load_timeout(45)
+                    return driver
+                except (WebDriverException, SessionNotCreatedException, FileNotFoundError, OSError):
+                    pass
             logger.warning(f"No se pudo iniciar Chrome ({e}). Intentando con Firefox...")
             return inicializar_driver(headless=headless, navegador="firefox")
     else:

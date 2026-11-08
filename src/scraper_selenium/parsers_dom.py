@@ -98,20 +98,42 @@ def extraer_de_json_embebido(soup: BeautifulSoup, url: str, tienda: str, fecha_c
                     nombre = obj.get("name") or obj.get("title") or obj.get("displayName")
                     precio_obj = obj.get("price") or obj.get("priceInfo") or obj.get("prices") or obj.get("itemPrice")
                     if nombre and isinstance(nombre, str) and len(nombre) > 5 and precio_obj:
-                        p_val = None
-                        if isinstance(precio_obj, (int, float)):
-                            p_val = float(precio_obj)
-                        elif isinstance(precio_obj, str):
-                            p_val = limpiar_precio(precio_obj)
-                        elif isinstance(precio_obj, dict):
-                            for k in ["price", "itemPrice", "currentPrice", "finalPrice", "priceString"]:
-                                if k in precio_obj and precio_obj[k] is not None:
-                                    p_val = limpiar_precio(str(precio_obj[k]))
-                                    if p_val:
-                                        break
-                        if p_val and p_val > 50:
-                            prod_url = obj.get("productUrl") or obj.get("canonicalUrl") or url
-                            encontrados.append((nombre, p_val, prod_url))
+                        avail_obj = obj.get("availabilityStatusV2") or {}
+                        avail_val = avail_obj.get("value", "") if isinstance(avail_obj, dict) else str(avail_obj)
+                        avail_disp = (
+                            str(avail_obj.get("display", "")).lower() if isinstance(avail_obj, dict) else ""
+                        )
+                        status = str(obj.get("availabilityStatus", "")).upper()
+                        is_oos = (
+                            obj.get("isOutOfStock") is True
+                            or avail_val in ["OUT_OF_STOCK", "NOT_AVAILABLE", "UNAVAILABLE"]
+                            or status in ["OUT_OF_STOCK", "NOT_AVAILABLE", "UNAVAILABLE"]
+                            or avail_disp in ["out of stock", "agotado", "no disponible"]
+                            or obj.get("showAtc") is False
+                            or obj.get("canAddToCart") is False
+                        )
+                        if not is_oos:
+                            p_val = None
+                            p_reg_val = None
+                            if isinstance(precio_obj, (int, float)):
+                                p_val = float(precio_obj)
+                            elif isinstance(precio_obj, str):
+                                p_val = limpiar_precio(precio_obj)
+                            elif isinstance(precio_obj, dict):
+                                for k in ["linePrice", "price", "currentPrice", "finalPrice", "itemPrice", "priceString"]:
+                                    if k in precio_obj and precio_obj[k] is not None:
+                                        p_val = limpiar_precio(str(precio_obj[k]))
+                                        if p_val:
+                                            break
+                                for k_reg in ["wasPrice", "itemPrice", "regularPrice", "listPrice"]:
+                                    if k_reg in precio_obj and precio_obj[k_reg] is not None:
+                                        p_reg_val = limpiar_precio(str(precio_obj[k_reg]))
+                                        if p_reg_val:
+                                            break
+                            if p_val and p_val > 50:
+                                p_reg_final = p_reg_val if (p_reg_val and p_reg_val > p_val) else p_val
+                                prod_url = obj.get("productUrl") or obj.get("canonicalUrl") or url
+                                encontrados.append((nombre, p_reg_final, p_val, prod_url))
 
                     for v in obj.values():
                         encontrados.extend(buscar_items_recursivo(v))
@@ -122,16 +144,17 @@ def extraer_de_json_embebido(soup: BeautifulSoup, url: str, tienda: str, fecha_c
 
             items_next = buscar_items_recursivo(data)
             nombres_vistos = set()
-            for nombre, p_val, prod_url in items_next:
+            base_host = "https://www.walmart.com.mx" if "walmart" in tienda.lower() or "walmart" in url.lower() else "https://www.sams.com.mx"
+            for nombre, p_reg, p_val, prod_url in items_next:
                 if nombre in nombres_vistos:
                     continue
                 nombres_vistos.add(nombre)
-                full_url = f"https://www.sams.com.mx{prod_url}" if prod_url.startswith("/") else prod_url
+                full_url = f"{base_host}{prod_url}" if prod_url.startswith("/") else prod_url
                 productos.append(
                     _construir_registro_producto(
                         tienda=tienda,
                         nombre=nombre,
-                        precio_regular=p_val,
+                        precio_regular=p_reg,
                         precio_promo=p_val,
                         condicion="Consulta web directa (__NEXT_DATA__)",
                         url=full_url,
@@ -193,6 +216,7 @@ def parsear_html_con_bs4(html_source: str, url: str, tienda: str) -> list[dict]:
                 tarjetas.append(contenedor)
 
     nombres_procesados = set()
+    base_host = "https://www.walmart.com.mx" if "walmart" in tienda.lower() or "walmart" in url.lower() else "https://www.sams.com.mx"
     for tarjeta in tarjetas:
         # Extraer nombre
         elem_nombre = (
@@ -230,7 +254,7 @@ def parsear_html_con_bs4(html_source: str, url: str, tienda: str) -> list[dict]:
         item_url = url
         if link_elem and link_elem.get("href"):
             href = link_elem["href"]
-            item_url = f"https://www.sams.com.mx{href}" if href.startswith("/") else href
+            item_url = f"{base_host}{href}" if href.startswith("/") else href
 
         productos.append(
             _construir_registro_producto(

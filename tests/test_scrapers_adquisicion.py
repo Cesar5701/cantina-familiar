@@ -581,6 +581,82 @@ def test_scrapear_nextjs_walmart_platform_upsert_incremental(tmp_path):
     assert por_url["https://www.walmart.com.mx/p3"]["precio_promo"] == 480.0
 
 
+def test_scrapear_nextjs_walmart_platform_fallback_selenium_y_prerender(tmp_path):
+    """Valida que ante caché señuelo Akamai/Prerender o WAF se active el fallback automático a Selenium con UPSERT."""
+    from src.scraper_multitienda.walmart_sams import es_respuesta_prerender_falsa
+
+    # 1. Validar detector de respuesta señuelo Akamai/Prerender ('leche' al buscar 'tequila')
+    data_leche = {"query": {"q": "leche"}, "props": {"pageProps": {"initialData": {"searchResult": {"title": 'Resultados para "leche"'}}}}}
+    es_falso, q_det = es_respuesta_prerender_falsa(data_leche, "tequila")
+    assert es_falso is True
+    assert q_det == "leche"
+
+    data_valida = {"query": {"q": "tequila"}, "props": {"pageProps": {"initialData": {"searchResult": {"title": 'Resultados para "tequila"'}}}}}
+    assert es_respuesta_prerender_falsa(data_valida, "tequila")[0] is False
+
+    # 2. Validar fallback automático a Selenium + UPSERT incremental cuando HTTP devuelve caché señuelo
+    csv_respaldo = tmp_path / "scraped_walmart_sel.csv"
+    csv_respaldo.write_text(
+        "tienda,producto,marca,categoria,subcategoria,ml,precio_regular,precio_promo,disponibilidad,url\n"
+        "Walmart,Tequila Don Julio 70 Añejo Cristalino 700 ml,Don Julio,Tequila,Añejo Cristalino,700,1020.0,846.0,disponible,https://www.walmart.com.mx/p1\n",
+        encoding="utf-8",
+    )
+    html_leche = f'<html><script id="__NEXT_DATA__" type="application/json">{json.dumps(data_leche)}</script></html>'
+
+    prods_selenium_mock = [
+        {
+            "tienda": "Walmart",
+            "producto": "Tequila Don Julio 70 Añejo Cristalino 700 ml",
+            "marca": "Don Julio",
+            "precio_regular": 990.0,
+            "precio_promo": 655.0,
+            "disponibilidad": "disponible",
+            "url": "https://www.walmart.com.mx/p1",
+            "condiciones": "Descuento en línea",
+        },
+        {
+            "tienda": "Walmart",
+            "producto": "Whisky Chivas Regal 12 Años 750 ml",
+            "marca": "Chivas Regal",
+            "precio_regular": 780.0,
+            "precio_promo": 620.0,
+            "disponibilidad": "disponible",
+            "url": "https://www.walmart.com.mx/p2",
+            "condiciones": "Descuento en línea",
+        },
+        # Producto irrelevante que debe ser descartado por normalizador
+        {
+            "tienda": "Walmart",
+            "producto": "Leche Santa Clara Entera 1 L",
+            "marca": "Santa Clara",
+            "precio_regular": 30.0,
+            "precio_promo": 28.0,
+            "disponibilidad": "disponible",
+            "url": "https://www.walmart.com.mx/leche",
+        },
+    ]
+
+    with (
+        patch("src.scraper_multitienda.descargar_html_con_reintentos", return_value=html_leche) as mock_http,
+        patch("src.scraper_selenium.consultar_urls_secuenciales", return_value=prods_selenium_mock) as mock_sel,
+    ):
+        resultados = scrapear_nextjs_walmart_platform(
+            tienda="Walmart",
+            base_domain="www.walmart.com.mx",
+            terminos=["tequila", "whisky"],
+            ruta_respaldo=str(csv_respaldo),
+            usar_fallback_selenium=True,
+            headless_selenium=True,
+        )
+        # El Circuit Breaker de Prerender debe cortar HTTP en la 1ra consulta y saltar a Selenium
+        assert mock_http.call_count == 1
+        assert mock_sel.call_count == 1
+        assert len(resultados) == 2
+        por_prod = {p["producto"]: p for p in resultados}
+        assert por_prod["Tequila Don Julio 70 Añejo Cristalino 700 ml"]["precio_promo"] == 655.0
+        assert por_prod["Whisky Chivas Regal 12 Años 750 ml"]["precio_promo"] == 620.0
+
+
 def test_scrapear_soriana_mock():
     """Valida la extracción desde HTML Salesforce Commerce Cloud de Soriana (H43)."""
     html_soriana = """

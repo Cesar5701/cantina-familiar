@@ -1,11 +1,11 @@
 {
   "Bodegas Alianza": {
     "campana": "Bombazo de Precios",
-    "detalle_campana": "Bombazo de Precios (164 con rebaja)",
+    "detalle_campana": "Bombazo de Precios (162 con rebaja)",
     "vigencia_corta": "12 Nov",
-    "fecha_auditoria": "2026-11-08 01:41",
+    "fecha_auditoria": "2026-11-08 10:18",
     "items_totales": 559,
-    "items_con_rebaja": 164
+    "items_con_rebaja": 162
   },
   "Sam's Club": {
     "campana": "El Fin Irresistible",
@@ -17,33 +17,33 @@
   },
   "Costco": {
     "campana": "Cuponera de Temporada",
-    "detalle_campana": "Cuponera de Temporada (39 con rebaja)",
+    "detalle_campana": "Cuponera de Temporada (40 con rebaja)",
     "vigencia_corta": "15 Nov",
-    "fecha_auditoria": "2026-11-07 19:06",
-    "items_totales": 43,
-    "items_con_rebaja": 39
+    "fecha_auditoria": "2026-11-08 10:20",
+    "items_totales": 44,
+    "items_con_rebaja": 40
   },
   "Walmart": {
     "campana": "El Fin Irresistible",
-    "detalle_campana": "El Fin Irresistible (300 con rebaja)",
+    "detalle_campana": "El Fin Irresistible (302 con rebaja)",
     "vigencia_corta": "18 Nov",
     "fecha_auditoria": "2026-11-07 20:34",
     "items_totales": 378,
-    "items_con_rebaja": 300
+    "items_con_rebaja": 302
   },
   "Chedraui": {
     "campana": "Preventa Modo Fin / Buen Fin",
     "detalle_campana": "Preventa Modo Fin / Buen Fin (17 con rebaja)",
     "vigencia_corta": "17 Nov",
-    "fecha_auditoria": "2026-11-08 01:41",
-    "items_totales": 136,
+    "fecha_auditoria": "2026-11-08 10:18",
+    "items_totales": 137,
     "items_con_rebaja": 17
   },
   "Soriana": {
     "campana": "Pre Buen Fin / Reventados",
     "detalle_campana": "Pre Buen Fin / Reventados (2 con rebaja)",
     "vigencia_corta": "17 Nov",
-    "fecha_auditoria": "2026-11-08 01:42",
+    "fecha_auditoria": "2026-11-08 10:19",
     "items_totales": 142,
     "items_con_rebaja": 2
   }

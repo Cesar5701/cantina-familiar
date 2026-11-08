@@ -16,6 +16,7 @@ import pandas as pd
 from bs4 import BeautifulSoup
 
 import src.scraper_multitienda as _pkg
+import src.scraper_selenium as _sel_pkg
 from src.clasificacion import limpiar_precio
 from src.http_utils import HEADERS_SSR_NEXTJS
 from src.io_utils import ResumenScraping
@@ -45,6 +46,29 @@ def es_pagina_desafio_waf(html: str | None) -> bool:
     return any(ind in muestra for ind in INDICADORES_WAF_HTML)
 
 
+def es_respuesta_prerender_falsa(data: dict, termino: str) -> tuple[bool, str]:
+    """
+    Detecta si el proxy Akamai/Prerender de Walmart ignoró el query string
+    y sirvió una página estática en caché no relacionada (ej. 'leche' o 'Quaker').
+    """
+    if not isinstance(data, dict):
+        return False, ""
+    q_obj = data.get("query")
+    q_real = str(q_obj.get("q") or "").strip().lower() if isinstance(q_obj, dict) else ""
+    sr = data.get("props", {}).get("pageProps", {}).get("initialData", {}).get("searchResult", {})
+    titulo_sr = str(sr.get("title") or "").strip().lower() if isinstance(sr, dict) else ""
+
+    tokens_busqueda = [tok for tok in termino.lower().split() if len(tok) >= 3]
+    if not tokens_busqueda:
+        return False, ""
+
+    if q_real and not any(tok in q_real or q_real in tok for tok in tokens_busqueda):
+        return True, q_real
+    if "resultados para" in titulo_sr and not any(tok in titulo_sr for tok in tokens_busqueda):
+        return True, titulo_sr
+    return False, ""
+
+
 def _cargar_respaldo_csv(ruta_respaldo: str | None) -> list[dict]:
     """Carga el catálogo verificado previo desde disco cuando el WAF restringe temporalmente el dominio."""
     if not ruta_respaldo or not os.path.exists(ruta_respaldo):
@@ -72,6 +96,76 @@ def _generar_clave_producto(item: dict) -> str:
     return url.rstrip("/")
 
 
+def _ejecutar_contingencia_selenium(
+    tienda: str,
+    base_domain: str,
+    terminos: list[str],
+    catalogo_acumulado: dict[str, dict],
+    resumen: ResumenScraping,
+    fecha_actual: str,
+    headless: bool = False,
+) -> tuple[int, int]:
+    """
+    Ejecuta la extracción de contingencia mediante navegador real con Selenium
+    cuando las peticiones HTTP son bloqueadas por PerimeterX o desviadas por Akamai Prerender.
+    """
+    urls = [f"https://{base_domain}/search?q={urllib.parse.quote(t)}" for t in terminos]
+    logger.info(
+        f"  🌐 [{tienda}] Activando contingencia automática con Selenium ({len(urls)} consultas en {base_domain})..."
+    )
+    actualizados_sel = 0
+    insertados_sel = 0
+    try:
+        prods_raw = _sel_pkg.consultar_urls_secuenciales(
+            urls=urls,
+            tienda=tienda,
+            headless=headless,
+            navegador="chrome",
+        )
+    except (OSError, RuntimeError, TimeoutError, ValueError, _sel_pkg.WebDriverException) as e:
+        logger.warning(f"  ⚠️ [{tienda}] Contingencia con Selenium no disponible ({e}).")
+        return 0, 0
+
+    for raw in prods_raw:
+        nombre = str(raw.get("producto") or raw.get("name") or "").strip()
+        marca = str(raw.get("marca") or raw.get("brand") or "").strip()
+        p_promo = limpiar_precio(raw.get("precio_promo"))
+        p_reg = limpiar_precio(raw.get("precio_regular"))
+        if p_promo and (not p_reg or p_reg < p_promo):
+            p_reg = p_promo
+        url_prod = str(raw.get("url") or f"https://{base_domain}").strip()
+        cond = str(raw.get("condiciones") or f"Portal oficial {base_domain} (Selenium)")
+
+        item_norm = evaluar_y_normalizar_producto(
+            tienda=tienda,
+            nombre=nombre,
+            marca=marca,
+            precio_regular=p_reg,
+            precio_promo=p_promo,
+            disponible=str(raw.get("disponibilidad") or "disponible"),
+            url=url_prod,
+            condicion=cond,
+            fuente=f"Portal oficial {base_domain} (Selenium)",
+            fecha_actual=fecha_actual,
+        )
+        if item_norm:
+            clave = _generar_clave_producto(item_norm)
+            if clave in catalogo_acumulado:
+                actualizados_sel += 1
+            else:
+                insertados_sel += 1
+            catalogo_acumulado[clave] = item_norm
+            resumen.registrar_exito()
+        else:
+            resumen.registrar_descarte("filtro categoría o volumen (Selenium)")
+
+    logger.info(
+        f"  -> [{tienda} Selenium] +{actualizados_sel} actualizados, +{insertados_sel} nuevos "
+        f"(Catálogo acumulado: {len(catalogo_acumulado)})"
+    )
+    return actualizados_sel, insertados_sel
+
+
 def scrapear_nextjs_walmart_platform(
     tienda: str,
     base_domain: str,
@@ -79,6 +173,9 @@ def scrapear_nextjs_walmart_platform(
     ruta_respaldo: str | None = None,
     delay_min: float = 3.5,
     delay_max: float = 6.5,
+    usar_fallback_selenium: bool | None = None,
+    forzar_selenium: bool = False,
+    headless_selenium: bool = False,
 ) -> list[dict]:
     logger.info("=" * 60)
     logger.info(f"SCRAPEANDO {tienda.upper()} ({base_domain} SSR __NEXT_DATA__)")
@@ -87,6 +184,9 @@ def scrapear_nextjs_walmart_platform(
     ids_vistos = set()
     resumen = ResumenScraping(tienda)
     bloqueos_waf_consecutivos = 0
+
+    if usar_fallback_selenium is None:
+        usar_fallback_selenium = not bool(os.environ.get("PYTEST_CURRENT_TEST"))
 
     # 1. Cargar catálogo previo para merge incremental (evita pérdida de productos previos por WAF/IP)
     catalogo_acumulado: dict[str, dict] = {}
@@ -103,7 +203,7 @@ def scrapear_nextjs_walmart_platform(
     actualizados_count = 0
     insertados_count = 0
 
-    for idx, t in enumerate(terminos):
+    for idx, t in enumerate([] if forzar_selenium else terminos):
         url = f"https://{base_domain}/search?q={urllib.parse.quote(t)}"
         try:
             html = _pkg.descargar_html_con_reintentos(
@@ -136,6 +236,15 @@ def scrapear_nextjs_walmart_platform(
                 continue
 
             data = json.loads(script.string)
+            es_prerender_falso, q_falsa = es_respuesta_prerender_falsa(data, t)
+            if es_prerender_falso:
+                bloqueos_waf_consecutivos += 1
+                logger.warning(
+                    f"  [Circuit Breaker] Caché señuelo Akamai/Prerender detectada en {base_domain} "
+                    f"(devolvió '{q_falsa}' en lugar de '{t}'). Deteniendo consultas HTTP para proteger IP."
+                )
+                break
+
             stacks = (
                 data.get("props", {})
                 .get("pageProps", {})
@@ -237,6 +346,23 @@ def scrapear_nextjs_walmart_platform(
                 espera = 0.0 if os.environ.get("PYTEST_CURRENT_TEST") else random.uniform(2.0, 4.0)
                 if espera > 0:
                     time.sleep(espera)
+
+    # 2. Contingencia automática con Selenium si HTTP fue bloqueado por WAF/Prerender (0 válidos) o si se forzó
+    requiere_selenium = forzar_selenium or (
+        usar_fallback_selenium and (actualizados_count + insertados_count) == 0 and len(terminos) > 0
+    )
+    if requiere_selenium:
+        u_sel, i_sel = _ejecutar_contingencia_selenium(
+            tienda=tienda,
+            base_domain=base_domain,
+            terminos=terminos,
+            catalogo_acumulado=catalogo_acumulado,
+            resumen=resumen,
+            fecha_actual=fecha_actual,
+            headless=headless_selenium,
+        )
+        actualizados_count += u_sel
+        insertados_count += i_sel
 
     resultados = list(catalogo_acumulado.values())
 

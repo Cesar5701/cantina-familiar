@@ -13,7 +13,11 @@ from src.logger import get_logger
 logger = get_logger("scraper_multitienda")
 
 
-def main():
+def main(
+    usar_fallback_selenium: bool | None = None,
+    forzar_selenium: bool = False,
+    headless_selenium: bool = False,
+):
     os.makedirs("data", exist_ok=True)
 
     terminos_sams = [
@@ -43,6 +47,9 @@ def main():
         "www.sams.com.mx",
         terminos_sams,
         ruta_respaldo="data/scraped_sams.csv",
+        usar_fallback_selenium=usar_fallback_selenium,
+        forzar_selenium=forzar_selenium,
+        headless_selenium=headless_selenium,
     )
     if prods_sams:
         guardar_csv_atomico(pd.DataFrame(prods_sams), "data/scraped_sams.csv")
@@ -53,6 +60,9 @@ def main():
         "www.walmart.com.mx",
         terminos_walmart,
         ruta_respaldo="data/scraped_walmart.csv",
+        usar_fallback_selenium=usar_fallback_selenium,
+        forzar_selenium=forzar_selenium,
+        headless_selenium=headless_selenium,
     )
     if prods_walmart:
         guardar_csv_atomico(pd.DataFrame(prods_walmart), "data/scraped_walmart.csv")

@@ -26,6 +26,9 @@ def ejecutar_pipeline_scraping_completo(
     saltar_alianza: bool = False,
     saltar_multitienda: bool = False,
     saltar_consolidacion: bool = False,
+    usar_fallback_selenium: bool | None = None,
+    forzar_selenium: bool = False,
+    headless_selenium: bool = False,
 ) -> bool:
     """
     Ejecuta el ciclo de vida completo de adquisición y despliegue local de datos.
@@ -47,7 +50,11 @@ def ejecutar_pipeline_scraping_completo(
     if not saltar_multitienda:
         logger.info("\n🏪 [2/4] Extrayendo cadenas comerciales multitienda...")
         try:
-            scrapear_multitienda_main()
+            scrapear_multitienda_main(
+                usar_fallback_selenium=usar_fallback_selenium,
+                forzar_selenium=forzar_selenium,
+                headless_selenium=headless_selenium,
+            )
         except (OSError, TimeoutError, ConnectionError, ValueError, RuntimeError, KeyError) as e:
             logger.error(f"Error extrayendo multitienda: {e}")
 
@@ -86,12 +93,30 @@ def main():
         action="store_true",
         help="Solo extraer datos sin ejecutar consolidación ni regenerar dashboard.",
     )
+    parser.add_argument(
+        "--con-selenium",
+        action="store_true",
+        help="Forzar extracción directa con Selenium para Walmart y Sam's Club.",
+    )
+    parser.add_argument(
+        "--sin-selenium",
+        action="store_true",
+        help="Desactivar el fallback automático a Selenium cuando HTTP sea bloqueado por WAF/Prerender.",
+    )
+    parser.add_argument(
+        "--headless",
+        action="store_true",
+        help="Ejecutar el navegador de Selenium en segundo plano (sin ventana gráfica).",
+    )
     args = parser.parse_args()
 
     ejecutar_pipeline_scraping_completo(
         saltar_alianza=args.saltar_alianza,
         saltar_multitienda=args.saltar_multitienda,
         saltar_consolidacion=args.solo_scraping,
+        usar_fallback_selenium=False if args.sin_selenium else True,
+        forzar_selenium=args.con_selenium,
+        headless_selenium=args.headless,
     )
 
 
