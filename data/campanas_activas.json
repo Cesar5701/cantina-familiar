@@ -1,0 +1,50 @@
+{
+  "Bodegas Alianza": {
+    "campana": "Bombazo de Precios",
+    "detalle_campana": "Bombazo de Precios (163 con rebaja)",
+    "vigencia_corta": "07 Nov",
+    "fecha_auditoria": "2026-11-07 19:04",
+    "items_totales": 550,
+    "items_con_rebaja": 163
+  },
+  "Sam's Club": {
+    "campana": "Rebaja en Línea",
+    "detalle_campana": "Rebaja en Línea (28 con rebaja)",
+    "vigencia_corta": "07 Nov",
+    "fecha_auditoria": "2026-11-07 19:04",
+    "items_totales": 62,
+    "items_con_rebaja": 28
+  },
+  "Costco": {
+    "campana": "Catálogo Costco",
+    "detalle_campana": "Catálogo Costco (39 con rebaja)",
+    "vigencia_corta": "07 Nov",
+    "fecha_auditoria": "2026-11-07 19:06",
+    "items_totales": 43,
+    "items_con_rebaja": 39
+  },
+  "Walmart": {
+    "campana": "Rebaja en Línea",
+    "detalle_campana": "Rebaja en Línea (298 con rebaja)",
+    "vigencia_corta": "24 Oct",
+    "fecha_auditoria": "2026-10-24 19:48",
+    "items_totales": 378,
+    "items_con_rebaja": 298
+  },
+  "Chedraui": {
+    "campana": "Oferta en Línea",
+    "detalle_campana": "Oferta en Línea (17 con rebaja)",
+    "vigencia_corta": "07 Nov",
+    "fecha_auditoria": "2026-11-07 19:04",
+    "items_totales": 132,
+    "items_con_rebaja": 17
+  },
+  "Soriana": {
+    "campana": "Combo Perfecto",
+    "detalle_campana": "Combo Perfecto (2 con rebaja)",
+    "vigencia_corta": "07 Nov",
+    "fecha_auditoria": "2026-11-07 19:05",
+    "items_totales": 139,
+    "items_con_rebaja": 2
+  }
+}

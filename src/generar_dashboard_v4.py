@@ -5,15 +5,19 @@ que se ensamblan en un index.html autocontenido para publicación en GitHub Page
 """
 
 import base64
+import json
 import os
 import re
 import sys
+from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
+from src.analizador.campanas import formatear_fecha_corte, generar_resumen_whatsapp
 from src.logger import get_logger
 
 logger = get_logger("dashboard_v4")
@@ -32,20 +36,40 @@ MIME_RECURSOS = {
     ".webp": "image/webp",
 }
 
+CAMPANAS_JSON_PATH = ROOT_DIR / "data" / "campanas_activas.json"
+
+
 # =====================================================================
-# MATRIZ OFICIAL DE VIGENCIAS Y PROMOCIONES MULTITIENDA (NOVIEMBRE 2026)
+# MATRIZ DINÁMICA DE VIGENCIAS Y CAMPAÑAS ACTIVAS (SCRAPING AUTOMÁTICO)
 # =====================================================================
-CONFIG_VIGENCIA = {
-    "corte_auditoria": "Noviembre 2026",
-    "resumen_whatsapp": (
-        "Bodegas Alianza: hasta 12 Nov (Bombazo de Precios) / 17 Nov (Buen Fin)\n"
-        "Sam's Club: hasta 18 Nov (El Fin Irresistible)\n"
-        "Costco: hasta 15 Nov (Cuponera de Temporada)\n"
-        "Chedraui: hasta 17 Nov (Preventa Modo Fin / Buen Fin)\n"
-        "Soriana: hasta 17 Nov (Pre Buen Fin / Precios Reventados)\n"
-        "Walmart: hasta 18 Nov (El Fin Irresistible)"
-    ),
-}
+def obtener_configuracion_vigencia() -> dict[str, Any]:
+    """Carga las campañas activas generadas por el scraper o infiere defaults de la fecha actual."""
+    corte_dinamico = formatear_fecha_corte(datetime.now())
+    campanas_map = {}
+
+    if CAMPANAS_JSON_PATH.exists():
+        try:
+            campanas_map = json.loads(CAMPANAS_JSON_PATH.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            campanas_map = {}
+
+    if campanas_map:
+        resumen = generar_resumen_whatsapp(campanas_map)
+    else:
+        resumen = (
+            "Bodegas Alianza: Bombazo de Precios / Buen Fin\n"
+            "Sam's Club: El Fin Irresistible\n"
+            "Costco: Cuponera de Temporada\n"
+            "Chedraui: Buen Fin\n"
+            "Soriana: Pre Buen Fin / Precios Reventados\n"
+            "Walmart: El Fin Irresistible"
+        )
+
+    return {
+        "corte_auditoria": corte_dinamico,
+        "resumen_whatsapp": resumen,
+        "campanas": campanas_map,
+    }
 
 
 def ensamblar_plantilla_modular(template_content: str, base_dir: Path | None = None) -> str:
@@ -100,15 +124,21 @@ def renderizar_plantilla(
     datos_json_str: str,
     corte_auditoria: str | None = None,
     resumen_whatsapp: str | None = None,
+    campanas_json_str: str | None = None,
     base_dir: Path | None = None,
 ) -> str:
     """Ensambla submódulos e inyecta el catálogo JSON y variables de vigencia en la plantilla HTML."""
-    corte = corte_auditoria or CONFIG_VIGENCIA["corte_auditoria"]
-    whatsapp = resumen_whatsapp or CONFIG_VIGENCIA["resumen_whatsapp"]
+    cfg = obtener_configuracion_vigencia()
+    corte = corte_auditoria or cfg["corte_auditoria"]
+    whatsapp = resumen_whatsapp or cfg["resumen_whatsapp"]
+    campanas_str = (
+        campanas_json_str if campanas_json_str is not None else json.dumps(cfg["campanas"], ensure_ascii=False)
+    )
     ensamblada = ensamblar_plantilla_modular(template_content, base_dir=base_dir)
 
     return (
         ensamblada.replace("__DATA_JSON__", datos_json_str)
+        .replace("__CAMPANAS_JSON__", campanas_str)
         .replace("__CORTE_AUDITORIA__", corte)
         .replace("__RESUMEN_WHATSAPP_VIGENCIAS__", whatsapp)
     )

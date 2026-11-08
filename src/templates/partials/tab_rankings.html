@@ -29,13 +29,13 @@
           </div>
           <div class="my-2.5">
             <div class="flex items-baseline gap-1.5">
-              <span class="font-mono text-2xl font-bold text-on-surface" id="kpi-mejor-litro-valor">$261.89</span>
+              <span class="font-mono text-2xl font-bold text-on-surface" id="kpi-mejor-litro-valor">$226.08</span>
               <span class="font-mono text-xs text-on-surface-variant font-medium">/ Litro</span>
             </div>
-            <p class="text-xs font-semibold text-on-surface mt-1 truncate" id="kpi-mejor-litro-detalle">Black &amp; White 1000 mL · Sam's Club</p>
+            <p class="text-xs font-semibold text-on-surface mt-1 truncate" id="kpi-mejor-litro-detalle">Black &amp; White 1 L · Sam's Club</p>
           </div>
           <div class="flex items-center justify-between pt-2.5 border-t border-outline-variant/40 font-mono text-[11px]">
-            <span class="text-on-surface-variant">Vinos desde <strong class="text-primary">$67.10/L</strong></span>
+            <span class="text-on-surface-variant">Vinos desde <strong class="text-primary" id="kpi-mejor-vino-litro">$69.00/L</strong></span>
             <span class="text-[#2d6a36] font-semibold">1,000 mL std</span>
           </div>
         </div>
@@ -48,13 +48,13 @@
           </div>
           <div class="my-2.5">
             <div class="font-mono text-xl sm:text-2xl font-bold text-on-surface" id="contador-filtrados">
-              827 botellas verificadas
+              931 botellas verificadas
             </div>
             <p class="text-xs text-on-surface-variant mt-1">Tequila, Mezcal, Whisky, Licor Honey &amp; Apple y Vino Tinto</p>
           </div>
           <div class="flex items-center justify-between pt-2.5 border-t border-outline-variant/40 font-mono text-[11px]">
             <span class="text-on-surface-variant">Cadenas activas:</span>
-            <span class="text-primary font-bold">6 comercios</span>
+            <span class="text-primary font-bold" id="kpi-total-skus-footer">6 comercios · 931 SKUs</span>
           </div>
         </div>
 
@@ -66,14 +66,14 @@
           </div>
           <div class="my-2.5">
             <div class="flex items-baseline gap-1.5">
-              <span class="font-mono text-2xl font-bold text-[#2d6a36]">101 Etiquetas</span>
+              <span class="font-mono text-2xl font-bold text-[#2d6a36]" id="kpi-cross-etiquetas">105 Etiquetas</span>
               <span class="font-mono text-xs font-semibold text-[#2d6a36]">comparables</span>
             </div>
             <p class="text-xs text-on-surface-variant mt-1 truncate">Misma botella auditada en 2 a 6 tiendas simultáneas</p>
           </div>
           <div class="flex items-center justify-between pt-2.5 border-t border-outline-variant/40 font-mono text-[11px]">
             <span class="text-on-surface-variant">Ahorro detectado:</span>
-            <span class="text-[#2d6a36] font-bold">Hasta 34% / bot.</span>
+            <span class="text-[#2d6a36] font-bold" id="kpi-cross-ahorro-max">Hasta 65% / bot.</span>
           </div>
         </div>
 
@@ -85,7 +85,7 @@
           </div>
           <div class="my-2.5">
             <div class="flex items-baseline gap-1.5">
-              <span class="font-mono text-xl sm:text-2xl font-bold text-primary">Noviembre 2026</span>
+              <span class="font-mono text-xl sm:text-2xl font-bold text-primary">__CORTE_AUDITORIA__</span>
             </div>
             <p class="text-xs text-on-surface-variant mt-1 truncate">Bombazo Alianza · El Fin Irresistible · Cuponeras</p>
           </div>
@@ -105,12 +105,12 @@
               Paso 01 • Categoría de Bebida
             </label>
             <select id="filtro-macro-categoria" onchange="actualizarSubtiposCatalogo()" class="w-full md3-input px-3 py-2 font-semibold cursor-pointer">
-              <option value="Todas" selected>Todas las Bebidas (827)</option>
-              <option value="Tequila">Tequila</option>
-              <option value="Mezcal">Mezcal</option>
-              <option value="Whisky">Whisky Escocés</option>
-              <option value="Licor de Whisky">Licor Whisky (Honey & Apple)</option>
-              <option value="Vino">Vino Tinto</option>
+              <option value="Todas" selected>Todas las Bebidas (931)</option>
+              <option value="Tequila">Tequila (259)</option>
+              <option value="Mezcal">Mezcal (237)</option>
+              <option value="Whisky">Whisky Escocés (226)</option>
+              <option value="Licor de Whisky">Licor Whisky (Honey &amp; Apple) (15)</option>
+              <option value="Vino">Vino Tinto (194)</option>
             </select>
           </div>
 
@@ -234,7 +234,7 @@
         <!-- PIE DE TABLA Y PAGINACIÓN DE REGISTRO -->
         <div class="bg-surface-container px-4 py-3.5 border-t border-outline-variant flex flex-col sm:flex-row items-center justify-between gap-3">
           <div id="info-paginacion" class="font-mono text-xs text-on-surface-variant text-center sm:text-left">
-            Mostrando 1 a 20 de 827 registros auditados
+            Mostrando 1 a 20 de 931 registros auditados
           </div>
           <div class="flex items-center gap-2 w-full sm:w-auto justify-center">
             <button onclick="cambiarPagina(-1)" id="btn-prev" class="flex-1 sm:flex-initial px-3.5 py-1.5 rounded bg-surface-container-lowest border border-outline-variant hover:bg-surface-container-high disabled:opacity-40 transition-colors text-on-surface font-mono text-xs font-semibold cursor-pointer min-h-[36px] inline-flex items-center justify-center gap-1">

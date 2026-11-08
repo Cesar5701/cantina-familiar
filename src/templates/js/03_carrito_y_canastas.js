@@ -20,6 +20,7 @@
       } else {
         canastaPersonalizada[idx] = nuevo;
       }
+      guardarCanastaEnStorage();
       renderizarConstructorCanasta();
     }
 
@@ -30,16 +31,19 @@
       } else {
         canastaPersonalizada[idx] = Math.min(99, cant);
       }
+      guardarCanastaEnStorage();
       renderizarConstructorCanasta();
     }
 
     function eliminarProducto(idx) {
       delete canastaPersonalizada[idx];
+      guardarCanastaEnStorage();
       renderizarConstructorCanasta();
     }
 
     function vaciarCarrito() {
       canastaPersonalizada = {};
+      guardarCanastaEnStorage();
       renderizarConstructorCanasta();
       mostrarToast("Carrito vaciado");
     }
@@ -48,28 +52,28 @@
     function construirCanastaDinamica(perfil) {
       const nPersonas = COOPERADORES_TOTAL > 0 ? COOPERADORES_TOTAL : 12;
 
-      const idxDobelSams = buscarIndice("Maestro Dobel  Diamante Cristalino 700", "Sam");
-      const idx1800CristAlianza = buscarIndice("1800 Añejo Cristalino 100% 700", "Alianza");
-      const idxDonJulioWalmart = buscarIndice("Don Julio 70 Cristalino 700", "Walmart");
-      const idxMemberCristSams = buscarIndice("Member's Mark  Añejo Cristalino 1.75", "Sam");
+      const idxDobelSams = buscarIndice("Maestro Dobel Diamante Cristalino 700", "Sam", "Tequila - Añejo Cristalino");
+      const idx1800CristAlianza = buscarIndice("1800 Añejo Cristalino 100% 700", "Alianza", "Tequila - Añejo Cristalino");
+      const idxDonJulioWalmart = buscarIndice("Don Julio 70 Cristalino 700", "Walmart", "Tequila - Añejo Cristalino");
+      const idxMemberCristSams = buscarIndice("Member's Mark Añejo Cristalino 1.75", "Sam", "Tequila - Añejo Cristalino");
 
-      const idxTresGenAlianza = buscarIndice("Tres Generaciones Añejo 750", "Alianza");
-      const idx1800AnejoChedraui = buscarIndice("1800 Añejo 700ml", "Chedraui");
-      const idxHerraduraAnejo = buscarIndice("Herradura Añejo", "Alianza");
+      const idxTresGenAlianza = buscarIndice("Tres Generaciones Añejo 750", "Alianza", "Tequila - Añejo Tradicional");
+      const idx1800AnejoChedraui = buscarIndice("1800 Añejo 700", "Chedraui", "Tequila - Añejo Tradicional");
+      const idxHerraduraAnejo = buscarIndice("Herradura Añejo 750", "Alianza", "Tequila - Añejo Tradicional");
 
-      const idxAmarasRep = buscarIndice("Amarás Rep Espadín", "Alianza");
-      const idx400RepChedraui = buscarIndice("400 Conejos Reposado 700ml", "Chedraui");
-      const idx400TobalaChedraui = buscarIndice("400 Conejos Tobalá 700ml", "Chedraui");
-      const idx400AnejoAlianza = buscarIndice("400 Conejos Añejo 700", "Alianza");
-      const idxAmarasCupreata = buscarIndice("Amarás Joven Cupreata", "Alianza");
+      const idxAmarasRep = buscarIndice("Amarás Rep Espadín", "Alianza", "Mezcal - Reposado");
+      const idx400RepChedraui = buscarIndice("400 Conejos Reposado 700", "Chedraui", "Mezcal - Reposado");
+      const idx400TobalaChedraui = buscarIndice("400 Conejos Tobalá 700", "Chedraui", "Mezcal - Silvestre");
+      const idx400AnejoAlianza = buscarIndice("400 Conejos Añejo 700", "Alianza", "Mezcal - Añejo");
+      const idxAmarasCupreata = buscarIndice("Amarás Joven Cupreata", "Alianza", "Mezcal - Silvestre");
 
-      const idxJWRedSams = buscarIndice("Johnnie Walker Red Label 1.75", "Sam");
-      const idxBW175Sams = buscarIndice("Black & White  1.75", "Sam");
-      const idxHoneyAlianza = buscarIndice("Honey Tennessee 700", "Alianza");
+      const idxJWRedSams = buscarIndice("Johnnie Walker Red Label 1.75", "Sam", "Whisky - Blended Scotch");
+      const idxBW175Sams = buscarIndice("Black & White 1.75", "Sam", "Whisky - Blended Scotch");
+      const idxHoneyAlianza = buscarIndice("Honey Tennessee 700", "Alianza", "Licor de Whisky - Honey");
 
-      const idxDonSimon5L = buscarIndice("Don Simon  5 L", "Sam");
-      const idxCalTetra = buscarIndice("California Tetra Pak 946", "Alianza");
-      const idxCarloRossi4L = buscarIndice("Carlo Rossi  Blend 4", "Sam");
+      const idxDonSimon5L = buscarIndice("Don Simón Joven 1 L", "Walmart", "Vino - Tinto Clericot");
+      const idxCalTetra = buscarIndice("California Tetra Pak 946", "Alianza", "Vino - Tinto Clericot");
+      const idxCarloRossi4L = buscarIndice("California Cabernet Sauvignon 4 L", "Soriana", "Vino - Tinto Clericot");
 
       const factorEscala = Math.max(1, nPersonas / 12);
       let seleccion = {};
@@ -214,6 +218,7 @@
 
     function cargarCanastaDinamica(perfil) {
       canastaPersonalizada = construirCanastaDinamica(perfil);
+      guardarCanastaEnStorage();
       renderizarConstructorCanasta();
       mostrarToast("Canasta dinámica cargada en el carrito");
     }
@@ -488,6 +493,7 @@
       PRESUPUESTO_OBJETIVO = (!isNaN(p) && p > 0) ? p : 0;
       COOPERADORES_TOTAL = (!isNaN(c) && c > 0) ? c : 0;
 
+      guardarCanastaEnStorage();
       renderizarCanastasDinamicas();
       renderizarConstructorCanasta();
       renderizarVersus();

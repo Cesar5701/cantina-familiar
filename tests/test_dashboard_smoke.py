@@ -6,11 +6,14 @@ y coherencia del JavaScript embebido sin depender de un navegador headless.
 
 import base64
 import json
+import re
+import unicodedata
 
 import pytest
 from bs4 import BeautifulSoup
 
 from src.generar_dashboard_v4 import (
+    DATA_JSON_PATH,
     INDEX_HTML_PATH,
     TEMPLATE_PATH,
     TEMPLATES_DIR,
@@ -126,29 +129,39 @@ def test_dashboard_smoke_datos_json_embebidos():
 
 
 def test_dashboard_smoke_funciones_javascript_criticas():
-    """Valida la presencia de las funciones JS esenciales de UI y lógica de negocio (H44)."""
+    """Valida la presencia exacta de las funciones JS esenciales de UI y lógica de negocio (H44 / B5)."""
     template_str = cargar_plantilla_dashboard()
 
     funciones_esperadas = [
-        "function actualizarSubtiposCatalogo",
-        "function aplicarFiltros",
-        "function ordenarPor",
-        "function actualizarEstadoOrden",
-        "function agregarDesdeTabla",
-        "function vaciarCarrito",
-        "function actualizarVersus",
-        "function renderizarTabla",
-        "function nombreSinCategoria",
-        "function toggleModalCrossTienda",
-        "function cerrarModalCrossTienda",
+        "function actualizarSubtiposCatalogo(",
+        "function aplicarFiltros(",
+        "function ordenarPor(",
+        "function actualizarEstadoOrden(",
+        "function agregarDesdeTabla(",
+        "function agregarDesdeModalCross(",
+        "function agregarDesdeVersus(",
+        "function vaciarCarrito(",
+        "function guardarCanastaEnStorage(",
+        "function cargarCanastaDeStorage(",
+        "function sincronizarMetricasGlobalesDOM(",
+        "function actualizarSubtiposVersus(",
+        "function actualizarVersusManual(",
+        "function cargarDueloDirecto(",
+        "function renderizarTabla(",
+        "function nombreSinCategoria(",
+        "function toggleModalCrossTienda(",
+        "function cerrarModalCrossTienda(",
     ]
 
     for fn in funciones_esperadas:
         assert fn in template_str, f"Función JavaScript crítica no encontrada en el template: {fn}"
 
+    # B4: Asegurar que no existan interpolaciones inseguras de nombres de productos en atributos onclick
+    assert "agregarAlCarritoPersonalizado('${" not in template_str
+
 
 def test_dashboard_smoke_index_html_produccion():
-    """Smoke test del artefacto publicado index.html para asegurar integridad en producción (H44)."""
+    """Smoke test del artefacto publicado index.html para asegurar integridad en producción (H44 / D1)."""
     if not INDEX_HTML_PATH.exists():
         return
 
@@ -157,8 +170,11 @@ def test_dashboard_smoke_index_html_produccion():
     assert "<!DOCTYPE html>" in contenido
     assert "Cantina Familiar" in contenido
     assert "__DATA_JSON__" not in contenido
+    assert "__CAMPANAS_JSON__" not in contenido
     assert "__CORTE_AUDITORIA__" not in contenido
     assert "__RESUMEN_WHATSAPP_VIGENCIAS__" not in contenido
+    for fecha_obsoleta in ("25 Oct", "31 Oct", "22 Oct", "Octubre 2026"):
+        assert fecha_obsoleta not in contenido, f"Vigencia obsoleta detectada en index.html: {fecha_obsoleta}"
 
 
 def test_dashboard_accesibilidad_formularios_y_zero_flicker():
@@ -254,3 +270,106 @@ def test_include_anidado_y_circular(tmp_path):
     (tmp_path / "c.html").write_text("<!-- @include c.html -->", encoding="utf-8")
     with pytest.raises(RecursionError):
         ensamblar_plantilla_modular("<!-- @include c.html -->", base_dir=tmp_path)
+
+
+def _normalizar_texto_busqueda(s: str) -> str:
+    s = unicodedata.normalize("NFD", str(s or "").lower())
+    s = "".join(c for c in s if unicodedata.category(c) != "Mn")
+    s = re.sub(r"(\d+)\s*(ml|l|lt|lts|oz|pzas?|pack|paq)\b", r"\1 \2", s)
+    s = re.sub(r"['’`]", "", s)
+    s = re.sub(r"[^a-z0-9]+", " ", s)
+    return s.strip()
+
+
+def _token_coincide(p_tokens: list[str], q_tok: str) -> bool:
+    for pt in p_tokens:
+        if pt == q_tok:
+            return True
+        if len(q_tok) >= 3 and not re.match(r"^\d+$", q_tok) and pt.startswith(q_tok):
+            return True
+    return False
+
+
+def _buscar_indice_py(datos: list[dict], prod_kw: str, store_kw: str = "", cat_kw: str = "") -> int:
+    q_norm = _normalizar_texto_busqueda(prod_kw)
+    s_norm = _normalizar_texto_busqueda(store_kw) if store_kw else ""
+    c_norm = _normalizar_texto_busqueda(cat_kw) if cat_kw else ""
+    tokens = [t for t in q_norm.split(" ") if t]
+    pide_cristalino = "cristalino" in tokens
+
+    def _evaluar(exigir_tienda: bool) -> int:
+        mejor_idx = -1
+        mejor_puntaje = -999999.0
+        for i, d in enumerate(datos):
+            if d.get("es_paquete") and not re.search(r"pack|pza|combo|vaso|kit|\+", q_norm):
+                continue
+            if exigir_tienda and s_norm:
+                t_norm = _normalizar_texto_busqueda(d.get("tienda", ""))
+                if s_norm not in t_norm:
+                    continue
+            if c_kw := c_norm:
+                cat_d = _normalizar_texto_busqueda(
+                    f"{d.get('categoria', '')} {d.get('subcategoria', '')} {d.get('categoria_comparable', '')}"
+                )
+                if c_kw not in cat_d:
+                    continue
+            p_norm = _normalizar_texto_busqueda(d.get("producto", ""))
+            p_tokens = [t for t in p_norm.split(" ") if t]
+            if not all(_token_coincide(p_tokens, tok) for tok in tokens):
+                continue
+            es_cristalino = "cristalino" in p_tokens or "cristalino" in _normalizar_texto_busqueda(
+                d.get("subcategoria", "")
+            )
+            penalizacion_cristalino = 500.0 if (not pide_cristalino and es_cristalino) else 0.0
+            puntaje = (
+                (1000.0 if q_norm in p_norm else 0.0)
+                - penalizacion_cristalino
+                - len(p_norm) * 0.5
+                - float(d.get("precio_promo") or 99999) * 0.001
+            )
+            if puntaje > mejor_puntaje:
+                mejor_puntaje = puntaje
+                mejor_idx = i
+        return mejor_idx
+
+    idx = _evaluar(True)
+    if idx != -1:
+        return idx
+    return _evaluar(False)
+
+
+def test_integridad_duelos_canastas_y_campos_forenses():
+    """Verifica que todos los duelos sugeridos (B2), canastas prearmadas (B3) y campos forenses (D4) existan."""
+    if not DATA_JSON_PATH.exists():
+        return
+
+    datos = json.loads(DATA_JSON_PATH.read_text(encoding="utf-8"))
+    assert len(datos) > 800
+
+    # D4: Verificar que abv, productor y tipo_mezcal estén exportados en el JSON
+    muestra = datos[0]
+    assert "abv" in muestra
+    assert "productor" in muestra
+    assert "tipo_mezcal" in muestra
+
+    # B2: Todos los duelos sugeridos en 01_estado_y_utilidades.js deben resolver ambos productos (idx != -1)
+    js_01 = (TEMPLATES_DIR / "js" / "01_estado_y_utilidades.js").read_text(encoding="utf-8")
+    patron_duelos = re.compile(
+        r'\{\s*a:\s*"([^"]+)",\s*storeA:\s*"([^"]+)",\s*b:\s*"([^"]+)",\s*storeB:\s*"([^"]+)",\s*label:\s*"([^"]+)"\s*\}'
+    )
+    duelos = patron_duelos.findall(js_01)
+    assert len(duelos) >= 40
+    for a_prod, a_store, b_prod, b_store, label in duelos:
+        idx_a = _buscar_indice_py(datos, a_prod, a_store)
+        idx_b = _buscar_indice_py(datos, b_prod, b_store)
+        assert idx_a != -1, f"Duelo '{label}' falló al resolver lado A: ({a_prod}, {a_store})"
+        assert idx_b != -1, f"Duelo '{label}' falló al resolver lado B: ({b_prod}, {b_store})"
+
+    # B3: Todas las búsquedas de construirCanastaDinamica en 03_carrito_y_canastas.js deben resolver (idx != -1)
+    js_03 = (TEMPLATES_DIR / "js" / "03_carrito_y_canastas.js").read_text(encoding="utf-8")
+    patron_canasta = re.compile(r'buscarIndice\("([^"]+)",\s*"([^"]*)",\s*"([^"]*)"\)')
+    busquedas = patron_canasta.findall(js_03)
+    assert len(busquedas) >= 18
+    for prod_kw, store_kw, cat_kw in busquedas:
+        idx = _buscar_indice_py(datos, prod_kw, store_kw, cat_kw)
+        assert idx != -1, f"Canasta dinámica falló al resolver: ({prod_kw}, {store_kw}, {cat_kw})"

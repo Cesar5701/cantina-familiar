@@ -82,7 +82,7 @@
               <a href="${p.url}" target="_blank" rel="noopener noreferrer" class="flex-1 sm:flex-initial text-center px-3 py-1.5 md3-btn-tonal text-xs inline-flex items-center justify-center gap-1" title="Ver en ${p.tienda}">
                 <span>Ver en Tienda</span> <span>↗</span>
               </a>
-              <button onclick="modificarCantidad(${idx}, 1); cerrarModalCrossTienda(); mostrarToast('Añadido al carrito: ${p.producto.replace(/'/g, "\\'")} (${p.tienda})');" class="flex-1 sm:flex-initial px-3 py-1.5 md3-btn-filled text-xs cursor-pointer text-center">
+              <button onclick="agregarDesdeModalCross(${idx})" class="flex-1 sm:flex-initial px-3 py-1.5 md3-btn-filled text-xs cursor-pointer text-center">
                 + Carrito
               </button>
             </div>
@@ -92,6 +92,14 @@
 
       cont.innerHTML = html;
       modal.classList.remove("hidden");
+    }
+
+    function agregarDesdeModalCross(idx) {
+      const p = DATOS_COMPLETOS[idx];
+      if (!p) return;
+      modificarCantidad(idx, 1);
+      cerrarModalCrossTienda();
+      mostrarToast(`Añadido al carrito: ${p.producto} (${p.tienda})`);
     }
 
     function cerrarModalCrossTienda() {

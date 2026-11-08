@@ -4,6 +4,14 @@ Utiliza pandas para auditar datos, calcular métricas por litro, detectar duplic
 y generar rankings estrictamente separados por categorías comparables.
 """
 
+from src.analizador.campanas import (
+    detectar_campanas_por_tienda,
+    detectar_nombre_campana,
+    formatear_fecha_auditoria_detallada,
+    formatear_fecha_corte,
+    generar_resumen_whatsapp,
+    guardar_campanas_json,
+)
 from src.analizador.cross_tienda import (
     calcular_grupos_cross_tienda,
     detectar_duplicados,
@@ -44,11 +52,17 @@ __all__ = [
     "calcular_grupos_cross_tienda",
     "calcular_metricas",
     "cargar_datos",
+    "detectar_campanas_por_tienda",
     "detectar_duplicados",
+    "detectar_nombre_campana",
     "enriquecer_registros_cross_tienda",
     "es_producto_paquete",
     "filtrar_catalogo_dashboard",
+    "formatear_fecha_auditoria_detallada",
+    "formatear_fecha_corte",
     "generar_rankings_por_categoria",
+    "generar_resumen_whatsapp",
+    "guardar_campanas_json",
     "imprimir_resumen_rankings",
     "main",
     "marcar_outliers_lujo",

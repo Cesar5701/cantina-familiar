@@ -37,6 +37,22 @@
       renderizarVersus();
     }
 
+    function formatearPrecioCorto(monto) {
+      const num = Number(monto) || 0;
+      return Number.isInteger(num) ? num.toLocaleString("es-MX") : num.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function formatearEtiquetaDuelo(duelo, prodA, prodB) {
+      if (!prodA || !prodB) return duelo.label;
+      let ocurrencia = 0;
+      return String(duelo.label || "").replace(/\(\$[^)]+\)/g, (match) => {
+        ocurrencia += 1;
+        const p = ocurrencia === 1 ? prodA : (ocurrencia === 2 ? prodB : null);
+        if (!p) return match;
+        return `($${formatearPrecioCorto(p.precio_promo)})`;
+      });
+    }
+
     function renderizarSugerenciasVersus(cat) {
       const cont = document.getElementById("versus-sugerencias-container");
       const info = document.getElementById("versus-sugerencias-info");
@@ -47,28 +63,27 @@
         lista = SUGERENCIAS_POR_CATEGORIA["Todas"] || [];
       }
 
-      info.innerText = `${lista.length} duelos sugeridos en ${cat}`;
-
+      let validos = 0;
       lista.forEach(duelo => {
+        const idxA = buscarIndice(duelo.a, duelo.storeA, cat);
+        const idxB = buscarIndice(duelo.b, duelo.storeB, cat);
+        if (idxA === -1 || idxB === -1) return;
+        validos += 1;
+        const prodA = DATOS_COMPLETOS[idxA];
+        const prodB = DATOS_COMPLETOS[idxB];
         const btn = document.createElement("button");
         btn.className = "w-full sm:w-auto text-left whitespace-normal break-words rounded px-3 py-1.5 text-xs font-mono font-semibold border border-outline-variant bg-surface-container-lowest text-on-surface hover:bg-secondary-container/70 hover:border-secondary transition-all cursor-pointer shadow-2xs leading-snug";
-        btn.innerText = duelo.label;
-        btn.onclick = () => cargarDueloDirecto(duelo.a, duelo.b, duelo.storeA, duelo.storeB);
+        btn.innerText = formatearEtiquetaDuelo(duelo, prodA, prodB);
+        btn.onclick = () => cargarDueloDirecto(duelo.a, duelo.b, duelo.storeA, duelo.storeB, cat);
         cont.appendChild(btn);
       });
+
+      info.innerText = `${validos} duelos sugeridos en ${cat}`;
     }
 
-    function cargarDueloDirecto(kwA, kwB, storeA, storeB) {
-      const idxA = DATOS_COMPLETOS.findIndex(d => {
-        const matchP = d.producto.toLowerCase().includes(kwA.toLowerCase());
-        const matchS = !storeA || d.tienda.toLowerCase().includes(storeA.toLowerCase());
-        return matchP && matchS;
-      });
-      const idxB = DATOS_COMPLETOS.findIndex(d => {
-        const matchP = d.producto.toLowerCase().includes(kwB.toLowerCase());
-        const matchS = !storeB || d.tienda.toLowerCase().includes(storeB.toLowerCase());
-        return matchP && matchS;
-      });
+    function cargarDueloDirecto(kwA, kwB, storeA, storeB, catHint) {
+      const idxA = buscarIndice(kwA, storeA, catHint);
+      const idxB = buscarIndice(kwB, storeB, catHint);
 
       if (idxA !== -1 && idxB !== -1) {
         const prodA = DATOS_COMPLETOS[idxA];
@@ -96,7 +111,19 @@
       renderizarVersus();
     }
 
+    function agregarDesdeVersus(idx, esGanador = false) {
+      const p = DATOS_COMPLETOS[idx];
+      if (!p) return;
+      modificarCantidad(idx, 1);
+      const prefijo = esGanador ? "Ganador añadido al carrito" : "Añadido al carrito";
+      mostrarToast(`${prefijo}: ${p.producto} (${p.tienda})`);
+    }
+
     function getABV(p) {
+      const abvNum = Number(p.abv);
+      if (!isNaN(abvNum) && abvNum > 0) {
+        return `${abvNum.toFixed(1)}% Alc. Vol.`;
+      }
       if (p.categoria_comparable.includes("Vino")) return "11.5% - 12.5% Alc. Vol.";
       if (p.categoria_comparable.includes("Whisky")) return "40.0% Alc. Vol.";
       if (p.categoria_comparable.includes("Honey")) return "35.0% Alc. Vol.";
@@ -122,6 +149,8 @@
     function generarTipFamiliar(prodA, prodB, ahorroTotal, ahorroPersona, cantBotellas, nPers) {
       const catA = prodA.categoria_comparable;
       const catB = prodB.categoria_comparable;
+      const mejor = prodA.precio_por_litro <= prodB.precio_por_litro ? prodA : prodB;
+      const otro = prodA.precio_por_litro <= prodB.precio_por_litro ? prodB : prodA;
       const textoCuota = COOPERADORES_TOTAL > 0
         ? `(<strong>$${ahorroPersona.toFixed(2)} MXN menos por persona</strong> entre ${nPers} cooperadores)`
         : `(ingresa el número de personas arriba para calcular el ahorro individual)`;
@@ -133,7 +162,7 @@
               Nota Forense de Arbitraje · Añejo Cristalino
             </div>
             <p class="text-on-surface-variant leading-relaxed">
-              <strong>Maestro Dobel Diamante en Sam's Club ($574.93)</strong>, <strong>1800 Cristalino en Alianza ($600)</strong> y <strong>Don Julio 70 en Walmart ($699)</strong> lideran cada segmento. Elegir la opción de mejor precio en ${cantBotellas} botellas representa un ahorro directo de <strong class="text-on-surface">$${ahorroTotal.toFixed(2)} MXN</strong> ${textoCuota}.
+              En este duelo directo, <strong>${mejor.producto} en ${mejor.tienda} ($${mejor.precio_promo.toFixed(2)} | $${mejor.precio_por_litro.toFixed(2)}/L)</strong> supera en rendimiento volumétrico a <strong>${otro.producto} en ${otro.tienda} ($${otro.precio_promo.toFixed(2)} | $${otro.precio_por_litro.toFixed(2)}/L)</strong>. Elegir la opción de mejor precio en ${cantBotellas} botellas representa un ahorro directo de <strong class="text-on-surface">$${ahorroTotal.toFixed(2)} MXN</strong> ${textoCuota}.
             </p>
           </div>
         `;
@@ -146,7 +175,7 @@
               Nota Forense de Arbitraje · Mezcal Artesanal
             </div>
             <p class="text-on-surface-variant leading-relaxed">
-              La línea <strong>400 Conejos en Chedraui ($520 en Reposado, Tobalá y Cuishe)</strong> tiene un descuento de $130 por botella frente a Bodegas Alianza ($650), mientras que <strong>Amarás Reposado en Alianza ($503.30)</strong> es el campeón en relación suavidad-precio.
+              <strong>${mejor.producto} en ${mejor.tienda} ($${mejor.precio_promo.toFixed(2)} | $${mejor.precio_por_litro.toFixed(2)}/L)</strong> ofrece la mejor relación costo/litro frente a <strong>${otro.producto} en ${otro.tienda} ($${otro.precio_promo.toFixed(2)} | $${otro.precio_por_litro.toFixed(2)}/L)</strong>, generando un diferencial de <strong class="text-on-surface">$${ahorroTotal.toFixed(2)} MXN</strong> en ${cantBotellas} botellas ${textoCuota}.
             </p>
           </div>
         `;
@@ -154,7 +183,7 @@
 
       return `
         <div class="bg-surface-container p-4 rounded border border-outline-variant/70 text-xs text-on-surface-variant leading-relaxed">
-          <strong class="text-on-surface font-mono uppercase text-[11px]">Dictamen de Volumen:</strong> Optar por la presentación de menor $/Litro dentro del mismo tipo de bebida ahorra <strong class="text-primary">$${ahorroTotal.toFixed(2)} MXN</strong> en una compra de ${cantBotellas} unidades ${textoCuota}.
+          <strong class="text-on-surface font-mono uppercase text-[11px]">Dictamen de Volumen:</strong> Optar por <strong>${mejor.producto} (${mejor.tienda})</strong> a $${mejor.precio_por_litro.toFixed(2)}/L ahorra <strong class="text-primary">$${ahorroTotal.toFixed(2)} MXN</strong> en una compra de ${cantBotellas} unidades ${textoCuota}.
         </div>
       `;
     }
@@ -211,6 +240,7 @@
 
       function generarTarjetaProd(p, colorBorder, letra, costoTrago, tragosTotales, labelDosis) {
         const esGanador = p === ganadorLitro;
+        const idxProd = DATOS_COMPLETOS.indexOf(p);
         const ahorro = p.ahorro_verificable > 0
           ? `<span class="badge bg-[#eaf4ec] text-[#24592a] border border-[#c5dfc9] whitespace-normal text-left">-$${p.ahorro_verificable.toFixed(2)} (${p.porcentaje_ahorro}%)</span>`
           : `<span class="font-mono text-[11px] text-outline">Precio Regular</span>`;
@@ -274,7 +304,7 @@
               <a href="${p.url}" target="_blank" rel="noopener noreferrer" class="font-mono text-xs font-semibold text-primary hover:underline text-center sm:text-left py-1">
                 Ficha en ${p.tienda} ↗
               </a>
-              <button onclick="modificarCantidad(${DATOS_COMPLETOS.indexOf(p)}, 1); mostrarToast('Añadido al carrito: ${p.producto.replace(/'/g, "\\'")}');" class="w-full sm:w-auto px-4 py-2 md3-btn-filled text-xs cursor-pointer text-center">
+              <button onclick="agregarDesdeVersus(${idxProd}, false)" class="w-full sm:w-auto px-4 py-2 md3-btn-filled text-xs cursor-pointer text-center">
                 + Añadir al Carrito
               </button>
             </div>
@@ -337,6 +367,7 @@
 
       const difLitro = Math.abs(prodA.precio_por_litro - prodB.precio_por_litro);
       const pctLitro = ((difLitro / perdedorLitro.precio_por_litro) * 100).toFixed(1);
+      const idxGanador = DATOS_COMPLETOS.indexOf(ganadorLitro);
 
       veredictoBox.innerHTML = `
         <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-5 relative z-10">
@@ -362,7 +393,7 @@
                title="Abrir ${ganadorLitro.producto} en ${ganadorLitro.tienda}">
               <span>Ver en ${ganadorLitro.tienda}</span> <span>↗</span>
             </a>
-            <button onclick="modificarCantidad(${DATOS_COMPLETOS.indexOf(ganadorLitro)}, 1); mostrarToast('Ganador añadido al carrito: ${ganadorLitro.producto.replace(/'/g, "\\'")}');" class="flex-1 sm:flex-initial px-5 py-2.5 rounded bg-[#ffd6ab] hover:bg-[#f3c491] text-[#2b1700] font-mono font-bold text-xs whitespace-normal sm:whitespace-nowrap cursor-pointer text-center transition-colors shadow-sm">
+            <button onclick="agregarDesdeVersus(${idxGanador}, true)" class="flex-1 sm:flex-initial px-5 py-2.5 rounded bg-[#ffd6ab] hover:bg-[#f3c491] text-[#2b1700] font-mono font-bold text-xs whitespace-normal sm:whitespace-nowrap cursor-pointer text-center transition-colors shadow-sm">
               + Agregar Ganador al Carrito
             </button>
           </div>

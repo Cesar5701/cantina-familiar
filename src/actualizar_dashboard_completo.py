@@ -25,9 +25,11 @@ if RAIZ_PROYECTO not in sys.path:
 from src.analizador import (
     calcular_grupos_cross_tienda,
     calcular_metricas,
+    detectar_campanas_por_tienda,
     detectar_duplicados,
     enriquecer_registros_cross_tienda,
     filtrar_catalogo_dashboard,
+    guardar_campanas_json,
     marcar_outliers_lujo,
     normalizar_texto_clave,
     validar_esquema_y_rangos,
@@ -141,8 +143,11 @@ def actualizar_todo(archivos_fuente: list[str] | None = None, carpeta_salida: st
         "categoria",
         "subcategoria",
         "clase",
+        "tipo_mezcal",
+        "productor",
         "categoria_comparable",
         "ml",
+        "abv",
         "precio_promo",
         "precio_regular",
         "precio_por_litro",
@@ -164,6 +169,10 @@ def actualizar_todo(archivos_fuente: list[str] | None = None, carpeta_salida: st
     records = enriquecer_registros_cross_tienda(df_dash, grupos_cross=grupos_cross, cols=cols)
 
     guardar_json_atomico(records, os.path.join(carpeta_salida, "dashboard_data.json"))
+
+    # Detección y persistencia de campañas y vigencias activas por tienda
+    campanas = detectar_campanas_por_tienda(df)
+    guardar_campanas_json(campanas, os.path.join(carpeta_salida, "campanas_activas.json"))
 
     logger.info(f"Total registros guardados en dashboard_data.json: {len(records)}")
     logger.info(f"Productos comparables entre 2 o más tiendas: {len(grupos_cross)} etiquetas")
