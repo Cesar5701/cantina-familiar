@@ -313,6 +313,7 @@
           : `<span class="font-mono text-[11px] text-outline">Precio Regular</span>`;
 
         const tiendaBadge = getBadgeTienda(p.tienda, false);
+        const semaforoBadge = typeof getBadgeSemaforoHistorico === "function" ? getBadgeSemaforoHistorico(p, true) : "";
 
         let stockBadge = "";
         if (p.disponibilidad === "agotado") {
@@ -323,6 +324,10 @@
           stockBadge = `<span class="badge bg-[#eaf4ec] text-[#24592a] border border-[#c5dfc9] text-[10px] font-medium">Existencia: ${p.stock_unidades}</span>`;
         }
 
+        const rangoHistHtml = (p.precio_min_historico && p.precio_max_historico)
+          ? `<div class="font-mono text-[10px] text-on-surface-variant mt-1">Histórico: $${Number(p.precio_min_historico).toFixed(0)} – $${Number(p.precio_max_historico).toFixed(0)}</div>`
+          : "";
+
         return `
           <div class="bg-surface-container-lowest rounded-lg border border-outline-variant/80 border-t-4 ${colorBorder} p-5 space-y-4 min-w-0 overflow-hidden shadow-xs">
             <div class="flex flex-wrap justify-between items-start gap-2 pb-3 border-b border-outline-variant/50">
@@ -330,7 +335,7 @@
                 <span class="badge bg-surface-container border border-outline-variant/80 font-bold text-xs text-on-surface">Contendiente ${letra}</span>
                 ${esGanador ? `<span class="badge bg-[#eaf4ec] text-[#24592a] border border-[#c5dfc9] text-[10px]">★ Óptimo $/L</span>` : ''}
               </div>
-              <div class="flex flex-wrap gap-1.5 items-center">${tiendaBadge}${ahorro}${stockBadge}</div>
+              <div class="flex flex-wrap gap-1.5 items-center">${tiendaBadge}${ahorro}${semaforoBadge}${stockBadge}</div>
             </div>
 
             <div class="min-w-0">
@@ -344,6 +349,7 @@
               <div>
                 <span class="font-mono text-[10px] uppercase tracking-wider text-on-surface-variant block">Precio Botella</span>
                 <div class="text-xl sm:text-2xl font-bold font-mono text-on-surface mt-0.5">$${p.precio_promo.toFixed(2)}</div>
+                ${rangoHistHtml}
               </div>
               <div class="border-l border-outline-variant/50 pl-3">
                 <span class="font-mono text-[10px] uppercase tracking-wider text-primary font-bold block">$/Litro Auditado</span>

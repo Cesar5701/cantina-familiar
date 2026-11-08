@@ -93,6 +93,7 @@
       const elBusq = document.getElementById("filtro-busqueda");
       const chkMejor = document.getElementById("filtro-mejor-precio");
       const chkDesc = document.getElementById("filtro-descuento");
+      const chkMinHist = document.getElementById("filtro-minimo-historico");
       const chkDisp = document.getElementById("filtro-disponible");
       const chkPaq1 = document.getElementById("filtro-paquete");
       const chkPaq2 = document.getElementById("filtro-paquete-pill");
@@ -102,6 +103,7 @@
       if (elBusq) elBusq.value = "";
       if (chkMejor) chkMejor.checked = true;
       if (chkDesc) chkDesc.checked = false;
+      if (chkMinHist) chkMinHist.checked = false;
       if (chkDisp) chkDisp.checked = true;
       if (chkPaq1) chkPaq1.checked = false;
       if (chkPaq2) chkPaq2.checked = false;
@@ -142,6 +144,8 @@
       const subCat = document.getElementById("filtro-categoria").value;
       const tienda = document.getElementById("filtro-tienda").value;
       const soloDesc = document.getElementById("filtro-descuento") ? document.getElementById("filtro-descuento").checked : false;
+      const chkMinHist = document.getElementById("filtro-minimo-historico");
+      const soloMinHist = chkMinHist ? chkMinHist.checked : false;
       const chkPaq = document.getElementById("filtro-paquete") || document.getElementById("filtro-paquete-pill");
       const soloPaquete = chkPaq ? chkPaq.checked : false;
       const chkMejor = document.getElementById("filtro-mejor-precio");
@@ -156,6 +160,7 @@
       if (subCat !== "Todas" && subCat !== "Todos_Macro") nFiltrosActivos++;
       if (tienda !== "Todas") nFiltrosActivos++;
       if (soloDesc) nFiltrosActivos++;
+      if (soloMinHist) nFiltrosActivos++;
       if (soloPaquete) nFiltrosActivos++;
       if (!soloMejor) nFiltrosActivos++;
       if (!soloDisp) nFiltrosActivos++;
@@ -191,9 +196,10 @@
         const matchSub = (subCat === 'Todas' || subCat === 'Todos_Macro') || (item.categoria_comparable === subCat);
         const matchTienda = (tienda === 'Todas') || (item.tienda === tienda);
         const matchDesc = !soloDesc || (item.ahorro_verificable > 0);
+        const matchMinHist = !soloMinHist || (item.semaforo_historico === 'minimo_historico');
         const matchPaquete = !soloPaquete || esProductoPaquete(item);
         const matchDisp = !soloDisp || (item.disponibilidad !== 'agotado');
-        return matchBusq && matchMacro && matchSub && matchTienda && matchDesc && matchPaquete && matchDisp;
+        return matchBusq && matchMacro && matchSub && matchTienda && matchDesc && matchMinHist && matchPaquete && matchDisp;
       });
 
       // Si está en 'Todas las Tiendas' y el filtro está activo, mostrar únicamente la mejor oferta por producto
@@ -282,6 +288,33 @@
       return nombre || item.producto || "";
     }
 
+    function getBadgeSemaforoHistorico(item, incluirEstable = false) {
+      if (!item || !item.semaforo_historico) return "";
+      const sem = item.semaforo_historico;
+      const minHist = Number(item.precio_min_historico || item.precio_promo || 0);
+      const maxHist = Number(item.precio_max_historico || item.precio_promo || 0);
+      const regMin = Number(item.precio_reg_min_historico || item.precio_regular || 0);
+
+      if (sem === "minimo_historico") {
+        const tooltip = `Mejor precio registrado para esta botella en ${item.tienda} (máx. histórico: $${maxHist.toFixed(2)})`;
+        return `<span class="badge bg-[#eaf4ec] text-[#24592a] border border-[#c5dfc9] text-[10px] font-semibold" title="${tooltip}">🟢 Mín. histórico</span>`;
+      }
+      if (sem === "descuento_inflado") {
+        const tooltip = `Alerta: el precio regular reportado ($${Number(item.precio_regular || 0).toFixed(2)}) subió frente al regular histórico de $${regMin.toFixed(2)} en ${item.tienda}`;
+        return `<span class="badge bg-[#fbeae8] text-[#ba1a1a] border border-[#ffdad6] text-[10px] font-semibold" title="${tooltip}">🔴 Desc. inflado</span>`;
+      }
+      if (sem === "subio_vs_minimo") {
+        const diff = Math.max(1, Math.round(Number(item.precio_promo || 0) - minHist));
+        const tooltip = `Estuvo a $${minHist.toFixed(2)} en capturas previas de ${item.tienda}`;
+        return `<span class="badge bg-[#fef3eb] text-[#8c5332] border border-[#f3ddce] text-[10px] font-medium" title="${tooltip}">🟡 +$${diff} vs mín. hist.</span>`;
+      }
+      if (incluirEstable && sem === "estable") {
+        const tooltip = `Sin variación en capturas históricas de ${item.tienda} ($${minHist.toFixed(2)})`;
+        return `<span class="badge bg-surface-container text-on-surface-variant border border-outline-variant/80 text-[10px]" title="${tooltip}">⚪ Precio estable</span>`;
+      }
+      return "";
+    }
+
     function renderizarTabla() {
       const tbody = document.getElementById("tabla-productos-body");
       const contMovil = document.getElementById("lista-productos-movil");
@@ -326,6 +359,8 @@
         const tiendaBadge = getBadgeTienda(item.tienda, false);
         const tiendaBadgeCorto = getBadgeTienda(item.tienda, true);
         const originalIndex = DATOS_COMPLETOS.indexOf(item);
+        const semaforoBadge = getBadgeSemaforoHistorico(item, false);
+        const semaforoBadgeDesktop = semaforoBadge ? `<div class="mt-1">${semaforoBadge}</div>` : "";
 
         let crossBadgeDesktop = "";
         let crossBadgeMovil = "";
@@ -423,7 +458,7 @@
             <td class="py-3.5 px-3 text-xs font-mono text-on-surface-variant text-right hidden md:table-cell whitespace-nowrap">${item.ml} mL</td>
             <td class="py-3.5 px-3 font-bold text-on-surface font-mono text-right whitespace-nowrap">$${item.precio_promo.toFixed(2)}</td>
             <td class="py-3.5 px-4 font-extrabold text-primary font-mono text-right bg-surface-container/60 border-x border-outline-variant/40 whitespace-nowrap">$${item.precio_por_litro.toFixed(2)}</td>
-            <td class="py-3.5 px-3 hidden lg:table-cell whitespace-nowrap">${ahorroBadge}${stockBadgeDesktop}</td>
+            <td class="py-3.5 px-3 hidden lg:table-cell whitespace-nowrap">${ahorroBadge}${semaforoBadgeDesktop}${stockBadgeDesktop}</td>
             <td class="py-3.5 px-3 whitespace-nowrap">${tiendaBadge}</td>
             <td class="py-3.5 px-4 text-right whitespace-nowrap">
               <button onclick="agregarDesdeTabla(${originalIndex})" class="px-3 py-1.5 text-xs md3-btn-tonal cursor-pointer whitespace-nowrap">
@@ -467,6 +502,7 @@
                 <span class="font-extrabold text-base text-on-surface font-mono">$${item.precio_promo.toFixed(2)}</span>
                 <span class="text-xs font-extrabold text-primary font-mono">$${item.precio_por_litro.toFixed(2)} <span class="font-normal text-[10px] text-on-surface-variant">/ L</span></span>
                 ${ahorroBadgeMovil}
+                ${semaforoBadge}
               </div>
               <button onclick="agregarDesdeTabla(${originalIndex})" class="px-3.5 py-1.5 text-xs font-bold md3-btn-tonal cursor-pointer whitespace-nowrap min-h-[36px] flex items-center gap-1 shadow-xs">
                 <span>+</span> Carrito

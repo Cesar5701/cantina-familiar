@@ -72,6 +72,7 @@ def test_dashboard_smoke_renderizado_completo():
     assert soup.find(id="filtro-busqueda") is not None
     assert soup.find(id="filtro-mejor-precio") is not None
     assert soup.find(id="filtro-descuento") is not None
+    assert soup.find(id="filtro-minimo-historico") is not None
     assert soup.find(id="filtro-paquete") is not None
     assert soup.find(id="btn-restablecer-filtros") is not None
 
@@ -134,7 +135,7 @@ def test_dashboard_smoke_datos_json_embebidos():
 
 
 def test_dashboard_smoke_funciones_javascript_criticas():
-    """Valida la presencia exacta de las funciones JS esenciales de UI y lógica de negocio (H44 / B5 / P3)."""
+    """Valida la presencia exacta de las funciones JS esenciales de UI y lógica de negocio (H44 / B5 / P3 / P4.1)."""
     template_str = cargar_plantilla_dashboard()
 
     funciones_esperadas = [
@@ -156,6 +157,7 @@ def test_dashboard_smoke_funciones_javascript_criticas():
         "function filtrarOpcionesSelectorVersus(",
         "function intercambiarContendientesVersus(",
         "function cargarDueloDirecto(",
+        "function getBadgeSemaforoHistorico(",
         "function renderizarTabla(",
         "function nombreSinCategoria(",
         "function toggleModalCrossTienda(",

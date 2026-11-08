@@ -10,6 +10,7 @@ import pandas as pd
 from src.historial import (
     construir_historial_desde_git,
     consultar_historial,
+    enriquecer_con_metricas_historicas,
     extraer_archivo_git,
     formatear_tabla_historial,
     normalizar_df_para_historial,
@@ -230,3 +231,111 @@ def test_construir_historial_desde_git_con_mocks(tmp_path: Path):
         df_hist = construir_historial_desde_git(ruta_salida=ruta_salida)
         assert len(df_hist) >= 1
         assert Path(ruta_salida).exists()
+
+
+def test_enriquecer_con_metricas_historicas():
+    df_hist = pd.DataFrame(
+        [
+            # Producto 1: bajó de 900 a 700 -> minimo_historico
+            {
+                "fecha_dia": "2026-10-15",
+                "tienda": "Walmart",
+                "producto": "Tequila Don Julio 70 700 ml",
+                "ml": 700,
+                "precio_regular": 900.0,
+                "precio_promo": 900.0,
+            },
+            {
+                "fecha_dia": "2026-11-06",
+                "tienda": "Walmart",
+                "producto": "Tequila Don Julio 70 700 ml",
+                "ml": 700,
+                "precio_regular": 900.0,
+                "precio_promo": 700.0,
+            },
+            # Producto 2: subió regular de 600 a 900 para fingir oferta en 650 -> descuento_inflado
+            {
+                "fecha_dia": "2026-10-15",
+                "tienda": "Chedraui",
+                "producto": "Whisky Chivas Regal 12 750 ml",
+                "ml": 750,
+                "precio_regular": 600.0,
+                "precio_promo": 600.0,
+            },
+            {
+                "fecha_dia": "2026-11-06",
+                "tienda": "Chedraui",
+                "producto": "Whisky Chivas Regal 12 750 ml",
+                "ml": 750,
+                "precio_regular": 900.0,
+                "precio_promo": 650.0,
+            },
+            # Producto 3: subió de 500 a 580 sin descuento -> subio_vs_minimo
+            {
+                "fecha_dia": "2026-10-15",
+                "tienda": "Soriana",
+                "producto": "Ron Bacardi Blanco 980 ml",
+                "ml": 980,
+                "precio_regular": 580.0,
+                "precio_promo": 500.0,
+            },
+            {
+                "fecha_dia": "2026-11-06",
+                "tienda": "Soriana",
+                "producto": "Ron Bacardi Blanco 980 ml",
+                "ml": 980,
+                "precio_regular": 580.0,
+                "precio_promo": 580.0,
+            },
+        ]
+    )
+
+    df_actual = pd.DataFrame(
+        [
+            {
+                "tienda": "Walmart",
+                "producto": "Tequila Don Julio 70 700 ml",
+                "ml": 700,
+                "precio_regular": 900.0,
+                "precio_promo": 700.0,
+                "ahorro_verificable": 200.0,
+            },
+            {
+                "tienda": "Chedraui",
+                "producto": "Whisky Chivas Regal 12 750 ml",
+                "ml": 750,
+                "precio_regular": 900.0,
+                "precio_promo": 650.0,
+                "ahorro_verificable": 250.0,
+            },
+            {
+                "tienda": "Soriana",
+                "producto": "Ron Bacardi Blanco 980 ml",
+                "ml": 980,
+                "precio_regular": 580.0,
+                "precio_promo": 580.0,
+                "ahorro_verificable": 0.0,
+            },
+            {
+                "tienda": "Costco",
+                "producto": "Vino Nuevo Sin Historial 750 ml",
+                "ml": 750,
+                "precio_regular": 320.0,
+                "precio_promo": 320.0,
+                "ahorro_verificable": 0.0,
+            },
+        ]
+    )
+
+    df_enriq = enriquecer_con_metricas_historicas(df_actual, df_hist)
+    assert df_enriq.loc[0, "semaforo_historico"] == "minimo_historico"
+    assert df_enriq.loc[0, "precio_min_historico"] == 700.0
+    assert df_enriq.loc[0, "precio_max_historico"] == 900.0
+
+    assert df_enriq.loc[1, "semaforo_historico"] == "descuento_inflado"
+    assert df_enriq.loc[1, "precio_reg_min_historico"] == 600.0
+
+    assert df_enriq.loc[2, "semaforo_historico"] == "subio_vs_minimo"
+    assert df_enriq.loc[2, "precio_min_historico"] == 500.0
+
+    assert df_enriq.loc[3, "semaforo_historico"] == "nuevo"
