@@ -6,6 +6,7 @@ detección temprana de desafío WAF (Circuit Breaker) y respaldo automático des
 
 import json
 import os
+import random
 import time
 import urllib.error
 import urllib.parse
@@ -57,22 +58,52 @@ def _cargar_respaldo_csv(ruta_respaldo: str | None) -> list[dict]:
         return []
 
 
+def _generar_clave_producto(item: dict) -> str:
+    """Genera una clave única determinista para deduplicación y merge incremental."""
+    tienda = str(item.get("tienda") or "").strip().lower()
+    producto = str(item.get("producto") or "").strip().lower()
+    ml = str(item.get("ml") or "").strip().lower()
+    if tienda and producto:
+        return f"{tienda}|{producto}|{ml}"
+    url = str(item.get("url") or "").strip().lower()
+    url = url.replace("https://", "").replace("http://", "")
+    if url.startswith("www."):
+        url = url[4:]
+    return url.rstrip("/")
+
+
 def scrapear_nextjs_walmart_platform(
     tienda: str,
     base_domain: str,
     terminos: list[str],
     ruta_respaldo: str | None = None,
+    delay_min: float = 3.5,
+    delay_max: float = 6.5,
 ) -> list[dict]:
     logger.info("=" * 60)
     logger.info(f"SCRAPEANDO {tienda.upper()} ({base_domain} SSR __NEXT_DATA__)")
     logger.info("=" * 60)
     fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M")
     ids_vistos = set()
-    resultados = []
     resumen = ResumenScraping(tienda)
     bloqueos_waf_consecutivos = 0
 
-    for t in terminos:
+    # 1. Cargar catálogo previo para merge incremental (evita pérdida de productos previos por WAF/IP)
+    catalogo_acumulado: dict[str, dict] = {}
+    if ruta_respaldo and os.path.exists(ruta_respaldo):
+        respaldo_inicial = _cargar_respaldo_csv(ruta_respaldo)
+        for item in respaldo_inicial:
+            clave = _generar_clave_producto(item)
+            catalogo_acumulado[clave] = item
+        if catalogo_acumulado:
+            logger.info(
+                f"  [{tienda}] Catálogo base cargado: {len(catalogo_acumulado)} productos existentes para actualización incremental."
+            )
+
+    actualizados_count = 0
+    insertados_count = 0
+
+    for idx, t in enumerate(terminos):
         url = f"https://{base_domain}/search?q={urllib.parse.quote(t)}"
         try:
             html = _pkg.descargar_html_con_reintentos(
@@ -84,9 +115,9 @@ def scrapear_nextjs_walmart_platform(
             if es_pagina_desafio_waf(html):
                 bloqueos_waf_consecutivos += 1
                 if ruta_respaldo and os.path.exists(ruta_respaldo):
-                    logger.info(
-                        f"  [Circuit Breaker] Protección WAF/PerimeterX detectada en {base_domain}. "
-                        f"Deteniendo consultas adicionales para proteger la IP."
+                    logger.warning(
+                        f"  [Circuit Breaker] Protección WAF/PerimeterX detectada en {base_domain} para '{t}'. "
+                        f"Deteniendo consultas adicionales para proteger la IP (se conservan {len(catalogo_acumulado)} productos previos/actualizados)."
                     )
                     break
                 if not html:
@@ -168,13 +199,28 @@ def scrapear_nextjs_walmart_platform(
                         fecha_actual=fecha_actual,
                     )
                     if item_norm:
-                        resultados.append(item_norm)
+                        clave = _generar_clave_producto(item_norm)
+                        if clave in catalogo_acumulado:
+                            actualizados_count += 1
+                        else:
+                            insertados_count += 1
+                        catalogo_acumulado[clave] = item_norm
                         resumen.registrar_exito()
                         nuevos_q += 1
                     else:
                         resumen.registrar_descarte("filtro categoría o volumen")
-            logger.info(f"  -> '{t}': +{nuevos_q} productos (Acumulado {tienda}: {len(resultados)})")
-            time.sleep(1.2)
+
+            logger.info(
+                f"  -> '{t}': +{nuevos_q} productos en consulta "
+                f"(Catálogo acumulado {tienda}: {len(catalogo_acumulado)})"
+            )
+
+            # Pausa de cortesía humanizada con jitter entre términos para evitar rate limiting
+            if idx < len(terminos) - 1:
+                espera = 0.0 if os.environ.get("PYTEST_CURRENT_TEST") else random.uniform(delay_min, delay_max)
+                if espera > 0:
+                    time.sleep(espera)
+
         except (
             urllib.error.URLError,
             urllib.error.HTTPError,
@@ -187,7 +233,12 @@ def scrapear_nextjs_walmart_platform(
         ) as e:
             resumen.registrar_error_red(url, e)
             logger.warning(f"[{tienda} '{t}']: {e}")
-            time.sleep(1.0)
+            if idx < len(terminos) - 1:
+                espera = 0.0 if os.environ.get("PYTEST_CURRENT_TEST") else random.uniform(2.0, 4.0)
+                if espera > 0:
+                    time.sleep(espera)
+
+    resultados = list(catalogo_acumulado.values())
 
     if not resultados and ruta_respaldo:
         respaldo = _cargar_respaldo_csv(ruta_respaldo)
@@ -199,6 +250,11 @@ def scrapear_nextjs_walmart_platform(
                 f"  -> [{tienda}] Catálogo verificado de respaldo activo: "
                 f"{len(resultados)} productos conservados ({ruta_respaldo})."
             )
+
+    logger.info(
+        f"  -> [{tienda}] Total consolidado: {len(resultados)} productos "
+        f"({actualizados_count} actualizados en sesión, {insertados_count} nuevos agregados)."
+    )
 
     resumen.imprimir_resumen()
     return resultados

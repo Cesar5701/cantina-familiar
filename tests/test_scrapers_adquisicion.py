@@ -520,6 +520,67 @@ def test_scrapear_nextjs_walmart_platform_circuit_breaker_y_respaldo(tmp_path):
         assert resultados[0]["producto"] == "Tequila Don Julio 70 Añejo Cristalino 700 ml"
 
 
+def test_scrapear_nextjs_walmart_platform_upsert_incremental(tmp_path):
+    """Valida que los nuevos productos actualicen o se agreguen al respaldo sin borrar productos previos."""
+    csv_respaldo = tmp_path / "scraped_walmart_mock.csv"
+    csv_respaldo.write_text(
+        "tienda,producto,marca,categoria,subcategoria,ml,precio_regular,precio_promo,disponibilidad,url\n"
+        "Walmart,Tequila Don Julio 70 Añejo Cristalino 700 ml,Don Julio,Tequila,Añejo Cristalino,700,1020.0,846.0,disponible,https://walmart.com.mx/p1\n"
+        "Walmart,Whisky Johnnie Walker Black 750 ml,Johnnie Walker,Whisky,Blended Scotch,750,900.0,750.0,disponible,https://walmart.com.mx/p2\n",
+        encoding="utf-8",
+    )
+
+    # Simular una búsqueda que actualiza Don Julio a $799 y añade Mezcal 400 Conejos
+    next_data = {
+        "props": {
+            "pageProps": {
+                "initialData": {
+                    "searchResult": {
+                        "itemStacks": [
+                            {
+                                "items": [
+                                    {
+                                        "usItemId": "wm_p1",
+                                        "name": "Tequila Don Julio 70 Añejo Cristalino 700 ml",
+                                        "brand": "Don Julio",
+                                        "canonicalUrl": "/p1",
+                                        "availabilityStatusV2": {"value": "IN_STOCK"},
+                                        "priceInfo": {"linePrice": "$799.00", "wasPrice": "$1,020.00"},
+                                    },
+                                    {
+                                        "usItemId": "wm_p3",
+                                        "name": "Mezcal 400 Conejos Espadín 750 ml",
+                                        "brand": "400 Conejos",
+                                        "canonicalUrl": "/p3",
+                                        "availabilityStatusV2": {"value": "IN_STOCK"},
+                                        "priceInfo": {"linePrice": "$480.00"},
+                                    },
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    }
+    html = f'<html><script id="__NEXT_DATA__" type="application/json">{json.dumps(next_data)}</script></html>'
+
+    with patch("src.scraper_multitienda.descargar_html_con_reintentos", return_value=html):
+        resultados = scrapear_nextjs_walmart_platform(
+            tienda="Walmart",
+            base_domain="www.walmart.com.mx",
+            terminos=["tequila"],
+            ruta_respaldo=str(csv_respaldo),
+        )
+
+    # Deben existir 3 productos: Don Julio actualizado ($799), Whisky conservado ($750), y Mezcal insertado ($480)
+    assert len(resultados) == 3
+    por_url = {p["url"]: p for p in resultados}
+    assert por_url["https://www.walmart.com.mx/p1"]["precio_promo"] == 799.0
+    assert por_url["https://walmart.com.mx/p2"]["precio_promo"] == 750.0
+    assert por_url["https://www.walmart.com.mx/p3"]["precio_promo"] == 480.0
+
+
 def test_scrapear_soriana_mock():
     """Valida la extracción desde HTML Salesforce Commerce Cloud de Soriana (H43)."""
     html_soriana = """

@@ -16,32 +16,20 @@ logger = get_logger("scraper_multitienda")
 def main():
     os.makedirs("data", exist_ok=True)
 
-    terminos_sams = ["tequila", "tequila cristalino", "tequila anejo", "mezcal", "whisky", "jack daniels", "vino tinto"]
-    terminos_walmart = [
+    terminos_sams = [
+        "tequila",
         "tequila cristalino",
-        "tequila anejo",
-        "tequila 1800",
-        "tequila herradura",
-        "tequila don julio",
-        "tequila dobel",
-        "mezcal 400 conejos",
-        "mezcal amaras",
-        "mezcal montelobos",
-        "mezcal reposado",
-        "mezcal anejo",
-        "whisky johnnie walker",
-        "whisky black & white",
-        "whisky ballantines",
-        "whisky william lawsons",
-        "whisky chivas",
-        "whisky buchanans",
+        "mezcal",
+        "whisky",
+        "vino tinto",
+    ]
+    terminos_walmart = [
+        "tequila",
+        "tequila cristalino",
+        "mezcal",
+        "whisky",
         "jack daniels",
-        "jack daniels honey",
-        "jack daniels apple",
-        "vino tinto california",
-        "carlo rossi",
-        "vino tinto reservado",
-        "vino tinto cuatro soles",
+        "vino tinto",
     ]
 
     # 1. Chedraui
