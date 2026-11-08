@@ -515,6 +515,16 @@ def test_scrapear_soriana_mock():
         <input name="clevertap-list-price" value="890.00">
         <div class="sales"><span class="cart-price">$699.00</span></div>
       </div>
+      <!-- Tile agotado (.soldOutProduct y Agotado en línea) -->
+      <div class="product-tile soldOutProduct">
+        <a class="product-tile--link" href="/tequila-gran-centenario-ultra-vaso">
+          Tequila Gran Centenario Ultra 695 ml + Obsequio 1 Vaso Loud Cup
+        </a>
+        <div data-pid="sor_11930037"></div>
+        <input name="clevertap-list-price" value="499.00">
+        <div class="sales"><span class="cart-price">$499.00</span></div>
+        <span class="btn-add-to-cart--text">Agotado en línea</span>
+      </div>
       <!-- Tile sin enlace válido -->
       <div class="product-tile">
         <div class="sales"><span class="cart-price">$500.00</span></div>
@@ -524,12 +534,17 @@ def test_scrapear_soriana_mock():
 
     with patch("src.scraper_multitienda.descargar_html_con_reintentos", return_value=html_soriana):
         resultados = scrapear_soriana(terminos=["tequila cristalino"])
-        assert len(resultados) == 1
-        prod = resultados[0]
-        assert prod["tienda"] == "Soriana"
-        assert "Herradura Ultra" in prod["producto"]
-        assert prod["precio_promo"] == 699.0
-        assert prod["precio_regular"] == 890.0
+        assert len(resultados) == 2
+        prod_disp = [p for p in resultados if "Herradura Ultra" in p["producto"]][0]
+        assert prod_disp["tienda"] == "Soriana"
+        assert prod_disp["disponibilidad"] == "disponible"
+        assert prod_disp["precio_promo"] == 699.0
+        assert prod_disp["precio_regular"] == 890.0
+
+        prod_agotado = [p for p in resultados if "Centenario Ultra" in p["producto"]][0]
+        assert prod_agotado["tienda"] == "Soriana"
+        assert prod_agotado["disponibilidad"] == "agotado"
+        assert prod_agotado["precio_promo"] == 499.0
 
 
 def test_scrapear_costco_mock_exitoso():

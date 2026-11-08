@@ -102,13 +102,29 @@ def scrapear_soriana(terminos: list[str] | None = None) -> list[dict]:
                 else:
                     cond = "Precio regular Soriana"
 
+                # Detección defensiva de disponibilidad / stock en línea Soriana
+                is_sold_out = False
+                if tile.select(".soldOutProduct"):
+                    is_sold_out = True
+                tile_text = tile.get_text(separator=" ", strip=True).lower()
+                if any(
+                    x in tile_text
+                    for x in ["agotado en línea", "agotado en linea", "producto agotado", "temporalmente agotado"]
+                ):
+                    is_sold_out = True
+                btn_text_el = tile.select_one(".btn-add-to-cart--text") or tile.select_one(".btn-add-to-cart-remaster")
+                if btn_text_el and any(a in btn_text_el.get_text().lower() for a in ["agotado", "no disponible"]):
+                    is_sold_out = True
+
+                disponibilidad = "agotado" if is_sold_out else "disponible"
+
                 item_norm = evaluar_y_normalizar_producto(
                     tienda="Soriana",
                     nombre=nombre,
                     marca="",
                     precio_regular=p_reg,
                     precio_promo=p_promo,
-                    disponible="disponible",
+                    disponible=disponibilidad,
                     url=full_url,
                     condicion=cond,
                     fuente="Portal oficial soriana.com",
