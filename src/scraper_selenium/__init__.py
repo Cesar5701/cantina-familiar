@@ -28,6 +28,7 @@ from src.scraper_selenium.nodriver_cdp import (
 )
 from src.scraper_selenium.parsers_dom import (
     _construir_registro_producto,
+    construir_registro_producto,
     extraer_de_json_embebido,
     parsear_html_con_bs4,
 )
@@ -43,6 +44,7 @@ __all__ = [
     "TimeoutException",
     "WebDriverException",
     "_construir_registro_producto",
+    "construir_registro_producto",
     "consultar_urls_secuenciales",
     "consultar_pdps_con_nodriver",
     "obtener_binario_chrome_disponible",

@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 from src.clasificacion import clasificar_categoria, extraer_ml, limpiar_precio
 
 
-def _construir_registro_producto(
+def construir_registro_producto(
     tienda: str,
     nombre: str,
     precio_regular: float,
@@ -51,6 +51,10 @@ def _construir_registro_producto(
         "fuente": f"Página oficial ({tienda})",
         "confianza": "Confirmado",
     }
+
+
+# Alias privado para compatibilidad hacia atrás
+_construir_registro_producto = construir_registro_producto
 
 
 def extraer_de_json_embebido(soup: BeautifulSoup, url: str, tienda: str, fecha_consulta: str) -> list[dict]:

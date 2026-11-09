@@ -185,6 +185,7 @@ def descubrir_productos_pasillos_walmart(
     max_paginas: int | None = None,
     delay_min: float = 1.5,
     delay_max: float = 3.0,
+    pausar: bool | None = None,
 ) -> tuple[int, int]:
     """
     Explora los pasillos y categorías oficiales de vinos y licores de Walmart México
@@ -195,6 +196,9 @@ def descubrir_productos_pasillos_walmart(
     if max_paginas is None:
         env_max = os.environ.get("WALMART_MAX_PAGINAS_PASILLO")
         max_paginas = int(env_max) if env_max and env_max.isdigit() else 2
+
+    if pausar is None:
+        pausar = not bool(os.environ.get("PYTEST_CURRENT_TEST"))
 
     actualizados = 0
     insertados = 0
@@ -277,7 +281,7 @@ def descubrir_productos_pasillos_walmart(
                 if nuevos_en_pagina == 0 and actualizados_en_pagina == 0:
                     break
 
-                if not os.environ.get("PYTEST_CURRENT_TEST"):
+                if pausar:
                     time.sleep(random.uniform(delay_min, delay_max))
 
             except (
@@ -306,12 +310,15 @@ def _ejecutar_contingencia_navegador(
     resumen: ResumenScraping,
     fecha_actual: str,
     headless: bool = False,
+    pausar: bool | None = None,
 ) -> tuple[int, int]:
     """
     Ejecuta la extracción de contingencia mediante navegador indetectable (Ruta C: nodriver CDP)
     o Selenium como respaldo secundario cuando las peticiones HTTP son bloqueadas.
     Prioriza consultar directamente URLs de producto (PDP) ya conocidas para Walmart.
     """
+    if pausar is None:
+        pausar = not bool(os.environ.get("PYTEST_CURRENT_TEST"))
     actualizados_sel = 0
     insertados_sel = 0
     prods_raw: list[dict] = []
@@ -363,7 +370,7 @@ def _ejecutar_contingencia_navegador(
                     logger.info(f"     ✓ {len(lote_extraido)}/{len(urls_lote)} productos extraídos en categoría {cat}.")
 
                 # Pausa humana de enfriamiento entre categorías (cool-off period para resetear contadores WAF)
-                if len(grupos_categoria) > 1 and not os.environ.get("PYTEST_CURRENT_TEST"):
+                if len(grupos_categoria) > 1 and pausar:
                     logger.info("     ☕ Pausa de enfriamiento entre categorías (5 segundos)...")
                     time.sleep(5.0)
 
@@ -436,6 +443,7 @@ def scrapear_nextjs_walmart_platform(
     forzar_selenium: bool = False,
     headless_selenium: bool = False,
     explorar_pasillos: bool | None = None,
+    pausar: bool | None = None,
 ) -> list[dict]:
     logger.info("=" * 60)
     logger.info(f"SCRAPEANDO {tienda.upper()} ({base_domain} SSR __NEXT_DATA__)")
@@ -444,6 +452,9 @@ def scrapear_nextjs_walmart_platform(
     ids_vistos = set()
     resumen = ResumenScraping(tienda)
     bloqueos_waf_consecutivos = 0
+
+    if pausar is None:
+        pausar = not bool(os.environ.get("PYTEST_CURRENT_TEST"))
 
     if usar_fallback_selenium is None:
         usar_fallback_selenium = not bool(os.environ.get("PYTEST_CURRENT_TEST"))
@@ -474,6 +485,7 @@ def scrapear_nextjs_walmart_platform(
             catalogo_acumulado=catalogo_acumulado,
             resumen=resumen,
             fecha_actual=fecha_actual,
+            pausar=pausar,
         )
         actualizados_count += u_pas
         insertados_count += i_pas
@@ -566,7 +578,7 @@ def scrapear_nextjs_walmart_platform(
 
             # Pausa de cortesía humanizada con jitter entre términos para evitar rate limiting
             if idx < len(terminos) - 1:
-                espera = 0.0 if os.environ.get("PYTEST_CURRENT_TEST") else random.uniform(delay_min, delay_max)
+                espera = random.uniform(delay_min, delay_max) if pausar else 0.0
                 if espera > 0:
                     time.sleep(espera)
 
@@ -583,7 +595,7 @@ def scrapear_nextjs_walmart_platform(
             resumen.registrar_error_red(url, e)
             logger.warning(f"[{tienda} '{t}']: {e}")
             if idx < len(terminos) - 1:
-                espera = 0.0 if os.environ.get("PYTEST_CURRENT_TEST") else random.uniform(2.0, 4.0)
+                espera = random.uniform(2.0, 4.0) if pausar else 0.0
                 if espera > 0:
                     time.sleep(espera)
 
@@ -600,6 +612,7 @@ def scrapear_nextjs_walmart_platform(
             resumen=resumen,
             fecha_actual=fecha_actual,
             headless=headless_selenium,
+            pausar=pausar,
         )
         actualizados_count += u_nav
         insertados_count += i_nav
