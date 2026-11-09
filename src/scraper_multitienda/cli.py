@@ -54,14 +54,15 @@ def main(
     if prods_sams:
         guardar_csv_atomico(pd.DataFrame(prods_sams), "data/scraped_sams.csv")
 
-    # 3. Walmart
+    # 3. Walmart (Ruta C directa con nodriver CDP)
+    forzar_walmart = forzar_selenium or (not bool(os.environ.get("PYTEST_CURRENT_TEST")))
     prods_walmart = _pkg.scrapear_nextjs_walmart_platform(
         "Walmart",
         "www.walmart.com.mx",
         terminos_walmart,
         ruta_respaldo="data/scraped_walmart.csv",
         usar_fallback_selenium=usar_fallback_selenium,
-        forzar_selenium=forzar_selenium,
+        forzar_selenium=forzar_walmart,
         headless_selenium=headless_selenium,
     )
     if prods_walmart:

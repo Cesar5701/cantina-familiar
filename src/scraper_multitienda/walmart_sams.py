@@ -295,20 +295,22 @@ def _ejecutar_contingencia_navegador(
     insertados_sel = 0
     prods_raw: list[dict] = []
 
-    # Ruta C: Si es Walmart y tenemos productos conocidos con URL /ip/, consultar directamente via CDP por lotes categóricos
-    items_walmart = [
+    # Ruta C: Si tenemos productos conocidos con URL /ip/ en el dominio (Walmart o Sam's Club),
+    # consultar directamente via nodriver CDP por lotes categóricos
+    items_pdp = [
         item
         for item in catalogo_acumulado.values()
         if item.get("url") and "/ip/" in item["url"] and base_domain in item["url"]
     ]
 
-    if "walmart" in tienda.lower() and items_walmart and getattr(_sel_pkg, "consultar_pdps_con_nodriver", None):
+    es_plataforma_nextjs = any(k in tienda.lower() for k in ["walmart", "sam"])
+    if es_plataforma_nextjs and items_pdp and getattr(_sel_pkg, "consultar_pdps_con_nodriver", None):
         # Agrupar URLs por categoría para procesar en lotes seguros con pausas de enfriamiento
         categorias_orden = ["Tequila", "Whisky", "Mezcal", "Licor de Whisky", "Vino"]
         grupos_categoria: dict[str, list[str]] = {cat: [] for cat in categorias_orden}
         grupos_categoria["Otros"] = []
 
-        for it in items_walmart:
+        for it in items_pdp:
             c = str(it.get("categoria") or "").strip()
             if c in grupos_categoria:
                 grupos_categoria[c].append(it["url"])
@@ -317,7 +319,7 @@ def _ejecutar_contingencia_navegador(
 
         logger.info(
             f"  🌐 [{tienda}] Activando Ruta C por Lotes Categóricos con nodriver CDP "
-            f"({len(items_walmart)} productos en catálogo)..."
+            f"({len(items_pdp)} productos en catálogo)..."
         )
 
         for cat, urls_cat in grupos_categoria.items():
