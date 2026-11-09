@@ -313,9 +313,9 @@ def test_h45_h46_h48_higiene_dependencias_y_empaquetado():
         assert dep in req_prod
         assert dep in pyproject
 
-    # H47: deploy.yml debe usar un solo comando unificado de instalación
+    # H47: deploy.yml debe usar el lockfile para despliegue determinista y reproducible
     deploy_yml = Path(".github/workflows/deploy.yml").read_text(encoding="utf-8")
-    assert 'pip install -e ".[dev]"' in deploy_yml
+    assert "pip install -r requirements.lock" in deploy_yml
     assert "pip install -r requirements.txt" not in deploy_yml
 
     # H48: requirements.lock debe existir y contener versiones fijadas
