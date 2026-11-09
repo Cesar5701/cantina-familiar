@@ -94,19 +94,23 @@ def main():
         help="Solo extraer datos sin ejecutar consolidación ni regenerar dashboard.",
     )
     parser.add_argument(
+        "--con-navegador",
         "--con-selenium",
+        dest="con_navegador",
         action="store_true",
-        help="Forzar extracción directa con Selenium para Walmart y Sam's Club.",
+        help="Forzar extracción directa con navegador indetectable (nodriver CDP) para Walmart y Sam's Club.",
     )
     parser.add_argument(
+        "--sin-navegador",
         "--sin-selenium",
+        dest="sin_navegador",
         action="store_true",
-        help="Desactivar el fallback automático a Selenium cuando HTTP sea bloqueado por WAF/Prerender.",
+        help="Desactivar el fallback automático al navegador cuando HTTP sea bloqueado por WAF/Prerender.",
     )
     parser.add_argument(
         "--headless",
         action="store_true",
-        help="Ejecutar el navegador de Selenium en segundo plano (sin ventana gráfica).",
+        help="Ejecutar el navegador en segundo plano (sin ventana gráfica).",
     )
     args = parser.parse_args()
 
@@ -114,10 +118,11 @@ def main():
         saltar_alianza=args.saltar_alianza,
         saltar_multitienda=args.saltar_multitienda,
         saltar_consolidacion=args.solo_scraping,
-        usar_fallback_selenium=False if args.sin_selenium else True,
-        forzar_selenium=args.con_selenium,
+        usar_fallback_selenium=False if args.sin_navegador else True,
+        forzar_selenium=args.con_navegador,
         headless_selenium=args.headless,
     )
+
 
 
 if __name__ == "__main__":

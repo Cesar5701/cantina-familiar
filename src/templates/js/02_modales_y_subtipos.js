@@ -174,14 +174,19 @@
 
       const altIdx = DATOS_COMPLETOS.findIndex(d =>
         d.clave_comparativa === item.clave_comparativa &&
+        d.tienda === item.tienda_mas_barata &&
+        Math.abs(d.precio_promo - item.precio_minimo_cross) < 0.1
+      );
+      const idxFinal = altIdx !== -1 ? altIdx : DATOS_COMPLETOS.findIndex(d =>
+        d.clave_comparativa === item.clave_comparativa &&
         d.tienda === item.tienda_mas_barata
       );
 
-      if (altIdx !== -1) {
+      if (idxFinal !== -1) {
         const cant = canastaPersonalizada[idx] || 1;
         const ahorro = (item.diferencia_vs_minimo * cant).toFixed(2);
         delete canastaPersonalizada[idx];
-        canastaPersonalizada[altIdx] = (canastaPersonalizada[altIdx] || 0) + cant;
+        canastaPersonalizada[idxFinal] = (canastaPersonalizada[idxFinal] || 0) + cant;
         guardarCanastaEnStorage();
         renderizarConstructorCanasta();
         mostrarToast(`Cambiado a ${item.tienda_mas_barata}. ¡Ahorraste $${ahorro} MXN!`);
@@ -201,16 +206,22 @@
         if (item.es_comparable_cross_tienda && !item.es_precio_mas_bajo && item.diferencia_vs_minimo > 0) {
           const altIdx = DATOS_COMPLETOS.findIndex(d =>
             d.clave_comparativa === item.clave_comparativa &&
+            d.tienda === item.tienda_mas_barata &&
+            Math.abs(d.precio_promo - item.precio_minimo_cross) < 0.1
+          );
+          const idxFinal = altIdx !== -1 ? altIdx : DATOS_COMPLETOS.findIndex(d =>
+            d.clave_comparativa === item.clave_comparativa &&
             d.tienda === item.tienda_mas_barata
           );
-          if (altIdx !== -1) {
+          if (idxFinal !== -1) {
             ahorroTotal += (item.diferencia_vs_minimo * cant);
             delete canastaPersonalizada[idx];
-            canastaPersonalizada[altIdx] = (canastaPersonalizada[altIdx] || 0) + cant;
+            canastaPersonalizada[idxFinal] = (canastaPersonalizada[idxFinal] || 0) + cant;
             cambios++;
           }
         }
       });
+
 
       if (cambios > 0) {
         guardarCanastaEnStorage();

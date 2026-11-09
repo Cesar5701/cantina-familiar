@@ -14,6 +14,11 @@ import urllib.error
 import urllib.request
 from typing import Any, Dict, Optional
 
+try:
+    from curl_cffi import requests as curl_requests
+except (ImportError, OSError):
+    curl_requests = None
+
 USER_AGENT_CHROME = (
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
 )
@@ -162,3 +167,39 @@ def descargar_html_con_reintentos(
         timeout=timeout,
         lanzar_error=False,
     )
+
+
+def peticion_curl_cffi(
+    url: str,
+    impersonate: str = "chrome124",
+    headers: Optional[Dict[str, str]] = None,
+    cookies: Optional[Dict[str, str]] = None,
+    timeout: float = 15.0,
+    lanzar_error: bool = False,
+) -> str | None:
+    """
+    Ejecuta una petición HTTP utilizando curl_cffi para reproducir exactamente
+    el handshake TLS/JA3/HTTP2 de un navegador real (ej. chrome124).
+    Si curl_cffi no está disponible o falla, recurre de forma segura a peticion_http_con_reintentos.
+    """
+    if curl_requests is not None:
+        try:
+            hdrs = (HEADERS_SSR_NEXTJS if headers is None else headers).copy()
+            resp = curl_requests.get(
+                url,
+                impersonate=impersonate,
+                headers=hdrs,
+                cookies=cookies,
+                timeout=timeout,
+            )
+            if resp.status_code in {200, 304}:
+                return resp.text
+            if lanzar_error and resp.status_code >= 400:
+                resp.raise_for_status()
+            return resp.text
+        except (OSError, RuntimeError, TimeoutError, ConnectionError, ValueError) as e:
+            if lanzar_error:
+                raise
+    return peticion_http_con_reintentos(url=url, headers=headers, timeout=timeout, lanzar_error=lanzar_error)
+
+

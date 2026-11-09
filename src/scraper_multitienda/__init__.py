@@ -18,12 +18,18 @@ from src.scraper_multitienda.cli import main
 from src.scraper_multitienda.costco import scrapear_costco
 from src.scraper_multitienda.normalizador import evaluar_y_normalizar_producto
 from src.scraper_multitienda.soriana import scrapear_soriana
-from src.scraper_multitienda.walmart_sams import scrapear_nextjs_walmart_platform
+from src.scraper_multitienda.walmart_sams import (
+    PASILLOS_WALMART_LICORES,
+    descubrir_productos_pasillos_walmart,
+    scrapear_nextjs_walmart_platform,
+)
 
 __all__ = [
     "HEADERS_DEFAULT",
+    "PASILLOS_WALMART_LICORES",
     "descargar_html_con_reintentos",
     "descargar_json_con_reintentos",
+    "descubrir_productos_pasillos_walmart",
     "evaluar_y_normalizar_producto",
     "main",
     "scrapear_chedraui",

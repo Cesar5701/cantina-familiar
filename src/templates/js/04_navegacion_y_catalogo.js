@@ -190,8 +190,13 @@
         }
       }
 
+      const busqTokens = busq ? normalizarTextoBusqueda(busq).split(" ").filter(Boolean) : [];
       datosFiltrados = DATOS_COMPLETOS.filter(item => {
-        const matchBusq = !busq || item.producto.toLowerCase().includes(busq) || item.marca.toLowerCase().includes(busq);
+        let matchBusq = true;
+        if (busqTokens.length > 0) {
+          const itemTokens = normalizarTextoBusqueda(`${item.producto} ${item.marca}`).split(" ").filter(Boolean);
+          matchBusq = busqTokens.every(tok => tokenCoincide(tok, itemTokens));
+        }
         const matchMacro = (macroCat === 'Todas') || (item.categoria === macroCat);
         const matchSub = (subCat === 'Todas' || subCat === 'Todos_Macro') || (item.categoria_comparable === subCat);
         const matchTienda = (tienda === 'Todas') || (item.tienda === tienda);
@@ -201,6 +206,7 @@
         const matchDisp = !soloDisp || (item.disponibilidad !== 'agotado');
         return matchBusq && matchMacro && matchSub && matchTienda && matchDesc && matchMinHist && matchPaquete && matchDisp;
       });
+
 
       // Si está en 'Todas las Tiendas' y el filtro está activo, mostrar únicamente la mejor oferta por producto
       if (tienda === "Todas" && soloMejor) {
@@ -362,6 +368,17 @@
         const semaforoBadge = getBadgeSemaforoHistorico(item, false);
         const semaforoBadgeDesktop = semaforoBadge ? `<div class="mt-1">${semaforoBadge}</div>` : "";
 
+        // Capa 0: Badge de frescura honesta
+        let staleBadgeDesktop = "";
+        let staleBadgeMovil = "";
+        if (item.es_stale) {
+          const dias = Math.round(Number(item.dias_desde_actualizacion || 0));
+          const txtDias = dias > 0 ? `Verificado hace ${dias}d` : "No verificado recientemente";
+          staleBadgeDesktop = `<div class="mt-1"><span class="badge bg-amber-50 text-amber-800 border border-amber-300 text-[10px] font-semibold" title="Precio capturado previamente (${item.fecha_consulta || 'antiguo'}). Requiere confirmación en tienda física.">⏳ ${txtDias}</span></div>`;
+          staleBadgeMovil = `<span class="badge bg-amber-50 text-amber-800 border border-amber-300 text-[10px] font-semibold" title="Precio capturado previamente.">⏳ ${txtDias}</span>`;
+        }
+
+
         let crossBadgeDesktop = "";
         let crossBadgeMovil = "";
         if (item.es_comparable_cross_tienda) {
@@ -458,7 +475,7 @@
             <td class="py-3.5 px-3 text-xs font-mono text-on-surface-variant text-right hidden md:table-cell whitespace-nowrap">${item.ml} mL</td>
             <td class="py-3.5 px-3 font-bold text-on-surface font-mono text-right whitespace-nowrap">$${item.precio_promo.toFixed(2)}</td>
             <td class="py-3.5 px-4 font-extrabold text-primary font-mono text-right bg-surface-container/60 border-x border-outline-variant/40 whitespace-nowrap">$${item.precio_por_litro.toFixed(2)}</td>
-            <td class="py-3.5 px-3 hidden lg:table-cell whitespace-nowrap">${ahorroBadge}${semaforoBadgeDesktop}${stockBadgeDesktop}</td>
+            <td class="py-3.5 px-3 hidden lg:table-cell whitespace-nowrap">${ahorroBadge}${semaforoBadgeDesktop}${stockBadgeDesktop}${staleBadgeDesktop}</td>
             <td class="py-3.5 px-3 whitespace-nowrap">${tiendaBadge}</td>
             <td class="py-3.5 px-4 text-right whitespace-nowrap">
               <button onclick="agregarDesdeTabla(${originalIndex})" class="px-3 py-1.5 text-xs md3-btn-tonal cursor-pointer whitespace-nowrap">
@@ -480,8 +497,10 @@
               <div class="flex items-center gap-1.5 flex-wrap">
                 ${tiendaBadgeCorto}
                 ${stockBadgeMovil}
+                ${staleBadgeMovil}
                 <span class="badge bg-surface-container border border-outline-variant/70 text-on-surface-variant text-[10px]">${item.categoria_comparable}</span>
               </div>
+
               <span class="text-xs font-mono font-bold text-on-surface-variant">${item.ml} mL</span>
             </div>
 

@@ -46,8 +46,9 @@
         : opcionesBaseVersus.filter(({ item }) => {
             const textoItem = normalizarTextoBusqueda(`${item.producto} ${item.marca} ${item.tienda} ${item.ml}ml`);
             const pTokens = textoItem.split(" ").filter(Boolean);
-            return tokens.every(tok => tokenCoincide(pTokens, tok));
+            return tokens.every(tok => tokenCoincide(tok, pTokens));
           });
+
 
       poblarSelectorVersus(lado, filtrados);
       if (filtrados.length > 0) {
@@ -87,12 +88,15 @@
       let catEfectiva = filtroCat;
 
       if (filtroCat === "Todas") {
-        items = DATOS_COMPLETOS.map((item, idx) => ({ item, idx }));
+        items = DATOS_COMPLETOS
+          .map((item, idx) => ({ item, idx }))
+          .filter(x => x.item.disponibilidad !== "agotado");
       } else {
         items = DATOS_COMPLETOS
           .map((item, idx) => ({ item, idx }))
-          .filter(x => x.item.categoria_comparable === filtroCat);
+          .filter(x => x.item.categoria_comparable === filtroCat && x.item.disponibilidad !== "agotado");
       }
+
 
       opcionesBaseVersus = items;
       const defA = items.length > 0 ? items[0].idx : null;

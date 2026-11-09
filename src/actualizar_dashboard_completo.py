@@ -161,11 +161,15 @@ def actualizar_todo(archivos_fuente: list[str] | None = None, carpeta_salida: st
         "disponibilidad",
         "stock_unidades",
         "url",
+        "fecha_consulta",
+        "dias_desde_actualizacion",
+        "es_stale",
         "especie_agave",
         "condiciones",
         "es_paquete",
     ]
     for c in cols:
+
         if c not in df_dash.columns:
             df_dash[c] = ""
 

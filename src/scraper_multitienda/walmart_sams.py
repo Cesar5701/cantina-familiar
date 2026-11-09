@@ -18,7 +18,7 @@ from bs4 import BeautifulSoup
 import src.scraper_multitienda as _pkg
 import src.scraper_selenium as _sel_pkg
 from src.clasificacion import limpiar_precio
-from src.http_utils import HEADERS_SSR_NEXTJS
+from src.http_utils import HEADERS_SSR_NEXTJS, peticion_curl_cffi
 from src.io_utils import ResumenScraping
 from src.logger import get_logger
 from src.scraper_multitienda.normalizador import evaluar_y_normalizar_producto
@@ -96,7 +96,207 @@ def _generar_clave_producto(item: dict) -> str:
     return url.rstrip("/")
 
 
-def _ejecutar_contingencia_selenium(
+PASILLOS_WALMART_LICORES: dict[str, str] = {
+    "Tequila": "/browse/cervezas,-vinos-y-licores/licores-y-destilados/tequila-y-destilados/750004_120099_120447",
+    "Whisky": "/browse/cervezas,-vinos-y-licores/licores-y-destilados/whisky/750004_120099_120449",
+    "Mezcal": "/browse/cervezas,-vinos-y-licores/licores-y-destilados/mezcal/750004_120099_120445",
+    "Vino Tinto": "/browse/cervezas,-vinos-y-licores/vinos/vino-tinto/750004_120102_120451",
+    "Lo Más Vendido": "/browse/cervezas,-vinos-y-licores/destacados-cervezas,-vinos-y-licores/lo-mas-vendido-cervezas,-vinos-y-licores/750004_1350050_1350051",
+}
+
+
+def extraer_item_nextjs(
+    it: dict,
+    tienda: str,
+    base_domain: str,
+    fecha_actual: str,
+    fuente: str | None = None,
+    descartar_agotados: bool = True,
+) -> tuple[dict | None, bool]:
+    """
+    Normaliza y valida un producto extraído de un itemStack de Next.js (__NEXT_DATA__).
+    Retorna una tupla: (item_normalizado, es_agotado).
+    """
+    if not isinstance(it, dict):
+        return None, False
+
+    nombre = str(it.get("name") or it.get("title") or "").strip()
+    if not nombre:
+        return None, False
+
+    marca = str(it.get("brand") or "").strip()
+    canon = str(it.get("canonicalUrl") or "").strip()
+    full_url = f"https://{base_domain}{canon}" if canon.startswith("/") else (canon or f"https://{base_domain}")
+
+    avail_obj = it.get("availabilityStatusV2") or {}
+    avail_val = avail_obj.get("value", "") if isinstance(avail_obj, dict) else str(avail_obj)
+    avail_disp = str(avail_obj.get("display", "")).lower() if isinstance(avail_obj, dict) else ""
+    status = str(it.get("availabilityStatus", "")).upper()
+    show_atc = it.get("showAtc")
+    can_atc = it.get("canAddToCart")
+
+    is_out_of_stock = (
+        it.get("isOutOfStock") is True
+        or avail_val in ["OUT_OF_STOCK", "NOT_AVAILABLE", "UNAVAILABLE"]
+        or status in ["OUT_OF_STOCK", "NOT_AVAILABLE", "UNAVAILABLE"]
+        or avail_disp in ["out of stock", "agotado", "no disponible"]
+        or show_atc is False
+        or can_atc is False
+    )
+
+    if descartar_agotados and is_out_of_stock:
+        return None, True
+
+    p_info = it.get("priceInfo") or {}
+    p_promo = limpiar_precio(it.get("price")) or limpiar_precio(p_info.get("linePrice"))
+    p_was = limpiar_precio(p_info.get("wasPrice")) or limpiar_precio(p_info.get("itemPrice"))
+    p_reg = p_was if (p_was and p_promo and p_was > p_promo) else p_promo
+
+    savings = str(p_info.get("savings") or "").strip()
+    if p_reg and p_promo and p_reg > p_promo:
+        cond = f"Rebaja en línea ({savings})" if savings else f"Oferta {tienda}"
+    else:
+        cond = f"Precio socio {tienda}" if "Sam" in tienda else f"Precio regular {tienda}"
+
+    disponibilidad = "agotado" if is_out_of_stock else "disponible"
+
+    item_norm = evaluar_y_normalizar_producto(
+        tienda=tienda,
+        nombre=nombre,
+        marca=marca,
+        precio_regular=p_reg,
+        precio_promo=p_promo,
+        disponible=disponibilidad,
+        url=full_url,
+        condicion=cond,
+        fuente=fuente or f"Portal oficial {base_domain}",
+        fecha_actual=fecha_actual,
+    )
+    return item_norm, is_out_of_stock
+
+
+def descubrir_productos_pasillos_walmart(
+    tienda: str,
+    base_domain: str,
+    catalogo_acumulado: dict[str, dict],
+    resumen: ResumenScraping,
+    fecha_actual: str,
+    pasillos: dict[str, str] | None = None,
+    max_paginas: int | None = None,
+    delay_min: float = 1.5,
+    delay_max: float = 3.0,
+) -> tuple[int, int]:
+    """
+    Explora los pasillos y categorías oficiales de vinos y licores de Walmart México
+    para descubrir nuevos productos y refrescar los existentes de forma orgánica
+    sin depender del buscador /search.
+    """
+    mapa_pasillos = pasillos or PASILLOS_WALMART_LICORES
+    if max_paginas is None:
+        env_max = os.environ.get("WALMART_MAX_PAGINAS_PASILLO")
+        max_paginas = int(env_max) if env_max and env_max.isdigit() else 2
+
+    actualizados = 0
+    insertados = 0
+
+    logger.info(
+        f"  🛒 [{tienda}] Iniciando descubrimiento automático por pasillos oficiales "
+        f"({len(mapa_pasillos)} pasillos, máx {max_paginas} páginas c/u)..."
+    )
+
+    for cat_nombre, cat_path in mapa_pasillos.items():
+        logger.info(f"  👉 [Pasillo {cat_nombre}] Explorando categorías oficiales...")
+        for page in range(1, max_paginas + 1):
+            url = f"https://{base_domain}{cat_path}?page={page}"
+            try:
+                html = peticion_curl_cffi(url, impersonate="chrome124", timeout=15)
+                if not html or es_pagina_desafio_waf(html):
+                    html = _pkg.descargar_html_con_reintentos(
+                        url,
+                        headers=HEADERS_SSR_NEXTJS,
+                        max_intentos=1,
+                        timeout=15,
+                    )
+
+                if not html or es_pagina_desafio_waf(html):
+                    logger.warning(f"     ⚠️ [{cat_nombre} p.{page}] Desafío WAF o respuesta vacía.")
+                    break
+
+                soup = BeautifulSoup(html, "html.parser")
+                script = soup.find("script", id="__NEXT_DATA__")
+                if not script:
+                    logger.warning(f"     ⚠️ [{cat_nombre} p.{page}] Sin __NEXT_DATA__.")
+                    break
+
+                txt_script = script.get_text() if hasattr(script, "get_text") else (script.string or "")
+                if not txt_script:
+                    break
+
+                data = json.loads(txt_script)
+                sr = (
+                    data.get("props", {})
+                    .get("pageProps", {})
+                    .get("initialData", {})
+                    .get("searchResult", {})
+                )
+                item_stacks = sr.get("itemStacks", [])
+                nuevos_en_pagina = 0
+                actualizados_en_pagina = 0
+
+                for stack in item_stacks:
+                    for it in stack.get("items", []):
+                        item_norm, es_agotado = extraer_item_nextjs(
+                            it=it,
+                            tienda=tienda,
+                            base_domain=base_domain,
+                            fecha_actual=fecha_actual,
+                            fuente=f"Portal oficial {base_domain} (Pasillo {cat_nombre})",
+                            descartar_agotados=True,
+                        )
+                        if es_agotado:
+                            resumen.registrar_descarte("agotado")
+                            continue
+
+                        if item_norm:
+                            clave = _generar_clave_producto(item_norm)
+                            if clave in catalogo_acumulado:
+                                actualizados += 1
+                                actualizados_en_pagina += 1
+                            else:
+                                insertados += 1
+                                nuevos_en_pagina += 1
+                                logger.info(
+                                    f"     ✨ [Descubierto en {cat_nombre}]: {item_norm['producto']} "
+                                    f"(${item_norm['precio_promo']}) -> {item_norm['url']}"
+                                )
+                            catalogo_acumulado[clave] = item_norm
+                            resumen.registrar_exito()
+                        else:
+                            resumen.registrar_descarte("filtro categoría o volumen (Pasillos)")
+
+                logger.info(
+                    f"     ✓ Página {page}: +{nuevos_en_pagina} nuevos descubiertos, "
+                    f"+{actualizados_en_pagina} actualizados (Total catálogo: {len(catalogo_acumulado)})"
+                )
+
+                if nuevos_en_pagina == 0 and actualizados_en_pagina == 0:
+                    break
+
+                if not os.environ.get("PYTEST_CURRENT_TEST"):
+                    time.sleep(random.uniform(delay_min, delay_max))
+
+            except (json.JSONDecodeError, KeyError, ValueError, OSError, RuntimeError, TimeoutError, ConnectionError) as e:
+                logger.warning(f"     ⚠️ [{cat_nombre} p.{page}] Error procesando: {e}")
+                break
+
+    logger.info(
+        f"  🎯 [{tienda}] Fin descubrimiento pasillos: +{insertados} NUEVOS agregados, "
+        f"+{actualizados} actualizados."
+    )
+    return actualizados, insertados
+
+
+def _ejecutar_contingencia_navegador(
     tienda: str,
     base_domain: str,
     terminos: list[str],
@@ -106,25 +306,86 @@ def _ejecutar_contingencia_selenium(
     headless: bool = False,
 ) -> tuple[int, int]:
     """
-    Ejecuta la extracción de contingencia mediante navegador real con Selenium
-    cuando las peticiones HTTP son bloqueadas por PerimeterX o desviadas por Akamai Prerender.
+    Ejecuta la extracción de contingencia mediante navegador indetectable (Ruta C: nodriver CDP)
+    o Selenium como respaldo secundario cuando las peticiones HTTP son bloqueadas.
+    Prioriza consultar directamente URLs de producto (PDP) ya conocidas para Walmart.
     """
-    urls = [f"https://{base_domain}/search?q={urllib.parse.quote(t)}" for t in terminos]
-    logger.info(
-        f"  🌐 [{tienda}] Activando contingencia automática con Selenium ({len(urls)} consultas en {base_domain})..."
-    )
     actualizados_sel = 0
     insertados_sel = 0
-    try:
-        prods_raw = _sel_pkg.consultar_urls_secuenciales(
-            urls=urls,
-            tienda=tienda,
-            headless=headless,
-            navegador="chrome",
+    prods_raw: list[dict] = []
+
+
+    # Ruta C: Si es Walmart y tenemos productos conocidos con URL /ip/, consultar directamente via CDP por lotes categóricos
+    items_walmart = [
+        item for item in catalogo_acumulado.values()
+        if item.get("url") and "/ip/" in item["url"] and base_domain in item["url"]
+    ]
+
+    if "walmart" in tienda.lower() and items_walmart and getattr(_sel_pkg, "consultar_pdps_con_nodriver", None):
+        # Agrupar URLs por categoría para procesar en lotes seguros con pausas de enfriamiento
+        categorias_orden = ["Tequila", "Whisky", "Mezcal", "Licor de Whisky", "Vino"]
+        grupos_categoria: dict[str, list[str]] = {cat: [] for cat in categorias_orden}
+        grupos_categoria["Otros"] = []
+
+        for it in items_walmart:
+            c = str(it.get("categoria") or "").strip()
+            if c in grupos_categoria:
+                grupos_categoria[c].append(it["url"])
+            else:
+                grupos_categoria["Otros"].append(it["url"])
+
+        logger.info(
+            f"  🌐 [{tienda}] Activando Ruta C por Lotes Categóricos con nodriver CDP "
+            f"({len(items_walmart)} productos en catálogo)..."
         )
-    except (OSError, RuntimeError, TimeoutError, ValueError, _sel_pkg.WebDriverException) as e:
-        logger.warning(f"  ⚠️ [{tienda}] Contingencia con Selenium no disponible ({e}).")
-        return 0, 0
+
+        for cat, urls_cat in grupos_categoria.items():
+            if not urls_cat:
+                continue
+
+            # Muestra representativa de alta prioridad por categoría (ej. 15 productos por lote en ejecuciones interactivas)
+            limite_cat = 25 if os.environ.get("WALMART_SCRAPE_ALL") else min(len(urls_cat), 10)
+            urls_lote = urls_cat[:limite_cat]
+
+            logger.info(f"  👉 [Lote {cat.upper()}] Consultando {len(urls_lote)} PDPs prioritarias...")
+            try:
+                lote_extraido = _sel_pkg.consultar_pdps_con_nodriver(
+                    urls=urls_lote,
+                    headless=headless,
+                    delay_min=2.0,
+                    delay_max=3.5,
+                    concurrencia=3,
+                )
+                if lote_extraido:
+                    prods_raw.extend(lote_extraido)
+                    logger.info(f"     ✓ {len(lote_extraido)}/{len(urls_lote)} productos extraídos en categoría {cat}.")
+
+                # Pausa humana de enfriamiento entre categorías (cool-off period para resetear contadores WAF)
+                if len(grupos_categoria) > 1 and not os.environ.get("PYTEST_CURRENT_TEST"):
+                    logger.info("     ☕ Pausa de enfriamiento entre categorías (5 segundos)...")
+                    time.sleep(5.0)
+
+            except (OSError, RuntimeError, TimeoutError, ValueError) as e:
+                logger.warning(f"  ⚠️ [{tienda}] Error en lote de {cat}: {e}")
+
+
+    # Fallback si nodriver no obtuvo resultados o si es Sam's Club / búsqueda general
+    if not prods_raw:
+        urls = [f"https://{base_domain}/search?q={urllib.parse.quote(t)}" for t in terminos]
+        logger.info(
+            f"  🌐 [{tienda}] Ejecutando navegación por búsquedas ({len(urls)} consultas en {base_domain})..."
+        )
+        try:
+            prods_raw = _sel_pkg.consultar_urls_secuenciales(
+                urls=urls,
+                tienda=tienda,
+                headless=headless,
+                navegador="chrome",
+            )
+        except (OSError, RuntimeError, TimeoutError, ValueError, _sel_pkg.WebDriverException) as e:
+            logger.warning(f"  ⚠️ [{tienda}] Navegador no disponible ({e}).")
+            return 0, 0
+
 
     for raw in prods_raw:
         nombre = str(raw.get("producto") or raw.get("name") or "").strip()
@@ -176,6 +437,7 @@ def scrapear_nextjs_walmart_platform(
     usar_fallback_selenium: bool | None = None,
     forzar_selenium: bool = False,
     headless_selenium: bool = False,
+    explorar_pasillos: bool | None = None,
 ) -> list[dict]:
     logger.info("=" * 60)
     logger.info(f"SCRAPEANDO {tienda.upper()} ({base_domain} SSR __NEXT_DATA__)")
@@ -187,6 +449,9 @@ def scrapear_nextjs_walmart_platform(
 
     if usar_fallback_selenium is None:
         usar_fallback_selenium = not bool(os.environ.get("PYTEST_CURRENT_TEST"))
+
+    if explorar_pasillos is None:
+        explorar_pasillos = "walmart" in tienda.lower() and not bool(os.environ.get("PYTEST_CURRENT_TEST"))
 
     # 1. Cargar catálogo previo para merge incremental (evita pérdida de productos previos por WAF/IP)
     catalogo_acumulado: dict[str, dict] = {}
@@ -202,6 +467,18 @@ def scrapear_nextjs_walmart_platform(
 
     actualizados_count = 0
     insertados_count = 0
+
+    # 2. Descubrimiento automático por pasillos oficiales para Walmart (Ruta C: Aisle Navigation)
+    if explorar_pasillos and "walmart" in tienda.lower():
+        u_pas, i_pas = descubrir_productos_pasillos_walmart(
+            tienda=tienda,
+            base_domain=base_domain,
+            catalogo_acumulado=catalogo_acumulado,
+            resumen=resumen,
+            fecha_actual=fecha_actual,
+        )
+        actualizados_count += u_pas
+        insertados_count += i_pas
 
     for idx, t in enumerate([] if forzar_selenium else terminos):
         url = f"https://{base_domain}/search?q={urllib.parse.quote(t)}"
@@ -260,53 +537,18 @@ def scrapear_nextjs_walmart_platform(
                         continue
                     ids_vistos.add(us_id)
 
-                    nombre = (it.get("name") or it.get("title") or "").strip()
-                    marca = (it.get("brand") or "").strip()
-                    canon = it.get("canonicalUrl") or ""
-                    full_url = f"https://{base_domain}{canon}" if canon.startswith("/") else (canon or url)
-
-                    avail_obj = it.get("availabilityStatusV2") or {}
-                    avail_val = avail_obj.get("value", "") if isinstance(avail_obj, dict) else str(avail_obj)
-                    avail_disp = str(avail_obj.get("display", "")).lower() if isinstance(avail_obj, dict) else ""
-                    status = str(it.get("availabilityStatus", "")).upper()
-                    show_atc = it.get("showAtc")
-                    can_atc = it.get("canAddToCart")
-
-                    is_out_of_stock = (
-                        it.get("isOutOfStock") is True
-                        or avail_val in ["OUT_OF_STOCK", "NOT_AVAILABLE", "UNAVAILABLE"]
-                        or status in ["OUT_OF_STOCK", "NOT_AVAILABLE", "UNAVAILABLE"]
-                        or avail_disp in ["out of stock", "agotado", "no disponible"]
-                        or show_atc is False
-                        or can_atc is False
+                    item_norm, es_agotado = extraer_item_nextjs(
+                        it=it,
+                        tienda=tienda,
+                        base_domain=base_domain,
+                        fecha_actual=fecha_actual,
+                        fuente=f"Portal oficial {base_domain}",
+                        descartar_agotados=True,
                     )
-                    if is_out_of_stock:
+                    if es_agotado:
                         resumen.registrar_descarte("agotado")
                         continue
 
-                    p_info = it.get("priceInfo") or {}
-                    p_promo = limpiar_precio(it.get("price")) or limpiar_precio(p_info.get("linePrice"))
-                    p_was = limpiar_precio(p_info.get("wasPrice")) or limpiar_precio(p_info.get("itemPrice"))
-                    p_reg = p_was if (p_was and p_promo and p_was > p_promo) else p_promo
-
-                    savings = p_info.get("savings") or ""
-                    if p_reg and p_promo and p_reg > p_promo:
-                        cond = f"Rebaja en línea ({savings})" if savings else f"Oferta {tienda}"
-                    else:
-                        cond = f"Precio socio {tienda}" if "Sam" in tienda else f"Precio regular {tienda}"
-
-                    item_norm = evaluar_y_normalizar_producto(
-                        tienda=tienda,
-                        nombre=nombre,
-                        marca=marca,
-                        precio_regular=p_reg,
-                        precio_promo=p_promo,
-                        disponible="disponible",
-                        url=full_url,
-                        condicion=cond,
-                        fuente=f"Portal oficial {base_domain}",
-                        fecha_actual=fecha_actual,
-                    )
                     if item_norm:
                         clave = _generar_clave_producto(item_norm)
                         if clave in catalogo_acumulado:
@@ -347,12 +589,12 @@ def scrapear_nextjs_walmart_platform(
                 if espera > 0:
                     time.sleep(espera)
 
-    # 2. Contingencia automática con Selenium si HTTP fue bloqueado por WAF/Prerender (0 válidos) o si se forzó
-    requiere_selenium = forzar_selenium or (
+    # 2. Contingencia automática con navegador indetectable (Ruta C: nodriver) / Selenium si HTTP fue bloqueado
+    requiere_navegador = forzar_selenium or (
         usar_fallback_selenium and (actualizados_count + insertados_count) == 0 and len(terminos) > 0
     )
-    if requiere_selenium:
-        u_sel, i_sel = _ejecutar_contingencia_selenium(
+    if requiere_navegador:
+        u_nav, i_nav = _ejecutar_contingencia_navegador(
             tienda=tienda,
             base_domain=base_domain,
             terminos=terminos,
@@ -361,8 +603,9 @@ def scrapear_nextjs_walmart_platform(
             fecha_actual=fecha_actual,
             headless=headless_selenium,
         )
-        actualizados_count += u_sel
-        insertados_count += i_sel
+        actualizados_count += u_nav
+        insertados_count += i_nav
+
 
     resultados = list(catalogo_acumulado.values())
 

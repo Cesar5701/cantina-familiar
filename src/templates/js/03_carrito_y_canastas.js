@@ -516,12 +516,19 @@
     }
 
     function copiarListaCompra() {
+      const itemsEnCarrito = Object.values(canastaPersonalizada).filter(c => c > 0);
+      if (itemsEnCarrito.length === 0) {
+        mostrarToast("El carrito está vacío. Agrega botellas antes de copiar la lista.");
+        return;
+      }
+
       const macros = ['Tequila', 'Mezcal', 'Whisky', 'Honey', 'Vino'];
       let texto = `LISTA DE COMPRA MULTITIENDA - CANTINA FAMILIAR 2026\n`;
       if (PRESUPUESTO_OBJETIVO > 0 || COOPERADORES_TOTAL > 0) {
         texto += `Presupuesto: ${PRESUPUESTO_OBJETIVO > 0 ? '$' + PRESUPUESTO_OBJETIVO.toFixed(2) : 'Libre'} | Personas: ${COOPERADORES_TOTAL > 0 ? COOPERADORES_TOTAL : 'Sin definir'}\n`;
       }
       texto += `--------------------------------------------------------\n`;
+
 
       let total = 0;
       let subTiendas = {
