@@ -70,15 +70,17 @@ async def _extraer_datos_pdp_async(
     )
 
     resultados: List[Dict[str, Any]] = []
-    page = None
 
     try:
+        # Calentar sesión con la página principal para establecer contexto residencial orgánico
+        logger.info("Estableciendo sesión orgánica en Walmart...")
+        page = await browser.get("https://www.walmart.com.mx")
+        await page.sleep(random.uniform(2.5, 3.5))
+
         for idx, url in enumerate(urls, 1):
             logger.info(f"[{idx}/{len(urls)}] Consultando PDP con nodriver: {url}")
-            if page is None:
-                page = await browser.get(url)
-            else:
-                await page.get(url)
+            await page.get(url)
+
 
             # Espera orgánica para renderizado y ejecución de scripts
             pausa = random.uniform(delay_min, delay_max)
@@ -118,12 +120,25 @@ async def _extraer_datos_pdp_async(
                 disp = prod.get("availabilityStatus") or "UNKNOWN"
                 disp_norm = "disponible" if disp in {"IN_STOCK", "AVAILABLE"} else "agotado"
 
-                price_info = prod.get("priceInfo", {})
-                current_p = price_info.get("currentPrice", {}).get("price")
-                was_p = price_info.get("wasPrice", {}).get("price")
+                price_info = prod.get("priceInfo") or {}
+                cur_obj = price_info.get("currentPrice") or {}
+                was_obj = price_info.get("wasPrice") or {}
+                list_obj = price_info.get("listPrice") or {}
+
+                current_p = (
+                    cur_obj.get("price")
+                    or cur_obj.get("priceDisplay")
+                    or list_obj.get("price")
+                )
+                was_p = (
+                    was_obj.get("price")
+                    or was_obj.get("priceString")
+                    or list_obj.get("price")
+                )
 
                 p_promo = limpiar_precio(current_p)
                 p_reg = limpiar_precio(was_p) or p_promo
+
 
                 item_raw = {
                     "producto": nombre,
@@ -136,7 +151,8 @@ async def _extraer_datos_pdp_async(
                     "fuente": "Walmart México (nodriver CDP)",
                 }
                 resultados.append(item_raw)
-                logger.info(f"  ✓ Extraído: {nombre} | Promo: ${p_promo} | Disp: {disp_norm}")
+                logger.info(f"  ✓ Extraído: {nombre} | Promo: ${p_promo} | Reg: ${p_reg} | Disp: {disp_norm}")
+
 
             except (json.JSONDecodeError, KeyError, ValueError) as e:
                 logger.warning(f"  Error parseando JSON en {url}: {e}")
