@@ -14,13 +14,8 @@ Script maestro para:
 """
 
 import os
-import sys
 
 import pandas as pd
-
-RAIZ_PROYECTO = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if RAIZ_PROYECTO not in sys.path:
-    sys.path.insert(0, RAIZ_PROYECTO)
 
 from src.analizador import (
     calcular_grupos_cross_tienda,

@@ -10,44 +10,39 @@ from src.clasificacion.constantes import (
     MARCAS_REPOSADO_CRISTALINO_POR_NORMA,
 )
 
+REGLAS_AGAVE_MEZCAL: tuple[tuple[tuple[tuple[str, ...], ...], str], ...] = (
+    # Cada regla contiene los grupos de sinónimos que deben aparecer (en cualquier orden)
+    # y el resultado. El orden de la tabla define la precedencia.
+    ((("cosecha salvaje",),), "Ensamble Silvestre Tobalá-Mexicano (A. potatorum / A. rhodacantha)"),
+    (
+        (("mexicano",), ("tobalá", "tobala")),
+        "Ensamble Silvestre Tobalá-Mexicano (A. potatorum / A. rhodacantha)",
+    ),
+    ((("espadín", "espadin"), ("tobalá", "tobala")), "Ensamble Espadín-Tobalá"),
+    ((("mexicano",),), "Mexicano silvestre (A. rhodacantha)"),
+    ((("cuishe", "cuixe"),), "Cuishe silvestre (A. karwinskii)"),
+    ((("tobalá", "tobala"),), "Tobalá silvestre (A. potatorum)"),
+    ((("cupreata",),), "Cupreata silvestre (A. cupreata)"),
+    ((("tepeztate", "tepextate"),), "Tepeztate silvestre (A. marmorata)"),
+    ((("arroqueño", "arroqueno"),), "Arroqueño silvestre (A. americana)"),
+    ((("cenizo",),), "Cenizo silvestre (A. durangensis)"),
+    ((("salmiana",),), "Salmiana silvestre"),
+    ((("jabalí", "jabali"),), "Jabalí silvestre (A. convallis)"),
+    ((("barril",),), "Barril silvestre (A. karwinskii)"),
+    ((("madrecuishe", "madrecuixe"),), "Madrecuishe silvestre (A. karwinskii)"),
+    ((("papalometl",),), "Papalometl silvestre (A. potatorum)"),
+    ((("espadín", "espadin"),), "Espadín (A. angustifolia)"),
+)
+
 
 def clasificar_agave_mezcal(nombre: str) -> str:
     """
     Identifica la especie de agave o ensamble para mezcales según la NOM-070.
     """
     nom_l = str(nombre).lower()
-    if "cosecha salvaje" in nom_l:
-        return "Ensamble Silvestre Tobalá-Mexicano (A. potatorum / A. rhodacantha)"
-    if "mexicano" in nom_l and ("tobalá" in nom_l or "tobala" in nom_l):
-        return "Ensamble Silvestre Tobalá-Mexicano (A. potatorum / A. rhodacantha)"
-    if "espadín" in nom_l and ("tobalá" in nom_l or "tobala" in nom_l):
-        return "Ensamble Espadín-Tobalá"
-    if "mexicano" in nom_l:
-        return "Mexicano silvestre (A. rhodacantha)"
-    if "cuishe" in nom_l or "cuixe" in nom_l:
-        return "Cuishe silvestre (A. karwinskii)"
-    if "tobalá" in nom_l or "tobala" in nom_l:
-        return "Tobalá silvestre (A. potatorum)"
-    if "cupreata" in nom_l:
-        return "Cupreata silvestre (A. cupreata)"
-    if "tepeztate" in nom_l or "tepextate" in nom_l:
-        return "Tepeztate silvestre (A. marmorata)"
-    if "arroqueño" in nom_l or "arroqueno" in nom_l:
-        return "Arroqueño silvestre (A. americana)"
-    if "cenizo" in nom_l:
-        return "Cenizo silvestre (A. durangensis)"
-    if "salmiana" in nom_l:
-        return "Salmiana silvestre"
-    if "jabalí" in nom_l or "jabali" in nom_l:
-        return "Jabalí silvestre (A. convallis)"
-    if "barril" in nom_l:
-        return "Barril silvestre (A. karwinskii)"
-    if "madrecuishe" in nom_l or "madrecuixe" in nom_l:
-        return "Madrecuishe silvestre (A. karwinskii)"
-    if "papalometl" in nom_l:
-        return "Papalometl silvestre (A. potatorum)"
-    if "espadín" in nom_l or "espadin" in nom_l:
-        return "Espadín (A. angustifolia)"
+    for grupos_sinonimos, categoria in REGLAS_AGAVE_MEZCAL:
+        if all(any(sinonimo in nom_l for sinonimo in grupo) for grupo in grupos_sinonimos):
+            return categoria
     return "Agave mezcalero (NOM-070)"
 
 
@@ -82,6 +77,137 @@ def detectar_categoria_base(nombre: str) -> str:
     return "Otros"
 
 
+def _normalizar_entrada_clasificacion(row_o_nombre: Union[dict, Any, str], categoria: Optional[str]) -> tuple[str, str]:
+    """Extrae (nombre, categoría) desde un str, un dict/pd.Series o una fila indexable."""
+    if isinstance(row_o_nombre, str):
+        nom = row_o_nombre.strip()
+        return nom, categoria or detectar_categoria_base(nom)
+    if hasattr(row_o_nombre, "get"):
+        nom = str(row_o_nombre.get("producto", "")).strip()
+        cat = str(row_o_nombre.get("categoria", "") or categoria or detectar_categoria_base(nom)).strip()
+        return nom, cat
+    nom = str(row_o_nombre["producto"]).strip()
+    cat = str(row_o_nombre.get("categoria", categoria or detectar_categoria_base(nom))).strip()
+    return nom, cat
+
+
+def _indicadores_tequila(nom_l: str) -> tuple[bool, bool, bool]:
+    """Devuelve (es_reposado, es_cristalino, es_añejo) para un nombre de tequila."""
+    es_rep = "reposado" in nom_l or "rep." in nom_l or "rep " in nom_l
+    es_crist = (
+        "cristalino" in nom_l
+        or "crist." in nom_l
+        or "ultra" in nom_l
+        or "platinium" in nom_l
+        or "diamante" in nom_l
+        or "cristal" in nom_l
+    )
+    es_anejo = "añejo" in nom_l or "anejo" in nom_l or "extra añejo" in nom_l or "milenio" in nom_l
+    return es_rep, es_crist, es_anejo
+
+
+def _es_tequila_blanco(nom_l: str, es_rep: bool, es_anejo: bool) -> bool:
+    return ("plata" in nom_l or "blanco" in nom_l or "silver" in nom_l) and not (es_anejo or es_rep)
+
+
+def _es_reposado_cristalino_por_norma(nom_l: str, es_crist: bool, es_anejo: bool) -> bool:
+    return (
+        es_crist
+        and any(m in nom_l for m in MARCAS_REPOSADO_CRISTALINO_POR_NORMA)
+        and not (es_anejo or "ultra añejo" in nom_l)
+    )
+
+
+def _clasificar_don_ramon(nom_l: str) -> Optional[Tuple[str, str, str]]:
+    if "añejo cristalino" in nom_l or ("añejo" in nom_l and ("platinium" in nom_l or "cristalino" in nom_l)):
+        return "Tequila - Añejo Cristalino", "Añejo Cristalino", "Añejo Cristalino"
+    if "reposado cristalino" in nom_l or ("reposado" in nom_l and ("platinium" in nom_l or "cristalino" in nom_l)):
+        return "Tequila - Reposado Cristalino", "Reposado Cristalino", "Reposado Cristalino"
+    if "reposado" in nom_l:
+        return "Tequila - Reposado Tradicional", "Reposado", "Reposado"
+    if "añejo" in nom_l or "dark" in nom_l:
+        return "Tequila - Añejo Tradicional", "Añejo Tradicional", "Añejo"
+    return None
+
+
+def _tequila_casos_especiales(nom_l: str) -> Optional[Tuple[str, str, str]]:
+    """Casos con regla de marca/nombre propio, en el mismo orden de precedencia histórico."""
+    es_rep, es_crist, es_anejo = _indicadores_tequila(nom_l)
+
+    if _es_tequila_blanco(nom_l, es_rep, es_anejo):
+        return "Tequila - Blanco / Plata", "Blanco", "Blanco"
+    if "don ramón plata" in nom_l or "don ramon plata" in nom_l:
+        return "Tequila - Blanco / Plata", "Blanco", "Blanco"
+    if "don julio 70" in nom_l or "don julio 70 añejo" in nom_l:
+        return "Tequila - Añejo Cristalino", "Añejo Cristalino", "Añejo Cristalino"
+    if "don ramón" in nom_l or "don ramon" in nom_l:
+        resultado = _clasificar_don_ramon(nom_l)
+        if resultado is not None:
+            return resultado
+    if _es_reposado_cristalino_por_norma(nom_l, es_crist, es_anejo):
+        return "Tequila - Reposado Cristalino", "Reposado Cristalino", "Reposado Cristalino"
+    if "dobel diamante" in nom_l or "maestro dobel diamante" in nom_l:
+        return "Tequila - Añejo Cristalino", "Añejo Cristalino", "Añejo Cristalino"
+    return None
+
+
+def _tequila_reglas_generales(nom_l: str) -> Tuple[str, str, str]:
+    es_rep, es_crist, es_anejo = _indicadores_tequila(nom_l)
+
+    if es_rep and es_crist and not es_anejo:
+        return "Tequila - Reposado Cristalino", "Reposado Cristalino", "Reposado Cristalino"
+    if es_rep and not es_crist and not es_anejo:
+        return "Tequila - Reposado Tradicional", "Reposado", "Reposado"
+    if es_anejo and es_crist:
+        return "Tequila - Añejo Cristalino", "Añejo Cristalino", "Añejo Cristalino"
+    if es_anejo:
+        if "extra añejo" in nom_l or "milenio" in nom_l:
+            return "Tequila - Añejo Tradicional", "Extra Añejo", "Extra Añejo"
+        return "Tequila - Añejo Tradicional", "Añejo Tradicional", "Añejo"
+    if es_crist:
+        return "Tequila - Añejo Cristalino", "Añejo Cristalino", "Añejo Cristalino"
+    return "Tequila - Otros", "Otros", "Otros"
+
+
+def _clasificar_mezcal(nom_l: str) -> Tuple[str, str, str]:
+    es_silvestre = any(k in nom_l for k in KEYWORDS_SILVESTRES)
+    es_rep = "reposado" in nom_l or "rep " in nom_l or "rep." in nom_l
+    es_anejo = "añejo" in nom_l or "anejo" in nom_l
+    es_crist = "cristalino" in nom_l or "crist " in nom_l or "crist." in nom_l
+
+    if es_silvestre and not es_rep and not es_anejo:
+        return "Mezcal - Silvestre", "Silvestre", "Joven Silvestre"
+    if es_crist and es_anejo:
+        return "Mezcal - Añejo", "Añejo", "Añejo Cristalino"
+    if es_crist:
+        return "Mezcal - Reposado Cristalino", "Reposado Cristalino", "Reposado Cristalino"
+    if es_anejo:
+        return "Mezcal - Añejo", "Añejo", "Añejo"
+    if es_rep:
+        return "Mezcal - Reposado", "Reposado", "Reposado"
+    return "Mezcal - Espadín Joven", "Espadín Joven", "Joven"
+
+
+def _es_licor_whisky(nom_l: str, cat: str) -> bool:
+    return (
+        cat == "Licor de Whisky"
+        or "honey" in nom_l
+        or "miel" in nom_l
+        or (("jack daniel" in nom_l or "jack daniel's" in nom_l) and ("apple" in nom_l or "manzana" in nom_l))
+        or ("licor" in nom_l and ("whisky" in nom_l or "whiskey" in nom_l))
+    )
+
+
+def _es_whisky(nom_l: str, cat: str) -> bool:
+    return (
+        cat == "Whisky" or "whisky" in nom_l or "whiskey" in nom_l or any(k in nom_l for k in KEYWORDS_BLENDED_WHISKY)
+    )
+
+
+def _es_vino(nom_l: str, cat: str) -> bool:
+    return cat == "Vino" or "vino" in nom_l
+
+
 def clasificar_estricto(row_o_nombre: Union[dict, Any, str], categoria: Optional[str] = None) -> Tuple[str, str, str]:
     """
     Clasifica estrictamente un producto bajo las normas oficiales y el estándar del proyecto.
@@ -93,121 +219,21 @@ def clasificar_estricto(row_o_nombre: Union[dict, Any, str], categoria: Optional
     Retorna:
     - (categoria_comparable, subcategoria, clase)
     """
-    if isinstance(row_o_nombre, str):
-        nom = row_o_nombre.strip()
-        cat = categoria or detectar_categoria_base(nom)
-    elif hasattr(row_o_nombre, "get"):
-        nom = str(row_o_nombre.get("producto", "")).strip()
-        cat = str(row_o_nombre.get("categoria", "") or categoria or detectar_categoria_base(nom)).strip()
-    else:
-        # pd.Series / objeto indexable
-        nom = str(row_o_nombre["producto"]).strip()
-        cat = str(row_o_nombre.get("categoria", categoria or detectar_categoria_base(nom))).strip()
-
+    nom, cat = _normalizar_entrada_clasificacion(row_o_nombre, categoria)
     nom_l = nom.lower()
 
-    # -----------------------------------------------------------------------
-    # TEQUILA (NOM-006-SCFI)
-    # -----------------------------------------------------------------------
     if cat == "Tequila" or "tequila" in nom_l:
-        es_rep = "reposado" in nom_l or "rep." in nom_l or "rep " in nom_l
-        es_crist = (
-            "cristalino" in nom_l
-            or "crist." in nom_l
-            or "ultra" in nom_l
-            or "platinium" in nom_l
-            or "diamante" in nom_l
-            or "cristal" in nom_l
-        )
-        es_anejo = "añejo" in nom_l or "anejo" in nom_l or "extra añejo" in nom_l or "milenio" in nom_l
+        caso_especial = _tequila_casos_especiales(nom_l)
+        return caso_especial if caso_especial is not None else _tequila_reglas_generales(nom_l)
 
-        # 1. BLANCO / PLATA (0 meses barrica)
-        if ("plata" in nom_l or "blanco" in nom_l or "silver" in nom_l) and not (es_anejo or es_rep):
-            return "Tequila - Blanco / Plata", "Blanco", "Blanco"
-        if "don ramón plata" in nom_l or "don ramon plata" in nom_l:
-            return "Tequila - Blanco / Plata", "Blanco", "Blanco"
+    if cat == "Mezcal" or "mezcal" in nom_l:
+        return _clasificar_mezcal(nom_l)
 
-        # 2. CASO DON JULIO 70 (Añejo Cristalino por NOM-006)
-        if "don julio 70" in nom_l or "don julio 70 añejo" in nom_l:
-            return "Tequila - Añejo Cristalino", "Añejo Cristalino", "Añejo Cristalino"
-
-        # 3. CASO DON RAMÓN
-        if "don ramón" in nom_l or "don ramon" in nom_l:
-            if "añejo cristalino" in nom_l or ("añejo" in nom_l and ("platinium" in nom_l or "cristalino" in nom_l)):
-                return "Tequila - Añejo Cristalino", "Añejo Cristalino", "Añejo Cristalino"
-            elif "reposado cristalino" in nom_l or (
-                "reposado" in nom_l and ("platinium" in nom_l or "cristalino" in nom_l)
-            ):
-                return "Tequila - Reposado Cristalino", "Reposado Cristalino", "Reposado Cristalino"
-            elif "reposado" in nom_l:
-                return "Tequila - Reposado Tradicional", "Reposado", "Reposado"
-            elif "añejo" in nom_l or "dark" in nom_l:
-                return "Tequila - Añejo Tradicional", "Añejo Tradicional", "Añejo"
-
-        # 4. MARCAS REPOSADO CRISTALINO POR NORMA (cuando son cristalinos pero el súper omite la palabra 'Reposado')
-        if (
-            es_crist
-            and any(m in nom_l for m in MARCAS_REPOSADO_CRISTALINO_POR_NORMA)
-            and not (es_anejo or "ultra añejo" in nom_l)
-        ):
-            return "Tequila - Reposado Cristalino", "Reposado Cristalino", "Reposado Cristalino"
-
-        # 5. MAESTRO DOBEL DIAMANTE (Ensamble clarificado carbón activado -> Añejo Cristalino)
-        if "dobel diamante" in nom_l or "maestro dobel diamante" in nom_l:
-            return "Tequila - Añejo Cristalino", "Añejo Cristalino", "Añejo Cristalino"
-
-        # 6. REGLAS GENERALES PARA OTROS TEQUILAS
-        if es_rep and es_crist and not es_anejo:
-            return "Tequila - Reposado Cristalino", "Reposado Cristalino", "Reposado Cristalino"
-        elif es_rep and not es_crist and not es_anejo:
-            return "Tequila - Reposado Tradicional", "Reposado", "Reposado"
-        elif es_anejo and es_crist:
-            return "Tequila - Añejo Cristalino", "Añejo Cristalino", "Añejo Cristalino"
-        elif es_anejo and not es_crist:
-            if "extra añejo" in nom_l or "milenio" in nom_l:
-                return "Tequila - Añejo Tradicional", "Extra Añejo", "Extra Añejo"
-            return "Tequila - Añejo Tradicional", "Añejo Tradicional", "Añejo"
-        elif es_crist:
-            return "Tequila - Añejo Cristalino", "Añejo Cristalino", "Añejo Cristalino"
-
-        return "Tequila - Otros", "Otros", "Otros"
-
-    # -----------------------------------------------------------------------
-    # MEZCAL (NOM-070-SCFI)
-    # -----------------------------------------------------------------------
-    elif cat == "Mezcal" or "mezcal" in nom_l:
-        es_silvestre = any(k in nom_l for k in KEYWORDS_SILVESTRES)
-        es_rep = "reposado" in nom_l or "rep " in nom_l or "rep." in nom_l
-        es_anejo = "añejo" in nom_l or "anejo" in nom_l
-        es_crist = "cristalino" in nom_l or "crist " in nom_l or "crist." in nom_l
-
-        if es_silvestre and not es_rep and not es_anejo:
-            return "Mezcal - Silvestre", "Silvestre", "Joven Silvestre"
-        elif es_crist and es_anejo:
-            return "Mezcal - Añejo", "Añejo", "Añejo Cristalino"
-        elif es_crist:
-            return "Mezcal - Reposado Cristalino", "Reposado Cristalino", "Reposado Cristalino"
-        elif es_anejo:
-            return "Mezcal - Añejo", "Añejo", "Añejo"
-        elif es_rep:
-            return "Mezcal - Reposado", "Reposado", "Reposado"
-        else:
-            return "Mezcal - Espadín Joven", "Espadín Joven", "Joven"
-
-    # -----------------------------------------------------------------------
-    # OTROS DESTILADOS Y BEBIDAS
-    # -----------------------------------------------------------------------
-    elif (
-        cat == "Licor de Whisky"
-        or "honey" in nom_l
-        or "miel" in nom_l
-        or (("jack daniel" in nom_l or "jack daniel's" in nom_l) and ("apple" in nom_l or "manzana" in nom_l))
-        or ("licor" in nom_l and ("whisky" in nom_l or "whiskey" in nom_l))
-    ):
+    if _es_licor_whisky(nom_l, cat):
         return "Licor de Whisky - Honey", "Honey Liqueur", "Honey Liqueur"
-    elif cat == "Whisky" or "whisky" in nom_l or "whiskey" in nom_l or any(k in nom_l for k in KEYWORDS_BLENDED_WHISKY):
+    if _es_whisky(nom_l, cat):
         return "Whisky - Blended Scotch", "Blended Scotch", "Blended Scotch"
-    elif cat == "Vino" or "vino" in nom_l:
+    if _es_vino(nom_l, cat):
         return "Vino - Tinto Clericot", "Tinto Clericot", "Tinto Clericot"
 
     return cat, "General", "General"

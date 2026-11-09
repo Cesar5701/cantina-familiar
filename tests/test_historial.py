@@ -2,6 +2,7 @@
 Pruebas unitarias para el gestor y consultor de historial de precios (src/historial.py).
 """
 
+import os
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -339,3 +340,62 @@ def test_enriquecer_con_metricas_historicas():
     assert df_enriq.loc[2, "precio_min_historico"] == 500.0
 
     assert df_enriq.loc[3, "semaforo_historico"] == "nuevo"
+
+
+def test_consultar_historial_trata_el_texto_como_literal(tmp_path: Path):
+    """La búsqueda no debe interpretar metacaracteres regex del usuario (evita crashes)."""
+    ruta_hist = str(tmp_path / "historial_literal.csv")
+    pd.DataFrame(
+        [
+            {
+                "fecha_dia": "2026-11-09",
+                "fecha_consulta": "2026-11-09 10:00",
+                "tienda": "Walmart",
+                "producto": "Tequila Herradura Ultra 700 ml",
+                "ml": 700,
+                "precio_regular": 950.0,
+                "precio_promo": 750.0,
+                "precio_por_litro": 1071.43,
+                "condiciones": "Promo",
+                "url": "",
+            }
+        ]
+    ).to_csv(ruta_hist, index=False)
+
+    # Un corchete suelto es regex inválida; con regex=False debe devolver vacío sin lanzar.
+    assert consultar_historial("[", ruta_historial=ruta_hist).empty
+    # El punto debe buscar un punto literal, no cualquier carácter.
+    assert consultar_historial("Herradura. Ultra", ruta_historial=ruta_hist).empty
+    # La búsqueda normal por subcadena sigue funcionando.
+    assert len(consultar_historial("Herradura Ultra", ruta_historial=ruta_hist)) == 1
+
+
+def test_construir_historial_usa_fecha_actual_para_csv_sin_fecha(tmp_path: Path):
+    """Los CSV en disco sin fecha_consulta deben fecharse con el momento de la reconstrucción."""
+    ruta_salida = str(tmp_path / "historial_fecha.csv")
+    df_disco = pd.DataFrame(
+        [
+            {
+                "tienda": "Walmart",
+                "producto": "Tequila Don Julio 70 700 ml",
+                "ml": 700,
+                "precio_regular": 1100.0,
+                "precio_promo": 850.0,
+            }
+        ]
+    )
+    existe_original = os.path.exists
+
+    def existe_solo_scraped(ruta):
+        return True if "scraped_" in str(ruta) else existe_original(ruta)
+
+    with (
+        patch("src.historial.obtener_snapshots_git", return_value=[]),
+        patch("src.historial.os.path.exists", side_effect=existe_solo_scraped),
+        patch("src.historial.pd.read_csv", return_value=df_disco),
+    ):
+        df_hist = construir_historial_desde_git(ruta_salida=ruta_salida)
+
+    hoy = pd.Timestamp.now().strftime("%Y-%m-%d")
+    assert not df_hist.empty
+    assert (df_hist["fecha_dia"] == hoy).all()

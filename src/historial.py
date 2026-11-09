@@ -11,14 +11,9 @@ import argparse
 import io
 import os
 import subprocess
-import sys
 from typing import Optional
 
 import pandas as pd
-
-RAIZ_PROYECTO = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if RAIZ_PROYECTO not in sys.path:
-    sys.path.insert(0, RAIZ_PROYECTO)
 
 from src.clasificacion import normalizar_medidas_en_nombre
 from src.io_utils import guardar_csv_atomico
@@ -26,6 +21,7 @@ from src.logger import get_logger
 
 logger = get_logger("historial")
 
+RAIZ_PROYECTO = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 RUTA_HISTORIAL_POR_DEFECTO = os.path.join(RAIZ_PROYECTO, "data", "historial_precios.csv")
 
 ARCHIVOS_TIENDAS = [
@@ -168,13 +164,16 @@ def construir_historial_desde_git(ruta_salida: str = RUTA_HISTORIAL_POR_DEFECTO)
                 df_norm = normalizar_df_para_historial(df_part, fecha_por_defecto=fecha)
                 dfs_extraidos.append(df_norm)
 
-    # También incorporar el estado actual en el disco
+    # También incorporar el estado actual en el disco.
+    # La fecha por defecto debe ser la del momento de la reconstrucción, no una fija:
+    # los CSV sin columna fecha_consulta se registran como captura de hoy.
+    fecha_actual = pd.Timestamp.now().strftime("%Y-%m-%d %H:%M")
     for archivo in ARCHIVOS_TIENDAS:
         ruta_disco = os.path.join(RAIZ_PROYECTO, archivo)
         if os.path.exists(ruta_disco):
             try:
                 df_disco = pd.read_csv(ruta_disco)
-                df_norm = normalizar_df_para_historial(df_disco, fecha_por_defecto="2026-10-24")
+                df_norm = normalizar_df_para_historial(df_disco, fecha_por_defecto=fecha_actual)
                 dfs_extraidos.append(df_norm)
             except (OSError, pd.errors.EmptyDataError, ValueError):
                 pass
@@ -324,9 +323,11 @@ def consultar_historial(
         construir_historial_desde_git(ruta_historial)
 
     df = pd.read_csv(ruta_historial)
-    mask = df["producto"].str.contains(producto, case=False, na=False)
+    # Búsqueda literal: el texto del usuario no debe interpretarse como regex
+    # (evita crashes con entradas como "[" y comodines accidentales como ".").
+    mask = df["producto"].str.contains(producto, case=False, na=False, regex=False)
     if tienda:
-        mask = mask & df["tienda"].str.contains(tienda, case=False, na=False)
+        mask = mask & df["tienda"].str.contains(tienda, case=False, na=False, regex=False)
 
     df_res = df[mask].sort_values(by=["producto", "fecha_dia", "tienda"]).reset_index(drop=True)
     return df_res

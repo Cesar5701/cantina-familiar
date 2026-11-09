@@ -218,6 +218,60 @@ def detectar_nombre_campana(textos: list[str], default_campana: str = "Oferta en
     return default_campana
 
 
+def _fechas_consulta_tienda(df_t: pd.DataFrame) -> list[datetime]:
+    """Extrae las fechas de consulta válidas de una tienda."""
+    if df_t.empty or "fecha_consulta" not in df_t.columns:
+        return []
+    fechas = []
+    for valor in df_t["fecha_consulta"].dropna().unique():
+        dt = parsear_fecha_iso(valor)
+        if dt:
+            fechas.append(dt)
+    return fechas
+
+
+def _textos_condiciones_tienda(df_t: pd.DataFrame) -> list:
+    """Reúne los textos de condiciones y promociones de una tienda."""
+    textos = []
+    if not df_t.empty and "condiciones" in df_t.columns:
+        textos.extend(df_t["condiciones"].dropna().tolist())
+    if not df_t.empty and "promocion" in df_t.columns:
+        textos.extend(df_t["promocion"].dropna().tolist())
+    return textos
+
+
+def _contar_con_descuento(df_t: pd.DataFrame) -> int:
+    """Cuenta los registros con rebaja verificable en una tienda."""
+    if df_t.empty:
+        return 0
+    if "ahorro_verificable" in df_t.columns:
+        return int((df_t["ahorro_verificable"] > 0).sum())
+    if "precio_regular" in df_t.columns and "precio_promo" in df_t.columns:
+        return int((df_t["precio_regular"] > df_t["precio_promo"]).sum())
+    return 0
+
+
+def _resolver_campana(textos_cond: list, meta_tienda: dict, tienda: str) -> str:
+    """Detecta el nombre de campaña, prefiriendo el metadato oficial si el texto es genérico."""
+    campana_detectada = detectar_nombre_campana(
+        textos_cond,
+        default_campana=meta_tienda.get("campana", f"Catálogo {tienda.split()[0]}"),
+    )
+    if campana_detectada in NOMBRES_GENERICOS_CAMPANA and meta_tienda.get("campana"):
+        return meta_tienda["campana"]
+    return campana_detectada
+
+
+def _resolver_vigencia(textos_cond: list, meta_tienda: dict, dt_tienda: datetime) -> str:
+    """Determina la vigencia comercial: texto extraído, metadato oficial o fecha de corte."""
+    vigencia_extraida = extraer_vigencia_de_textos(textos_cond)
+    return (
+        vigencia_extraida
+        or meta_tienda.get("vigencia_corta")
+        or f"{dt_tienda.day:02d} {MESES_ES.get(dt_tienda.month, dt_tienda.strftime('%b'))}"
+    )
+
+
 def detectar_campanas_por_tienda(df_consolidado: pd.DataFrame) -> dict[str, dict[str, Any]]:
     """
     Analiza las condiciones, fechas de consulta y precios de cada tienda para generar
@@ -241,50 +295,16 @@ def detectar_campanas_por_tienda(df_consolidado: pd.DataFrame) -> dict[str, dict
         df_t = (
             df_consolidado[df_consolidado["tienda"] == tienda] if "tienda" in df_consolidado.columns else pd.DataFrame()
         )
-        n_items = len(df_t)
         meta_tienda = METADATOS_CAMPANAS_TIENDAS.get(tienda, {})
 
-        # 1. Determinar última fecha de scraping (fecha de auditoría técnica)
-        fechas_consulta = []
-        if not df_t.empty and "fecha_consulta" in df_t.columns:
-            for v in df_t["fecha_consulta"].dropna().unique():
-                dt = parsear_fecha_iso(v)
-                if dt:
-                    fechas_consulta.append(dt)
-
+        fechas_consulta = _fechas_consulta_tienda(df_t)
         dt_tienda = max(fechas_consulta) if fechas_consulta else fecha_max_global
 
-        # 2. Extraer textos de condiciones y promociones
-        textos_cond = []
-        if not df_t.empty and "condiciones" in df_t.columns:
-            textos_cond.extend(df_t["condiciones"].dropna().tolist())
-        if not df_t.empty and "promocion" in df_t.columns:
-            textos_cond.extend(df_t["promocion"].dropna().tolist())
+        textos_cond = _textos_condiciones_tienda(df_t)
+        campana = _resolver_campana(textos_cond, meta_tienda, tienda)
+        vigencia_corta = _resolver_vigencia(textos_cond, meta_tienda, dt_tienda)
 
-        campana_detectada = detectar_nombre_campana(
-            textos_cond,
-            default_campana=meta_tienda.get("campana", f"Catálogo {tienda.split()[0]}"),
-        )
-        if campana_detectada in NOMBRES_GENERICOS_CAMPANA and meta_tienda.get("campana"):
-            campana = meta_tienda["campana"]
-        else:
-            campana = campana_detectada
-
-        # 3. Determinar vigencia comercial (expiración de ofertas)
-        vigencia_extraida = extraer_vigencia_de_textos(textos_cond)
-        vigencia_corta = (
-            vigencia_extraida
-            or meta_tienda.get("vigencia_corta")
-            or f"{dt_tienda.day:02d} {MESES_ES.get(dt_tienda.month, dt_tienda.strftime('%b'))}"
-        )
-
-        con_descuento = 0
-        if not df_t.empty:
-            if "ahorro_verificable" in df_t.columns:
-                con_descuento = int((df_t["ahorro_verificable"] > 0).sum())
-            elif "precio_regular" in df_t.columns and "precio_promo" in df_t.columns:
-                con_descuento = int((df_t["precio_regular"] > df_t["precio_promo"]).sum())
-
+        con_descuento = _contar_con_descuento(df_t)
         detalle_campana = f"{campana} ({con_descuento} con rebaja)" if con_descuento > 0 else campana
 
         resultado[tienda] = {
@@ -292,7 +312,7 @@ def detectar_campanas_por_tienda(df_consolidado: pd.DataFrame) -> dict[str, dict
             "detalle_campana": detalle_campana,
             "vigencia_corta": vigencia_corta,
             "fecha_auditoria": dt_tienda.strftime("%Y-%m-%d %H:%M"),
-            "items_totales": n_items,
+            "items_totales": len(df_t),
             "items_con_rebaja": con_descuento,
         }
 

@@ -14,10 +14,14 @@ import urllib.error
 import urllib.request
 from typing import Any, Dict, Optional
 
+from src.logger import get_logger
+
 try:
     from curl_cffi import requests as curl_requests
 except (ImportError, OSError):
     curl_requests = None
+
+logger = get_logger("http_utils")
 
 USER_AGENT_CHROME = (
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
@@ -54,6 +58,51 @@ HEADERS_SSR_NEXTJS = {
 CODIGOS_REINTENTO = {429, 500, 502, 503, 504}
 
 
+def _preparar_encabezados(headers: Optional[Dict[str, str]]) -> Dict[str, str]:
+    """Combina los encabezados del usuario con los defaults, respetando el UA de WhatsApp."""
+    if headers is not None and "WhatsApp" in headers.get("User-Agent", ""):
+        return headers.copy()
+    encabezados = HEADERS_DEFAULT.copy()
+    if headers:
+        encabezados.update(headers)
+    return encabezados
+
+
+def _calcular_espera(intento: int, delay_inicial: float, factor_backoff: float, jitter: bool) -> float:
+    """Calcula el backoff exponencial del intento, con jitter opcional."""
+    delay = delay_inicial * (factor_backoff**intento)
+    if jitter:
+        delay += random.uniform(0.1, delay * 0.3)
+    return delay
+
+
+def _intentar_peticion(
+    url: str,
+    data: Optional[bytes],
+    headers: Dict[str, str],
+    metodo: str,
+    timeout: float,
+) -> tuple[Optional[str], Optional[BaseException], bool]:
+    """
+    Ejecuta un intento HTTP y clasifica el resultado.
+
+    Retorna (contenido, error, reintentar):
+    - Éxito: (texto, None, False)
+    - Error transitorio: (None, excepción, True)
+    - Error definitivo: (None, excepción, False)
+    """
+    try:
+        req = urllib.request.Request(url, data=data, headers=headers, method=metodo)
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return resp.read().decode("utf-8", errors="ignore"), None, False
+    except urllib.error.HTTPError as e:
+        return None, e, e.code in CODIGOS_REINTENTO
+    except (urllib.error.URLError, socket.timeout, TimeoutError, ConnectionError, http.client.HTTPException) as e:
+        return None, e, True
+    except (OSError, UnicodeDecodeError) as e:
+        return None, e, False
+
+
 def peticion_http_con_reintentos(
     url: str,
     headers: Optional[Dict[str, str]] = None,
@@ -84,45 +133,23 @@ def peticion_http_con_reintentos(
     Returns:
         Cadena decodificada en UTF-8 con la respuesta del servidor, o None si falla y lanzar_error es False.
     """
-    if headers is not None and "WhatsApp" in headers.get("User-Agent", ""):
-        encabezados = headers.copy()
-    else:
-        encabezados = HEADERS_DEFAULT.copy()
-        if headers:
-            encabezados.update(headers)
-
-    ultimo_error = None
+    encabezados = _preparar_encabezados(headers)
+    ultimo_error: Optional[BaseException] = None
 
     for intento in range(max_intentos):
-        try:
-            req = urllib.request.Request(url, data=data, headers=encabezados, method=metodo)
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                contenido = resp.read().decode("utf-8", errors="ignore")
-                return contenido
+        contenido, error, reintentar = _intentar_peticion(url, data, encabezados, metodo, timeout)
+        if contenido is not None:
+            return contenido
 
-        except urllib.error.HTTPError as e:
-            ultimo_error = e
-            # Solo reintentar en errores transitorios (rate limits y fallos de servidor)
-            if e.code not in CODIGOS_REINTENTO:
-                if lanzar_error:
-                    raise
-                return None
-
-        except (urllib.error.URLError, socket.timeout, TimeoutError, ConnectionError, http.client.HTTPException) as e:
-            ultimo_error = e
-
-        except (OSError, UnicodeDecodeError) as e:
-            ultimo_error = e
-            if lanzar_error:
-                raise
+        ultimo_error = error
+        if not reintentar:
+            if lanzar_error and error is not None:
+                raise error
             return None
 
         # Si aún quedan reintentos, calcular el backoff exponencial
         if intento < max_intentos - 1:
-            delay = delay_inicial * (factor_backoff**intento)
-            if jitter:
-                delay += random.uniform(0.1, delay * 0.3)
-            time.sleep(delay)
+            time.sleep(_calcular_espera(intento, delay_inicial, factor_backoff, jitter))
 
     if lanzar_error and ultimo_error:
         raise ultimo_error
@@ -182,7 +209,9 @@ def peticion_curl_cffi(
     el handshake TLS/JA3/HTTP2 de un navegador real (ej. chrome124).
     Si curl_cffi no está disponible o falla, recurre de forma segura a peticion_http_con_reintentos.
     """
-    if curl_requests is not None:
+    if curl_requests is None:
+        logger.debug("curl_cffi no está disponible; se usa urllib como fallback para %s", url)
+    else:
         try:
             hdrs = (HEADERS_SSR_NEXTJS if headers is None else headers).copy()
             resp = curl_requests.get(
@@ -197,7 +226,8 @@ def peticion_curl_cffi(
             if lanzar_error and resp.status_code >= 400:
                 resp.raise_for_status()
             return resp.text
-        except (OSError, RuntimeError, TimeoutError, ConnectionError, ValueError):
+        except (OSError, RuntimeError, TimeoutError, ConnectionError, ValueError) as exc:
             if lanzar_error:
                 raise
+            logger.warning("curl_cffi falló para %s (%s); se reintenta con urllib", url, exc)
     return peticion_http_con_reintentos(url=url, headers=headers, timeout=timeout, lanzar_error=lanzar_error)
