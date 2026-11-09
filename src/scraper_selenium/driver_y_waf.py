@@ -19,30 +19,12 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 
 import src.scraper_selenium as _pkg
-from src.http_utils import USER_AGENT_CHROME
+from src.http_utils import INDICADORES_DESAFIO_WAF, USER_AGENT_CHROME
 from src.logger import get_logger
 
 logger = get_logger("scraper_selenium")
 
-INDICADORES_CHALLENGE = [
-    "verify your identity",
-    "verifica tu identidad",
-    "px-captcha",
-    "perimeterx",
-    "mantén presionado",
-    "press and hold",
-    "just a moment",
-    "challenge-running",
-    "cf-challenge-running",
-    "verificación de seguridad",
-    "security check",
-    "captcha",
-    "unusual traffic",
-    "bloqueo temporal",
-    "robot",
-    "attention required",
-    "human verification",
-]
+INDICADORES_CHALLENGE: list[str] = list(INDICADORES_DESAFIO_WAF)
 
 
 def _buscar_par_chrome_cache() -> tuple[str | None, str | None]:

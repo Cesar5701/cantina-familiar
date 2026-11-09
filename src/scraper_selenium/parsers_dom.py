@@ -57,6 +57,70 @@ def construir_registro_producto(
 _construir_registro_producto = construir_registro_producto
 
 
+def _es_item_fuera_de_stock(obj: dict) -> bool:
+    """Evalúa de forma estandarizada si un objeto de producto de Next.js/Walmart está agotado."""
+    if not isinstance(obj, dict):
+        return True
+    avail_obj = obj.get("availabilityStatusV2") or {}
+    avail_val = avail_obj.get("value", "") if isinstance(avail_obj, dict) else str(avail_obj)
+    avail_disp = str(avail_obj.get("display", "")).lower() if isinstance(avail_obj, dict) else ""
+    status = str(obj.get("availabilityStatus", "")).upper()
+    return bool(
+        obj.get("isOutOfStock") is True
+        or avail_val in ["OUT_OF_STOCK", "NOT_AVAILABLE", "UNAVAILABLE"]
+        or status in ["OUT_OF_STOCK", "NOT_AVAILABLE", "UNAVAILABLE"]
+        or avail_disp in ["out of stock", "agotado", "no disponible"]
+        or obj.get("showAtc") is False
+        or obj.get("canAddToCart") is False
+    )
+
+
+def _extraer_precios_item(obj: dict) -> tuple[float | None, float | None]:
+    """
+    Extrae (precio_regular, precio_promo) de un nodo de producto Next.js
+    inspeccionando múltiples formatos de precios posibles.
+    """
+    if not isinstance(obj, dict):
+        return None, None
+
+    # 1. Extraer precio promocional/actual (buscar en priceInfo primero, o en precio_obj directo)
+    p_info = obj.get("priceInfo") if isinstance(obj.get("priceInfo"), dict) else {}
+
+    # Prioridad precio promo: linePrice en priceInfo -> obj["price"] -> prices -> itemPrice
+    p_val: float | None = None
+    if p_info:
+        for k in ["linePrice", "price", "currentPrice", "finalPrice", "itemPrice", "priceString"]:
+            if k in p_info and p_info[k] is not None:
+                p_val = limpiar_precio(str(p_info[k]))
+                if p_val:
+                    break
+
+    if p_val is None:
+        precio_directo = obj.get("price") or obj.get("itemPrice") or obj.get("prices")
+        if isinstance(precio_directo, (int, float)):
+            p_val = float(precio_directo)
+        elif isinstance(precio_directo, str):
+            p_val = limpiar_precio(precio_directo)
+        elif isinstance(precio_directo, dict):
+            for k in ["linePrice", "price", "currentPrice", "finalPrice", "itemPrice"]:
+                if k in precio_directo and precio_directo[k] is not None:
+                    p_val = limpiar_precio(str(precio_directo[k]))
+                    if p_val:
+                        break
+
+    # 2. Extraer precio regular (wasPrice, regularPrice, listPrice)
+    p_reg_val: float | None = None
+    if p_info:
+        for k_reg in ["wasPrice", "regularPrice", "listPrice", "itemPrice"]:
+            if k_reg in p_info and p_info[k_reg] is not None:
+                p_reg_val = limpiar_precio(str(p_info[k_reg]))
+                if p_reg_val:
+                    break
+
+    p_reg_final = p_reg_val if (p_reg_val and p_val and p_reg_val > p_val) else p_val
+    return p_reg_final, p_val
+
+
 def extraer_de_json_embebido(soup: BeautifulSoup, url: str, tienda: str, fecha_consulta: str) -> list[dict]:
     """Intenta extraer productos directamente de scripts JSON-LD o __NEXT_DATA__."""
     productos = []
@@ -100,49 +164,12 @@ def extraer_de_json_embebido(soup: BeautifulSoup, url: str, tienda: str, fecha_c
                 encontrados = []
                 if isinstance(obj, dict):
                     nombre = obj.get("name") or obj.get("title") or obj.get("displayName")
-                    precio_obj = obj.get("price") or obj.get("priceInfo") or obj.get("prices") or obj.get("itemPrice")
-                    if nombre and isinstance(nombre, str) and len(nombre) > 5 and precio_obj:
-                        avail_obj = obj.get("availabilityStatusV2") or {}
-                        avail_val = avail_obj.get("value", "") if isinstance(avail_obj, dict) else str(avail_obj)
-                        avail_disp = str(avail_obj.get("display", "")).lower() if isinstance(avail_obj, dict) else ""
-                        status = str(obj.get("availabilityStatus", "")).upper()
-                        is_oos = (
-                            obj.get("isOutOfStock") is True
-                            or avail_val in ["OUT_OF_STOCK", "NOT_AVAILABLE", "UNAVAILABLE"]
-                            or status in ["OUT_OF_STOCK", "NOT_AVAILABLE", "UNAVAILABLE"]
-                            or avail_disp in ["out of stock", "agotado", "no disponible"]
-                            or obj.get("showAtc") is False
-                            or obj.get("canAddToCart") is False
-                        )
-                        if not is_oos:
-                            p_val = None
-                            p_reg_val = None
-                            if isinstance(precio_obj, (int, float)):
-                                p_val = float(precio_obj)
-                            elif isinstance(precio_obj, str):
-                                p_val = limpiar_precio(precio_obj)
-                            elif isinstance(precio_obj, dict):
-                                for k in [
-                                    "linePrice",
-                                    "price",
-                                    "currentPrice",
-                                    "finalPrice",
-                                    "itemPrice",
-                                    "priceString",
-                                ]:
-                                    if k in precio_obj and precio_obj[k] is not None:
-                                        p_val = limpiar_precio(str(precio_obj[k]))
-                                        if p_val:
-                                            break
-                                for k_reg in ["wasPrice", "itemPrice", "regularPrice", "listPrice"]:
-                                    if k_reg in precio_obj and precio_obj[k_reg] is not None:
-                                        p_reg_val = limpiar_precio(str(precio_obj[k_reg]))
-                                        if p_reg_val:
-                                            break
+                    if nombre and isinstance(nombre, str) and len(nombre) > 5:
+                        if not _es_item_fuera_de_stock(obj):
+                            p_reg_final, p_val = _extraer_precios_item(obj)
                             if p_val and p_val > 50:
-                                p_reg_final = p_reg_val if (p_reg_val and p_reg_val > p_val) else p_val
                                 prod_url = obj.get("productUrl") or obj.get("canonicalUrl") or url
-                                encontrados.append((nombre, p_reg_final, p_val, prod_url))
+                                encontrados.append((nombre, p_reg_final or p_val, p_val, prod_url))
 
                     for v in obj.values():
                         encontrados.extend(buscar_items_recursivo(v))

@@ -57,6 +57,36 @@ HEADERS_SSR_NEXTJS = {
 
 CODIGOS_REINTENTO = {429, 500, 502, 503, 504}
 
+INDICADORES_DESAFIO_WAF: tuple[str, ...] = (
+    "verify your identity",
+    "verifica tu identidad",
+    "px-captcha",
+    "perimeterx",
+    "mantén presionado",
+    "press and hold",
+    "just a moment",
+    "challenge-running",
+    "cf-challenge-running",
+    "verificación de seguridad",
+    "security check",
+    "captcha",
+    "unusual traffic",
+    "bloqueo temporal",
+    "robot",
+    "attention required",
+    "human verification",
+)
+
+
+def es_pagina_desafio_waf(html: str | None, max_bytes: int = 15000) -> bool:
+    """Detecta si la respuesta HTML corresponde a un reto WAF/PerimeterX/Cloudflare en lugar de contenido legítimo."""
+    if not html:
+        return True
+    if "__NEXT_DATA__" in html:
+        return False
+    muestra = html[:max_bytes].lower()
+    return any(ind in muestra for ind in INDICADORES_DESAFIO_WAF)
+
 
 def _preparar_encabezados(headers: Optional[Dict[str, str]]) -> Dict[str, str]:
     """Combina los encabezados del usuario con los defaults, respetando el UA de WhatsApp."""

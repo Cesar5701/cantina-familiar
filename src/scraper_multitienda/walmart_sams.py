@@ -18,32 +18,20 @@ from bs4 import BeautifulSoup
 import src.scraper_multitienda as _pkg
 import src.scraper_selenium as _sel_pkg
 from src.clasificacion import limpiar_precio
-from src.http_utils import HEADERS_SSR_NEXTJS, peticion_curl_cffi
+from src.http_utils import (
+    HEADERS_SSR_NEXTJS,
+    INDICADORES_DESAFIO_WAF,
+    es_pagina_desafio_waf,
+    peticion_curl_cffi,
+)
 from src.io_utils import ResumenScraping
 from src.logger import get_logger
 from src.scraper_multitienda.normalizador import evaluar_y_normalizar_producto
 
 logger = get_logger("scraper_multitienda")
 
-INDICADORES_WAF_HTML = (
-    "verify your identity",
-    "verifica tu identidad",
-    "px-captcha",
-    "perimeterx",
-    "challenge-running",
-    "cf-challenge-running",
-    "human verification",
-)
-
-
-def es_pagina_desafio_waf(html: str | None) -> bool:
-    """Detecta si la respuesta corresponde a un reto WAF/PerimeterX en lugar del SSR Next.js."""
-    if not html:
-        return True
-    if "__NEXT_DATA__" in html:
-        return False
-    muestra = html[:15000].lower()
-    return any(ind in muestra for ind in INDICADORES_WAF_HTML)
+# Alias para compatibilidad hacia atrás
+INDICADORES_WAF_HTML = INDICADORES_DESAFIO_WAF
 
 
 def es_respuesta_prerender_falsa(data: dict, termino: str) -> tuple[bool, str]:
@@ -128,31 +116,15 @@ def extraer_item_nextjs(
     canon = str(it.get("canonicalUrl") or "").strip()
     full_url = f"https://{base_domain}{canon}" if canon.startswith("/") else (canon or f"https://{base_domain}")
 
-    avail_obj = it.get("availabilityStatusV2") or {}
-    avail_val = avail_obj.get("value", "") if isinstance(avail_obj, dict) else str(avail_obj)
-    avail_disp = str(avail_obj.get("display", "")).lower() if isinstance(avail_obj, dict) else ""
-    status = str(it.get("availabilityStatus", "")).upper()
-    show_atc = it.get("showAtc")
-    can_atc = it.get("canAddToCart")
-
-    is_out_of_stock = (
-        it.get("isOutOfStock") is True
-        or avail_val in ["OUT_OF_STOCK", "NOT_AVAILABLE", "UNAVAILABLE"]
-        or status in ["OUT_OF_STOCK", "NOT_AVAILABLE", "UNAVAILABLE"]
-        or avail_disp in ["out of stock", "agotado", "no disponible"]
-        or show_atc is False
-        or can_atc is False
-    )
+    is_out_of_stock = _sel_pkg._es_item_fuera_de_stock(it)
 
     if descartar_agotados and is_out_of_stock:
         return None, True
 
+    p_reg, p_promo = _sel_pkg._extraer_precios_item(it)
     p_info = it.get("priceInfo") or {}
-    p_promo = limpiar_precio(it.get("price")) or limpiar_precio(p_info.get("linePrice"))
-    p_was = limpiar_precio(p_info.get("wasPrice")) or limpiar_precio(p_info.get("itemPrice"))
-    p_reg = p_was if (p_was and p_promo and p_was > p_promo) else p_promo
+    savings = str(p_info.get("savings") or "").strip() if isinstance(p_info, dict) else ""
 
-    savings = str(p_info.get("savings") or "").strip()
     if p_reg and p_promo and p_reg > p_promo:
         cond = f"Rebaja en línea ({savings})" if savings else f"Oferta {tienda}"
     else:
