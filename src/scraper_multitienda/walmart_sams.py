@@ -115,26 +115,59 @@ def _ejecutar_contingencia_navegador(
     prods_raw: list[dict] = []
 
 
-    # Ruta C: Si es Walmart y tenemos productos conocidos con URL /ip/, consultar directamente via CDP
-    urls_pdp_walmart = [
-        item["url"] for item in catalogo_acumulado.values()
+    # Ruta C: Si es Walmart y tenemos productos conocidos con URL /ip/, consultar directamente via CDP por lotes categóricos
+    items_walmart = [
+        item for item in catalogo_acumulado.values()
         if item.get("url") and "/ip/" in item["url"] and base_domain in item["url"]
     ]
 
-    if "walmart" in tienda.lower() and urls_pdp_walmart and getattr(_sel_pkg, "consultar_pdps_con_nodriver", None):
+    if "walmart" in tienda.lower() and items_walmart and getattr(_sel_pkg, "consultar_pdps_con_nodriver", None):
+        # Agrupar URLs por categoría para procesar en lotes seguros con pausas de enfriamiento
+        categorias_orden = ["Tequila", "Whisky", "Mezcal", "Licor de Whisky", "Vino"]
+        grupos_categoria: dict[str, list[str]] = {cat: [] for cat in categorias_orden}
+        grupos_categoria["Otros"] = []
+
+        for it in items_walmart:
+            c = str(it.get("categoria") or "").strip()
+            if c in grupos_categoria:
+                grupos_categoria[c].append(it["url"])
+            else:
+                grupos_categoria["Otros"].append(it["url"])
+
         logger.info(
-            f"  🌐 [{tienda}] Activando Ruta C: Navegación indetectable por CDP con nodriver "
-            f"({min(len(urls_pdp_walmart), 25)} PDPs prioritarias)..."
+            f"  🌐 [{tienda}] Activando Ruta C por Lotes Categóricos con nodriver CDP "
+            f"({len(items_walmart)} productos en catálogo)..."
         )
-        try:
-            prods_raw = _sel_pkg.consultar_pdps_con_nodriver(
-                urls=urls_pdp_walmart[:25],
-                headless=headless,
-                delay_min=2.0,
-                delay_max=3.5,
-            )
-        except (OSError, RuntimeError, TimeoutError, ValueError) as e:
-            logger.warning(f"  ⚠️ [{tienda}] nodriver no completó la extracción: {e}")
+
+        for cat, urls_cat in grupos_categoria.items():
+            if not urls_cat:
+                continue
+
+            # Muestra representativa de alta prioridad por categoría (ej. 15 productos por lote en ejecuciones interactivas)
+            limite_cat = 25 if os.environ.get("WALMART_SCRAPE_ALL") else min(len(urls_cat), 10)
+            urls_lote = urls_cat[:limite_cat]
+
+            logger.info(f"  👉 [Lote {cat.upper()}] Consultando {len(urls_lote)} PDPs prioritarias...")
+            try:
+                lote_extraido = _sel_pkg.consultar_pdps_con_nodriver(
+                    urls=urls_lote,
+                    headless=headless,
+                    delay_min=2.0,
+                    delay_max=3.5,
+                    concurrencia=3,
+                )
+                if lote_extraido:
+                    prods_raw.extend(lote_extraido)
+                    logger.info(f"     ✓ {len(lote_extraido)}/{len(urls_lote)} productos extraídos en categoría {cat}.")
+
+                # Pausa humana de enfriamiento entre categorías (cool-off period para resetear contadores WAF)
+                if len(grupos_categoria) > 1 and not os.environ.get("PYTEST_CURRENT_TEST"):
+                    logger.info("     ☕ Pausa de enfriamiento entre categorías (5 segundos)...")
+                    time.sleep(5.0)
+
+            except (OSError, RuntimeError, TimeoutError, ValueError) as e:
+                logger.warning(f"  ⚠️ [{tienda}] Error en lote de {cat}: {e}")
+
 
     # Fallback si nodriver no obtuvo resultados o si es Sam's Club / búsqueda general
     if not prods_raw:
