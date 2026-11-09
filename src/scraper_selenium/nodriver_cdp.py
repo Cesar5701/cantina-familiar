@@ -8,13 +8,11 @@ import asyncio
 import json
 import os
 import random
-import time
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from bs4 import BeautifulSoup
 
 from src.clasificacion import limpiar_precio
-from src.io_utils import ResumenScraping
 from src.logger import get_logger
 
 logger = get_logger("nodriver_cdp")
@@ -82,13 +80,7 @@ async def _procesar_pdp_tab(
                 return None
 
             data = json.loads(script.string)
-            prod = (
-                data.get("props", {})
-                .get("pageProps", {})
-                .get("initialData", {})
-                .get("data", {})
-                .get("product", {})
-            )
+            prod = data.get("props", {}).get("pageProps", {}).get("initialData", {}).get("data", {}).get("product", {})
             if not prod:
                 return None
 
@@ -102,16 +94,8 @@ async def _procesar_pdp_tab(
             was_obj = price_info.get("wasPrice") or {}
             list_obj = price_info.get("listPrice") or {}
 
-            current_p = (
-                cur_obj.get("price")
-                or cur_obj.get("priceDisplay")
-                or list_obj.get("price")
-            )
-            was_p = (
-                was_obj.get("price")
-                or was_obj.get("priceString")
-                or list_obj.get("price")
-            )
+            current_p = cur_obj.get("price") or cur_obj.get("priceDisplay") or list_obj.get("price")
+            was_p = was_obj.get("price") or was_obj.get("priceString") or list_obj.get("price")
 
             p_promo = limpiar_precio(current_p)
             p_reg = limpiar_precio(was_p) or p_promo
@@ -140,7 +124,6 @@ async def _procesar_pdp_tab(
                     pass
 
 
-
 async def _extraer_datos_pdp_async(
     urls: List[str],
     headless: bool = False,
@@ -161,7 +144,9 @@ async def _extraer_datos_pdp_async(
         logger.warning("No se localizó un binario ejecutable de Chrome para nodriver.")
         return []
 
-    logger.info(f"Iniciando navegador CDP nodriver (binario: {chrome_bin}, headless: {headless}, workers: {concurrencia})...")
+    logger.info(
+        f"Iniciando navegador CDP nodriver (binario: {chrome_bin}, headless: {headless}, workers: {concurrencia})..."
+    )
     browser = await uc.start(
         browser_executable_path=chrome_bin,
         headless=headless,
@@ -225,4 +210,3 @@ def consultar_pdps_con_nodriver(
             concurrencia=concurrencia,
         )
     )
-

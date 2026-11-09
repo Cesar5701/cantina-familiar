@@ -169,7 +169,6 @@ def actualizar_todo(archivos_fuente: list[str] | None = None, carpeta_salida: st
         "es_paquete",
     ]
     for c in cols:
-
         if c not in df_dash.columns:
             df_dash[c] = ""
 

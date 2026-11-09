@@ -197,9 +197,7 @@ def peticion_curl_cffi(
             if lanzar_error and resp.status_code >= 400:
                 resp.raise_for_status()
             return resp.text
-        except (OSError, RuntimeError, TimeoutError, ConnectionError, ValueError) as e:
+        except (OSError, RuntimeError, TimeoutError, ConnectionError, ValueError):
             if lanzar_error:
                 raise
     return peticion_http_con_reintentos(url=url, headers=headers, timeout=timeout, lanzar_error=lanzar_error)
-
-

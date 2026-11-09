@@ -85,7 +85,6 @@ def calcular_metricas(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-
 def marcar_outliers_lujo(df: pd.DataFrame, umbral_multiplicador_mediana: float = 5.0) -> pd.DataFrame:
     """
     Identifica botellas de colección o ultra-lujo que distorsionan análisis estadísticos (H25).

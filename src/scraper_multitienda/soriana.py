@@ -96,7 +96,8 @@ def scrapear_soriana(terminos: list[str] | None = None) -> list[dict]:
                 # Promociones / Badges (excluyendo promociones bancarias ajenas o combos engañosos)
                 badges_raw = [b.get("title", "").strip() for b in tile.select(".product-badge") if b.get("title")]
                 badges = [
-                    b for b in badges_raw
+                    b
+                    for b in badges_raw
                     if b and not any(f in b.lower() for f in ["combo perfecto", "falabella", "puntos 'dobles'"])
                 ]
                 badges_str = " | ".join(dict.fromkeys(b for b in badges if b))

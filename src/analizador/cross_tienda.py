@@ -242,8 +242,6 @@ def enriquecer_registros_cross_tienda(
             rec["es_stale"] = es_stale_actual
             rec["dias_desde_actualizacion"] = float(row.get("dias_desde_actualizacion", 0.0))
 
-
-
             if rec["es_precio_mas_bajo"]:
                 rec["diferencia_vs_minimo"] = 0.0
             else:

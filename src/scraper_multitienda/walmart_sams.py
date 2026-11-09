@@ -233,12 +233,7 @@ def descubrir_productos_pasillos_walmart(
                     break
 
                 data = json.loads(txt_script)
-                sr = (
-                    data.get("props", {})
-                    .get("pageProps", {})
-                    .get("initialData", {})
-                    .get("searchResult", {})
-                )
+                sr = data.get("props", {}).get("pageProps", {}).get("initialData", {}).get("searchResult", {})
                 item_stacks = sr.get("itemStacks", [])
                 nuevos_en_pagina = 0
                 actualizados_en_pagina = 0
@@ -285,13 +280,20 @@ def descubrir_productos_pasillos_walmart(
                 if not os.environ.get("PYTEST_CURRENT_TEST"):
                     time.sleep(random.uniform(delay_min, delay_max))
 
-            except (json.JSONDecodeError, KeyError, ValueError, OSError, RuntimeError, TimeoutError, ConnectionError) as e:
+            except (
+                json.JSONDecodeError,
+                KeyError,
+                ValueError,
+                OSError,
+                RuntimeError,
+                TimeoutError,
+                ConnectionError,
+            ) as e:
                 logger.warning(f"     ⚠️ [{cat_nombre} p.{page}] Error procesando: {e}")
                 break
 
     logger.info(
-        f"  🎯 [{tienda}] Fin descubrimiento pasillos: +{insertados} NUEVOS agregados, "
-        f"+{actualizados} actualizados."
+        f"  🎯 [{tienda}] Fin descubrimiento pasillos: +{insertados} NUEVOS agregados, +{actualizados} actualizados."
     )
     return actualizados, insertados
 
@@ -314,10 +316,10 @@ def _ejecutar_contingencia_navegador(
     insertados_sel = 0
     prods_raw: list[dict] = []
 
-
     # Ruta C: Si es Walmart y tenemos productos conocidos con URL /ip/, consultar directamente via CDP por lotes categóricos
     items_walmart = [
-        item for item in catalogo_acumulado.values()
+        item
+        for item in catalogo_acumulado.values()
         if item.get("url") and "/ip/" in item["url"] and base_domain in item["url"]
     ]
 
@@ -368,13 +370,10 @@ def _ejecutar_contingencia_navegador(
             except (OSError, RuntimeError, TimeoutError, ValueError) as e:
                 logger.warning(f"  ⚠️ [{tienda}] Error en lote de {cat}: {e}")
 
-
     # Fallback si nodriver no obtuvo resultados o si es Sam's Club / búsqueda general
     if not prods_raw:
         urls = [f"https://{base_domain}/search?q={urllib.parse.quote(t)}" for t in terminos]
-        logger.info(
-            f"  🌐 [{tienda}] Ejecutando navegación por búsquedas ({len(urls)} consultas en {base_domain})..."
-        )
+        logger.info(f"  🌐 [{tienda}] Ejecutando navegación por búsquedas ({len(urls)} consultas en {base_domain})...")
         try:
             prods_raw = _sel_pkg.consultar_urls_secuenciales(
                 urls=urls,
@@ -385,7 +384,6 @@ def _ejecutar_contingencia_navegador(
         except (OSError, RuntimeError, TimeoutError, ValueError, _sel_pkg.WebDriverException) as e:
             logger.warning(f"  ⚠️ [{tienda}] Navegador no disponible ({e}).")
             return 0, 0
-
 
     for raw in prods_raw:
         nombre = str(raw.get("producto") or raw.get("name") or "").strip()
@@ -605,7 +603,6 @@ def scrapear_nextjs_walmart_platform(
         )
         actualizados_count += u_nav
         insertados_count += i_nav
-
 
     resultados = list(catalogo_acumulado.values())
 

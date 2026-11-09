@@ -586,12 +586,18 @@ def test_scrapear_nextjs_walmart_platform_fallback_selenium_y_prerender(tmp_path
     from src.scraper_multitienda.walmart_sams import es_respuesta_prerender_falsa
 
     # 1. Validar detector de respuesta señuelo Akamai/Prerender ('leche' al buscar 'tequila')
-    data_leche = {"query": {"q": "leche"}, "props": {"pageProps": {"initialData": {"searchResult": {"title": 'Resultados para "leche"'}}}}}
+    data_leche = {
+        "query": {"q": "leche"},
+        "props": {"pageProps": {"initialData": {"searchResult": {"title": 'Resultados para "leche"'}}}},
+    }
     es_falso, q_det = es_respuesta_prerender_falsa(data_leche, "tequila")
     assert es_falso is True
     assert q_det == "leche"
 
-    data_valida = {"query": {"q": "tequila"}, "props": {"pageProps": {"initialData": {"searchResult": {"title": 'Resultados para "tequila"'}}}}}
+    data_valida = {
+        "query": {"q": "tequila"},
+        "props": {"pageProps": {"initialData": {"searchResult": {"title": 'Resultados para "tequila"'}}}},
+    }
     assert es_respuesta_prerender_falsa(data_valida, "tequila")[0] is False
 
     # 2. Validar fallback automático a Selenium + UPSERT incremental cuando HTTP devuelve caché señuelo
@@ -904,8 +910,8 @@ def test_extraer_item_nextjs_valido_y_descartes():
 
 def test_descubrir_productos_pasillos_walmart_mock():
     """Valida el descubrimiento automático de productos por pasillos y su merge incremental."""
-    from src.scraper_multitienda.walmart_sams import descubrir_productos_pasillos_walmart
     from src.io_utils import ResumenScraping
+    from src.scraper_multitienda.walmart_sams import descubrir_productos_pasillos_walmart
 
     # Catálogo inicial con 1 producto conocido
     catalogo = {
@@ -980,4 +986,3 @@ def test_descubrir_productos_pasillos_walmart_mock():
     assert mezcal_key in catalogo
     assert catalogo[mezcal_key]["precio_promo"] == 539.0
     assert catalogo[mezcal_key]["url"] == "https://www.walmart.com.mx/ip/ojo-de-tigre-rep/002"
-

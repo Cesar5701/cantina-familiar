@@ -100,9 +100,7 @@ def extraer_de_json_embebido(soup: BeautifulSoup, url: str, tienda: str, fecha_c
                     if nombre and isinstance(nombre, str) and len(nombre) > 5 and precio_obj:
                         avail_obj = obj.get("availabilityStatusV2") or {}
                         avail_val = avail_obj.get("value", "") if isinstance(avail_obj, dict) else str(avail_obj)
-                        avail_disp = (
-                            str(avail_obj.get("display", "")).lower() if isinstance(avail_obj, dict) else ""
-                        )
+                        avail_disp = str(avail_obj.get("display", "")).lower() if isinstance(avail_obj, dict) else ""
                         status = str(obj.get("availabilityStatus", "")).upper()
                         is_oos = (
                             obj.get("isOutOfStock") is True
@@ -120,7 +118,14 @@ def extraer_de_json_embebido(soup: BeautifulSoup, url: str, tienda: str, fecha_c
                             elif isinstance(precio_obj, str):
                                 p_val = limpiar_precio(precio_obj)
                             elif isinstance(precio_obj, dict):
-                                for k in ["linePrice", "price", "currentPrice", "finalPrice", "itemPrice", "priceString"]:
+                                for k in [
+                                    "linePrice",
+                                    "price",
+                                    "currentPrice",
+                                    "finalPrice",
+                                    "itemPrice",
+                                    "priceString",
+                                ]:
                                     if k in precio_obj and precio_obj[k] is not None:
                                         p_val = limpiar_precio(str(precio_obj[k]))
                                         if p_val:
@@ -144,7 +149,11 @@ def extraer_de_json_embebido(soup: BeautifulSoup, url: str, tienda: str, fecha_c
 
             items_next = buscar_items_recursivo(data)
             nombres_vistos = set()
-            base_host = "https://www.walmart.com.mx" if "walmart" in tienda.lower() or "walmart" in url.lower() else "https://www.sams.com.mx"
+            base_host = (
+                "https://www.walmart.com.mx"
+                if "walmart" in tienda.lower() or "walmart" in url.lower()
+                else "https://www.sams.com.mx"
+            )
             for nombre, p_reg, p_val, prod_url in items_next:
                 if nombre in nombres_vistos:
                     continue
@@ -216,7 +225,11 @@ def parsear_html_con_bs4(html_source: str, url: str, tienda: str) -> list[dict]:
                 tarjetas.append(contenedor)
 
     nombres_procesados = set()
-    base_host = "https://www.walmart.com.mx" if "walmart" in tienda.lower() or "walmart" in url.lower() else "https://www.sams.com.mx"
+    base_host = (
+        "https://www.walmart.com.mx"
+        if "walmart" in tienda.lower() or "walmart" in url.lower()
+        else "https://www.sams.com.mx"
+    )
     for tarjeta in tarjetas:
         # Extraer nombre
         elem_nombre = (
