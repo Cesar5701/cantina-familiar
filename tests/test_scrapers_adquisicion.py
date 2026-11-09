@@ -838,3 +838,146 @@ def test_consultar_api_alianza_items_vacios_o_agotados():
         assert len(res) == 1
         assert res[0]["producto"] == "Tequila Agotado 750 ml"
         assert res[0]["disponibilidad"] == "agotado"
+
+
+def test_extraer_item_nextjs_valido_y_descartes():
+    """Valida la extracción y normalización homogénea de items desde Next.js."""
+    from src.scraper_multitienda.walmart_sams import extraer_item_nextjs
+
+    # 1. Item válido con wasPrice
+    item_raw = {
+        "name": "Tequila Don Julio 70 Añejo Cristalino 700 ml",
+        "brand": "Don Julio",
+        "price": 655.0,
+        "priceInfo": {
+            "linePrice": "$655.00",
+            "wasPrice": "$855.00",
+            "savings": "Ahorra $200.00",
+        },
+        "canonicalUrl": "/ip/don-julio-70/001",
+        "availabilityStatusV2": {"value": "IN_STOCK"},
+    }
+    item_norm, es_agotado = extraer_item_nextjs(
+        it=item_raw,
+        tienda="Walmart",
+        base_domain="www.walmart.com.mx",
+        fecha_actual="2026-11-09 16:00",
+    )
+    assert es_agotado is False
+    assert item_norm is not None
+    assert item_norm["producto"] == "Tequila Don Julio 70 Añejo Cristalino 700 ml"
+    assert item_norm["precio_promo"] == 655.0
+    assert item_norm["precio_regular"] == 855.0
+    assert "Ahorra $200.00" in item_norm["condiciones"]
+    assert item_norm["url"] == "https://www.walmart.com.mx/ip/don-julio-70/001"
+
+    # 2. Item agotado con descartar_agotados=True
+    item_agotado = {
+        "name": "Tequila Maestro Dobel Diamante 700 ml",
+        "isOutOfStock": True,
+        "price": 500.0,
+    }
+    item_norm2, es_agotado2 = extraer_item_nextjs(
+        it=item_agotado,
+        tienda="Walmart",
+        base_domain="www.walmart.com.mx",
+        fecha_actual="2026-11-09 16:00",
+        descartar_agotados=True,
+    )
+    assert es_agotado2 is True
+    assert item_norm2 is None
+
+    # 3. Item no licor o inválido (descartado por normalizador NOM)
+    item_invalido = {
+        "name": "Refresco Coca Cola 600 ml",
+        "price": 18.0,
+    }
+    item_norm3, es_agotado3 = extraer_item_nextjs(
+        it=item_invalido,
+        tienda="Walmart",
+        base_domain="www.walmart.com.mx",
+        fecha_actual="2026-11-09 16:00",
+    )
+    assert es_agotado3 is False
+    assert item_norm3 is None
+
+
+def test_descubrir_productos_pasillos_walmart_mock():
+    """Valida el descubrimiento automático de productos por pasillos y su merge incremental."""
+    from src.scraper_multitienda.walmart_sams import descubrir_productos_pasillos_walmart
+    from src.io_utils import ResumenScraping
+
+    # Catálogo inicial con 1 producto conocido
+    catalogo = {
+        "walmart|tequila don julio 70 añejo cristalino 700 ml|700": {
+            "tienda": "Walmart",
+            "producto": "Tequila Don Julio 70 Añejo Cristalino 700 ml",
+            "precio_promo": 700.0,
+            "precio_regular": 900.0,
+            "url": "https://www.walmart.com.mx/ip/dj70/001",
+            "fecha_consulta": "2026-11-01 10:00",
+        }
+    }
+
+    # Respuesta mock de pasillo con 2 productos: el conocido actualizado y uno nuevo (Mezcal)
+    browse_data = {
+        "props": {
+            "pageProps": {
+                "initialData": {
+                    "searchResult": {
+                        "itemStacks": [
+                            {
+                                "items": [
+                                    # Producto ya conocido con precio actualizado
+                                    {
+                                        "name": "Tequila Don Julio 70 Añejo Cristalino 700 ml",
+                                        "brand": "Don Julio",
+                                        "price": 649.0,
+                                        "canonicalUrl": "/ip/dj70/001",
+                                    },
+                                    # Producto totalmente nuevo descubierto en pasillo
+                                    {
+                                        "name": "Mezcal Ojo de Tigre Reposado 750 ml",
+                                        "brand": "Ojo de Tigre",
+                                        "price": 539.0,
+                                        "canonicalUrl": "/ip/ojo-de-tigre-rep/002",
+                                    },
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    }
+    html_browse = f'<html><script id="__NEXT_DATA__" type="application/json">{json.dumps(browse_data)}</script></html>'
+
+    pasillos_test = {
+        "Tequila Test": "/browse/test/tequila",
+    }
+    resumen = ResumenScraping("Walmart")
+
+    with patch("src.scraper_multitienda.walmart_sams.peticion_curl_cffi", return_value=html_browse):
+        actualizados, insertados = descubrir_productos_pasillos_walmart(
+            tienda="Walmart",
+            base_domain="www.walmart.com.mx",
+            catalogo_acumulado=catalogo,
+            resumen=resumen,
+            fecha_actual="2026-11-09 16:00",
+            pasillos=pasillos_test,
+            max_paginas=1,
+        )
+
+    # Se debió actualizar el Tequila existente e insertar el Mezcal nuevo
+    assert actualizados == 1
+    assert insertados == 1
+    assert len(catalogo) == 2
+    # El Don Julio debe tener el nuevo precio
+    dj_key = "walmart|tequila don julio 70 añejo cristalino 700 ml|700"
+    assert catalogo[dj_key]["precio_promo"] == 649.0
+    # El Mezcal debe estar registrado
+    mezcal_key = "walmart|mezcal ojo de tigre reposado 750 ml|750"
+    assert mezcal_key in catalogo
+    assert catalogo[mezcal_key]["precio_promo"] == 539.0
+    assert catalogo[mezcal_key]["url"] == "https://www.walmart.com.mx/ip/ojo-de-tigre-rep/002"
+
