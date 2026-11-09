@@ -93,8 +93,12 @@ def scrapear_soriana(terminos: list[str] | None = None) -> list[dict]:
                 p_promo = p_sale or p_list
                 p_reg = p_list if (p_list and p_promo and p_list > p_promo) else p_promo
 
-                # Promociones / Badges
-                badges = [b.get("title", "").strip() for b in tile.select(".product-badge") if b.get("title")]
+                # Promociones / Badges (excluyendo promociones bancarias ajenas o combos engañosos)
+                badges_raw = [b.get("title", "").strip() for b in tile.select(".product-badge") if b.get("title")]
+                badges = [
+                    b for b in badges_raw
+                    if b and not any(f in b.lower() for f in ["combo perfecto", "falabella", "puntos 'dobles'"])
+                ]
                 badges_str = " | ".join(dict.fromkeys(b for b in badges if b))
                 if p_reg and p_promo and p_reg > p_promo:
                     cond = f"Oferta en línea ({badges_str})" if badges_str else "Oferta en línea Soriana"

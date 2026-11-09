@@ -96,7 +96,7 @@ def _generar_clave_producto(item: dict) -> str:
     return url.rstrip("/")
 
 
-def _ejecutar_contingencia_selenium(
+def _ejecutar_contingencia_navegador(
     tienda: str,
     base_domain: str,
     terminos: list[str],
@@ -106,25 +106,53 @@ def _ejecutar_contingencia_selenium(
     headless: bool = False,
 ) -> tuple[int, int]:
     """
-    Ejecuta la extracción de contingencia mediante navegador real con Selenium
-    cuando las peticiones HTTP son bloqueadas por PerimeterX o desviadas por Akamai Prerender.
+    Ejecuta la extracción de contingencia mediante navegador indetectable (Ruta C: nodriver CDP)
+    o Selenium como respaldo secundario cuando las peticiones HTTP son bloqueadas.
+    Prioriza consultar directamente URLs de producto (PDP) ya conocidas para Walmart.
     """
-    urls = [f"https://{base_domain}/search?q={urllib.parse.quote(t)}" for t in terminos]
-    logger.info(
-        f"  🌐 [{tienda}] Activando contingencia automática con Selenium ({len(urls)} consultas en {base_domain})..."
-    )
     actualizados_sel = 0
     insertados_sel = 0
-    try:
-        prods_raw = _sel_pkg.consultar_urls_secuenciales(
-            urls=urls,
-            tienda=tienda,
-            headless=headless,
-            navegador="chrome",
+    prods_raw: list[dict] = []
+
+
+    # Ruta C: Si es Walmart y tenemos productos conocidos con URL /ip/, consultar directamente via CDP
+    urls_pdp_walmart = [
+        item["url"] for item in catalogo_acumulado.values()
+        if item.get("url") and "/ip/" in item["url"] and base_domain in item["url"]
+    ]
+
+    if "walmart" in tienda.lower() and urls_pdp_walmart and getattr(_sel_pkg, "consultar_pdps_con_nodriver", None):
+        logger.info(
+            f"  🌐 [{tienda}] Activando Ruta C: Navegación indetectable por CDP con nodriver "
+            f"({min(len(urls_pdp_walmart), 25)} PDPs prioritarias)..."
         )
-    except (OSError, RuntimeError, TimeoutError, ValueError, _sel_pkg.WebDriverException) as e:
-        logger.warning(f"  ⚠️ [{tienda}] Contingencia con Selenium no disponible ({e}).")
-        return 0, 0
+        try:
+            prods_raw = _sel_pkg.consultar_pdps_con_nodriver(
+                urls=urls_pdp_walmart[:25],
+                headless=headless,
+                delay_min=2.0,
+                delay_max=3.5,
+            )
+        except (OSError, RuntimeError, TimeoutError, ValueError) as e:
+            logger.warning(f"  ⚠️ [{tienda}] nodriver no completó la extracción: {e}")
+
+    # Fallback si nodriver no obtuvo resultados o si es Sam's Club / búsqueda general
+    if not prods_raw:
+        urls = [f"https://{base_domain}/search?q={urllib.parse.quote(t)}" for t in terminos]
+        logger.info(
+            f"  🌐 [{tienda}] Ejecutando navegación por búsquedas ({len(urls)} consultas en {base_domain})..."
+        )
+        try:
+            prods_raw = _sel_pkg.consultar_urls_secuenciales(
+                urls=urls,
+                tienda=tienda,
+                headless=headless,
+                navegador="chrome",
+            )
+        except (OSError, RuntimeError, TimeoutError, ValueError, _sel_pkg.WebDriverException) as e:
+            logger.warning(f"  ⚠️ [{tienda}] Navegador no disponible ({e}).")
+            return 0, 0
+
 
     for raw in prods_raw:
         nombre = str(raw.get("producto") or raw.get("name") or "").strip()
@@ -347,12 +375,12 @@ def scrapear_nextjs_walmart_platform(
                 if espera > 0:
                     time.sleep(espera)
 
-    # 2. Contingencia automática con Selenium si HTTP fue bloqueado por WAF/Prerender (0 válidos) o si se forzó
-    requiere_selenium = forzar_selenium or (
+    # 2. Contingencia automática con navegador indetectable (Ruta C: nodriver) / Selenium si HTTP fue bloqueado
+    requiere_navegador = forzar_selenium or (
         usar_fallback_selenium and (actualizados_count + insertados_count) == 0 and len(terminos) > 0
     )
-    if requiere_selenium:
-        u_sel, i_sel = _ejecutar_contingencia_selenium(
+    if requiere_navegador:
+        u_nav, i_nav = _ejecutar_contingencia_navegador(
             tienda=tienda,
             base_domain=base_domain,
             terminos=terminos,
@@ -361,8 +389,9 @@ def scrapear_nextjs_walmart_platform(
             fecha_actual=fecha_actual,
             headless=headless_selenium,
         )
-        actualizados_count += u_sel
-        insertados_count += i_sel
+        actualizados_count += u_nav
+        insertados_count += i_nav
+
 
     resultados = list(catalogo_acumulado.values())
 

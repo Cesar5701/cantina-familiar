@@ -76,7 +76,14 @@ REGLAS_NORMALIZACION_CLAVE: tuple[ReglaNormalizacion, ...] = (
         "jack daniels old no 7",
         "jack_daniels_old_no_7",
     ),
+    # 11. Variantes ortográficas de marcas y ediciones (Crystalgold -> crystal gold)
+    ReglaNormalizacion(
+        re.compile(r"\bcrystalgold\b", re.IGNORECASE),
+        "crystal gold",
+        "chivas_crystal_gold",
+    ),
 )
+
 
 STOP_WORDS_CLAVE: frozenset[str] = frozenset({"de", "del", "el", "la", "los", "las", "en", "para", "licor", "100"})
 

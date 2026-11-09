@@ -22,6 +22,10 @@ from src.scraper_selenium.driver_y_waf import (
     verificar_y_esperar_desafio,
 )
 from src.scraper_selenium.navegador_cli import consultar_urls_secuenciales, main
+from src.scraper_selenium.nodriver_cdp import (
+    consultar_pdps_con_nodriver,
+    obtener_binario_chrome_disponible,
+)
 from src.scraper_selenium.parsers_dom import (
     _construir_registro_producto,
     extraer_de_json_embebido,
@@ -40,6 +44,8 @@ __all__ = [
     "WebDriverException",
     "_construir_registro_producto",
     "consultar_urls_secuenciales",
+    "consultar_pdps_con_nodriver",
+    "obtener_binario_chrome_disponible",
     "detectar_desafio",
     "extraer_de_json_embebido",
     "inicializar_driver",
@@ -49,3 +55,4 @@ __all__ = [
     "verificar_y_esperar_desafio",
     "webdriver",
 ]
+

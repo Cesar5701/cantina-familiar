@@ -230,13 +230,19 @@ def enriquecer_registros_cross_tienda(
 
             p_litro_min = info["precio_por_litro_min"]
 
-            # H35: El mejor precio se determina por precio por litro (+ margen de 5 centavos para empates)
+            # H35 / Capa 0: El mejor precio se determina por precio por litro (+ margen de 5 centavos para empates)
             # Descartando precios fantasma si el producto actual está agotado y hay alternativa en existencia
             disp_actual = str(row.get("disponibilidad", "disponible")).lower()
+            es_stale_actual = bool(row.get("es_stale", False))
             if disp_actual == "agotado" and info.get("disponibilidad_min", "disponible") != "agotado":
                 rec["es_precio_mas_bajo"] = False
             else:
                 rec["es_precio_mas_bajo"] = bool(p_litro_actual <= p_litro_min + 0.05)
+
+            rec["es_stale"] = es_stale_actual
+            rec["dias_desde_actualizacion"] = float(row.get("dias_desde_actualizacion", 0.0))
+
+
 
             if rec["es_precio_mas_bajo"]:
                 rec["diferencia_vs_minimo"] = 0.0
