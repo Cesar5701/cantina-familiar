@@ -986,3 +986,32 @@ def test_descubrir_productos_pasillos_walmart_mock():
     assert mezcal_key in catalogo
     assert catalogo[mezcal_key]["precio_promo"] == 539.0
     assert catalogo[mezcal_key]["url"] == "https://www.walmart.com.mx/ip/ojo-de-tigre-rep/002"
+
+
+def test_evaluar_y_normalizar_rechaza_urls_peligrosas():
+    """Descarta esquemas no http(s) en la URL de ficha para evitar enlaces ejecutables (C2)."""
+    base = {
+        "tienda": "Walmart",
+        "nombre": "Tequila Maestro Dobel Diamante 700 ml",
+        "marca": "Maestro Dobel",
+        "precio_regular": 800.0,
+        "precio_promo": 650.0,
+        "disponible": "disponible",
+        "condicion": "Oferta",
+        "fuente": "Walmart",
+        "fecha_actual": "2026-11-09 12:00",
+    }
+    urls_peligrosas = [
+        "javascript:alert(1)",
+        "data:text/html,<script>alert(1)</script>",
+        "file:///etc/passwd",
+        "/ruta-relativa",
+    ]
+    for url_peligrosa in urls_peligrosas:
+        item = evaluar_y_normalizar_producto(url=url_peligrosa, **base)
+        assert item is not None
+        assert item["url"] == ""
+
+    item_ok = evaluar_y_normalizar_producto(url="https://www.walmart.com.mx/ip/dobel/001", **base)
+    assert item_ok is not None
+    assert item_ok["url"] == "https://www.walmart.com.mx/ip/dobel/001"

@@ -384,3 +384,43 @@ def test_integridad_duelos_canastas_y_campos_forenses():
     for prod_kw, store_kw, cat_kw in busquedas:
         idx = _buscar_indice_py(datos, prod_kw, store_kw, cat_kw)
         assert idx != -1, f"Canasta dinámica falló al resolver: ({prod_kw}, {store_kw}, {cat_kw})"
+
+
+def test_renderizar_plantilla_neutraliza_payloads_xss():
+    """Blinda el dashboard contra XSS almacenado en datos scrapeados, corte y resumen (C1)."""
+    template_str = (
+        "<p>__CORTE_AUDITORIA__</p>"
+        "<script>const DATOS = __DATA_JSON__;</script>"
+        "<script>const CAMPANAS = __CAMPANAS_JSON__;</script>"
+        "<script>const RESUMEN = `__RESUMEN_WHATSAPP_VIGENCIAS__`;</script>"
+    )
+    payload_producto = "</script><script>alert(1)</script>"
+    payload_campana = "</script><script>alert(2)</script>"
+    payload_whatsapp = "Hola `backtick` ${alert(3)} </script><script>alert(4)</script>"
+    payload_corte = "<img src=x onerror=alert(5)>"
+
+    html = renderizar_plantilla(
+        template_str,
+        datos_json_str=json.dumps([{"producto": payload_producto, "url": "javascript:alert(6)"}]),
+        corte_auditoria=payload_corte,
+        resumen_whatsapp=payload_whatsapp,
+        campanas_json_str=json.dumps({"Walmart": {"campana": payload_campana}}),
+    )
+
+    assert payload_producto not in html
+    assert payload_campana not in html
+    assert payload_whatsapp not in html
+    assert payload_corte not in html
+    assert "\\u003c/script\\u003e" in html
+    assert "&lt;img src=x onerror=alert(5)&gt;" in html
+    assert "\\`backtick\\`" in html
+    assert "\\${alert(3)}" in html
+
+
+def test_template_incluye_helpers_de_seguridad_js():
+    """Verifica que el frontend conserve los helpers de escape y validación de URL (C1/C2)."""
+    contenido = cargar_plantilla_dashboard()
+
+    assert "function esc(valor)" in contenido
+    assert "function urlSegura(valor)" in contenido
+    assert 'href="${urlSegura(' in contenido

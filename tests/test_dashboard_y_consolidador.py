@@ -200,8 +200,8 @@ def test_fase3_sin_redundancias_template():
     assert "const PREFIJOS_CATEGORIA =" in contenido
     assert "function nombreSinCategoria(item)" in contenido
 
-    # Nombre visible usa el helper
-    assert "${nombreSinCategoria(item)}" in contenido
+    # Nombre visible usa el helper, escapado contra XSS almacenado
+    assert "${esc(nombreSinCategoria(item))}" in contenido
 
     # Columna acción solo contiene el botón + Carrito (sin el enlace ↗ duplicado)
     assert '<button onclick="agregarDesdeTabla(${originalIndex})"' in contenido

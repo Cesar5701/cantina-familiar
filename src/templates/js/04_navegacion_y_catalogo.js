@@ -302,20 +302,20 @@
       const regMin = Number(item.precio_reg_min_historico || item.precio_regular || 0);
 
       if (sem === "minimo_historico") {
-        const tooltip = `Mejor precio registrado para esta botella en ${item.tienda} (máx. histórico: $${maxHist.toFixed(2)})`;
+        const tooltip = `Mejor precio registrado para esta botella en ${esc(item.tienda)} (máx. histórico: $${maxHist.toFixed(2)})`;
         return `<span class="badge bg-[#eaf4ec] text-[#24592a] border border-[#c5dfc9] text-[10px] font-semibold" title="${tooltip}">🟢 Mín. histórico</span>`;
       }
       if (sem === "descuento_inflado") {
-        const tooltip = `Alerta: el precio regular reportado ($${Number(item.precio_regular || 0).toFixed(2)}) subió frente al regular histórico de $${regMin.toFixed(2)} en ${item.tienda}`;
+        const tooltip = `Alerta: el precio regular reportado ($${Number(item.precio_regular || 0).toFixed(2)}) subió frente al regular histórico de $${regMin.toFixed(2)} en ${esc(item.tienda)}`;
         return `<span class="badge bg-[#fbeae8] text-[#ba1a1a] border border-[#ffdad6] text-[10px] font-semibold" title="${tooltip}">🔴 Desc. inflado</span>`;
       }
       if (sem === "subio_vs_minimo") {
         const diff = Math.max(1, Math.round(Number(item.precio_promo || 0) - minHist));
-        const tooltip = `Estuvo a $${minHist.toFixed(2)} en capturas previas de ${item.tienda}`;
+        const tooltip = `Estuvo a $${minHist.toFixed(2)} en capturas previas de ${esc(item.tienda)}`;
         return `<span class="badge bg-[#fef3eb] text-[#8c5332] border border-[#f3ddce] text-[10px] font-medium" title="${tooltip}">🟡 +$${diff} vs mín. hist.</span>`;
       }
       if (incluirEstable && sem === "estable") {
-        const tooltip = `Sin variación en capturas históricas de ${item.tienda} ($${minHist.toFixed(2)})`;
+        const tooltip = `Sin variación en capturas históricas de ${esc(item.tienda)} ($${minHist.toFixed(2)})`;
         return `<span class="badge bg-surface-container text-on-surface-variant border border-outline-variant/80 text-[10px]" title="${tooltip}">⚪ Precio estable</span>`;
       }
       return "";
@@ -374,7 +374,7 @@
         if (item.es_stale) {
           const dias = Math.round(Number(item.dias_desde_actualizacion || 0));
           const txtDias = dias > 0 ? `Verificado hace ${dias}d` : "No verificado recientemente";
-          staleBadgeDesktop = `<div class="mt-1"><span class="badge bg-amber-50 text-amber-800 border border-amber-300 text-[10px] font-semibold" title="Precio capturado previamente (${item.fecha_consulta || 'antiguo'}). Requiere confirmación en tienda física.">⏳ ${txtDias}</span></div>`;
+          staleBadgeDesktop = `<div class="mt-1"><span class="badge bg-amber-50 text-amber-800 border border-amber-300 text-[10px] font-semibold" title="Precio capturado previamente (${esc(item.fecha_consulta || 'antiguo')}). Requiere confirmación en tienda física.">⏳ ${txtDias}</span></div>`;
           staleBadgeMovil = `<span class="badge bg-amber-50 text-amber-800 border border-amber-300 text-[10px] font-semibold" title="Precio capturado previamente.">⏳ ${txtDias}</span>`;
         }
 
@@ -403,7 +403,7 @@
             crossBadgeDesktop = `
               <div class="mt-1">
                 <button type="button" onclick="toggleModalCrossTienda(${originalIndex})" class="btn-cross-badge bg-error-container text-on-error-container border border-[#e0a8a1] hover:bg-[#f9c6c0] cursor-pointer" title="Ver comparativa de precios en ${item.num_tiendas_cross} tiendas">
-                  <span>Más barato en ${item.tienda_mas_barata} ($${item.precio_minimo_cross.toFixed(2)})</span>
+                  <span>Más barato en ${esc(item.tienda_mas_barata)} ($${item.precio_minimo_cross.toFixed(2)})</span>
                   <span class="text-[9px] underline font-bold">Ahorra $${item.diferencia_vs_minimo.toFixed(2)} →</span>
                 </button>
               </div>
@@ -411,7 +411,7 @@
             crossBadgeMovil = `
               <div class="pt-0.5">
                 <button type="button" onclick="toggleModalCrossTienda(${originalIndex})" class="btn-cross-badge bg-error-container text-on-error-container border border-[#e0a8a1] active:bg-[#f9c6c0] cursor-pointer w-full justify-between" title="Ver comparativa de precios en ${item.num_tiendas_cross} tiendas">
-                  <span>Más barato en ${item.tienda_mas_barata} ($${item.precio_minimo_cross.toFixed(2)})</span>
+                  <span>Más barato en ${esc(item.tienda_mas_barata)} ($${item.precio_minimo_cross.toFixed(2)})</span>
                   <span class="text-[10px] underline font-bold">Ahorra $${item.diferencia_vs_minimo.toFixed(2)} →</span>
                 </button>
               </div>
@@ -428,14 +428,14 @@
           paqueteBadgeDesktop = `
             <div class="mt-1">
               <span class="badge bg-secondary-container text-on-secondary-fixed border border-outline-variant/80" title="Presentación en paquete o con obsequios incluidos">
-                <span>${textoPaq}</span>
+                <span>${esc(textoPaq)}</span>
               </span>
             </div>
           `;
           paqueteBadgeMovil = `
             <div>
               <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-mono font-bold bg-secondary-container text-on-secondary-fixed border border-outline-variant/80 leading-tight" title="Presentación en paquete o con obsequios incluidos">
-                <span>${textoPaq}</span>
+                <span>${esc(textoPaq)}</span>
               </span>
             </div>
           `;
@@ -460,17 +460,17 @@
           tr.className = "ledger-row transition-colors";
           tr.innerHTML = `
             <td class="py-3.5 px-4 font-medium text-on-surface max-w-xs">
-              <a href="${item.url}" target="_blank" rel="noopener noreferrer"
+              <a href="${urlSegura(item.url)}" target="_blank" rel="noopener noreferrer"
                  class="hover:underline text-on-surface hover:text-primary inline-flex items-center gap-1 group font-semibold leading-snug"
-                 title="Ver ${item.producto} en tienda oficial ${item.tienda}">
-                <span class="line-clamp-2">${nombreSinCategoria(item)}</span>
+                 title="Ver ${esc(item.producto)} en tienda oficial ${esc(item.tienda)}">
+                <span class="line-clamp-2">${esc(nombreSinCategoria(item))}</span>
                 <span class="text-[10px] text-outline group-hover:text-primary flex-shrink-0">↗</span>
               </a>
               ${paqueteBadgeDesktop}
               ${crossBadgeDesktop}
             </td>
             <td class="py-3.5 px-3 text-xs">
-              <span class="badge bg-surface-container border border-outline-variant/70 text-on-surface-variant">${item.categoria_comparable}</span>
+              <span class="badge bg-surface-container border border-outline-variant/70 text-on-surface-variant">${esc(item.categoria_comparable)}</span>
             </td>
             <td class="py-3.5 px-3 text-xs font-mono text-on-surface-variant text-right hidden md:table-cell whitespace-nowrap">${item.ml} mL</td>
             <td class="py-3.5 px-3 font-bold text-on-surface font-mono text-right whitespace-nowrap">$${item.precio_promo.toFixed(2)}</td>
@@ -498,17 +498,17 @@
                 ${tiendaBadgeCorto}
                 ${stockBadgeMovil}
                 ${staleBadgeMovil}
-                <span class="badge bg-surface-container border border-outline-variant/70 text-on-surface-variant text-[10px]">${item.categoria_comparable}</span>
+                <span class="badge bg-surface-container border border-outline-variant/70 text-on-surface-variant text-[10px]">${esc(item.categoria_comparable)}</span>
               </div>
 
               <span class="text-xs font-mono font-bold text-on-surface-variant">${item.ml} mL</span>
             </div>
 
             <div class="font-bold text-sm text-on-surface leading-snug">
-              <a href="${item.url}" target="_blank" rel="noopener noreferrer"
+              <a href="${urlSegura(item.url)}" target="_blank" rel="noopener noreferrer"
                  class="hover:underline hover:text-primary inline-flex items-center gap-1 group"
-                 title="Ver ${item.producto} en tienda oficial ${item.tienda}">
-                <span>${nombreSinCategoria(item)}</span>
+                 title="Ver ${esc(item.producto)} en tienda oficial ${esc(item.tienda)}">
+                <span>${esc(nombreSinCategoria(item))}</span>
                 <span class="text-xs text-outline group-hover:text-primary flex-shrink-0">↗</span>
               </a>
             </div>
@@ -563,7 +563,7 @@
         svgHtml += `
           <div class="space-y-1">
             <div class="flex items-center justify-between gap-2 text-xs">
-              <span class="font-semibold text-on-surface truncate flex-1 min-w-0 font-mono text-[11px] sm:text-xs"><strong class="text-primary">#0${idx + 1}</strong> ${item.producto} <span class="text-on-surface-variant font-normal">(${item.tienda})</span></span>
+              <span class="font-semibold text-on-surface truncate flex-1 min-w-0 font-mono text-[11px] sm:text-xs"><strong class="text-primary">#0${idx + 1}</strong> ${esc(item.producto)} <span class="text-on-surface-variant font-normal">(${esc(item.tienda)})</span></span>
               <span class="font-bold font-mono text-primary flex-shrink-0 whitespace-nowrap">$${item.precio_por_litro.toFixed(2)} / L</span>
             </div>
             <div class="w-full bg-surface-container-highest h-2.5 rounded overflow-hidden border border-outline-variant/40">

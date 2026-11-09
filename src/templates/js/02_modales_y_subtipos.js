@@ -56,7 +56,7 @@
         } else if (esMinimo) {
           bannerAhorro = `<span class="badge bg-[#D3E8DC] text-[#0B2016] border border-[#B7D6C5] text-[10px] font-bold whitespace-normal sm:whitespace-nowrap leading-tight text-left">Mejor Precio (Ahorras hasta $${item.ahorro_maximo_cross.toFixed(2)})</span>`;
         } else {
-          bannerAhorro = `<span class="text-[11px] text-[#9B1C1C] font-semibold">+$${difVsMin.toFixed(2)} vs ${mejorOferta.tienda}</span>`;
+          bannerAhorro = `<span class="text-[11px] text-[#9B1C1C] font-semibold">+$${difVsMin.toFixed(2)} vs ${esc(mejorOferta.tienda)}</span>`;
         }
 
         html += `
@@ -67,19 +67,19 @@
                 ${badgeStock}
                 ${bannerAhorro}
               </div>
-              <div class="font-bold text-sm text-[#1F1B16] leading-snug break-words">${p.producto}</div>
+              <div class="font-bold text-sm text-[#1F1B16] leading-snug break-words">${esc(p.producto)}</div>
               <div class="text-xs text-[#574A3D] flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
                 <span>Precio: <strong class="text-sm font-mono text-[#784516] font-extrabold">$${p.precio_promo.toFixed(2)}</strong></span>
                 <span>·</span>
                 <span class="font-mono text-[#486355] font-semibold">$${p.precio_por_litro.toFixed(2)} / L</span>
                 <span>·</span>
                 <span class="text-[11px] text-[#786C5E] font-medium">${p.ml} ml</span>
-                ${p.ahorro_verificable > 0 ? `<span class="ml-1 text-[#047857] text-[11px] font-medium">(${p.condiciones})</span>` : ''}
+                ${p.ahorro_verificable > 0 ? `<span class="ml-1 text-[#047857] text-[11px] font-medium">(${esc(p.condiciones)})</span>` : ''}
               </div>
             </div>
 
             <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-[#DFD5C7]/60 w-full sm:w-auto flex-shrink-0">
-              <a href="${p.url}" target="_blank" rel="noopener noreferrer" class="flex-1 sm:flex-initial text-center px-3 py-1.5 md3-btn-tonal text-xs inline-flex items-center justify-center gap-1" title="Ver en ${p.tienda}">
+              <a href="${urlSegura(p.url)}" target="_blank" rel="noopener noreferrer" class="flex-1 sm:flex-initial text-center px-3 py-1.5 md3-btn-tonal text-xs inline-flex items-center justify-center gap-1" title="Ver en ${esc(p.tienda)}">
                 <span>Ver en Tienda</span> <span>↗</span>
               </a>
               <button onclick="agregarDesdeModalCross(${idx})" class="flex-1 sm:flex-initial px-3 py-1.5 md3-btn-filled text-xs cursor-pointer text-center">

@@ -185,7 +185,7 @@
           totalCosto += item.precio_promo * cant;
           totalBotellas += cant;
           const nombreCorto = item.producto.replace(/^Tequila |^Mezcal |^Whisky |^Whiskey |^Vino Tinto /i, '').slice(0, 32);
-          lineas.push(`<li>• <strong>${cant}×</strong> ${nombreCorto} <span class="text-[#574A3D]">(${item.tienda})</span></li>`);
+          lineas.push(`<li>• <strong>${cant}×</strong> ${esc(nombreCorto)} <span class="text-[#574A3D]">(${esc(item.tienda)})</span></li>`);
         });
 
         const cuotaTexto = COOPERADORES_TOTAL > 0
@@ -302,10 +302,10 @@
               alertaAhorro = `
                 <div class="mt-2 p-2 rounded-xl bg-[#FDE8E8] border border-[#F8B4B4] text-[11px] flex items-center justify-between gap-2 flex-wrap">
                   <div class="text-[#9B1C1C]">
-                    <strong>Disponible más barato en ${item.tienda_mas_barata}:</strong> a $${item.precio_minimo_cross.toFixed(2)} (Ahorras <strong>$${item.diferencia_vs_minimo.toFixed(2)}/u</strong> · Total: <strong>$${ahorroTotalLinea}</strong>).
+                    <strong>Disponible más barato en ${esc(item.tienda_mas_barata)}:</strong> a $${item.precio_minimo_cross.toFixed(2)} (Ahorras <strong>$${item.diferencia_vs_minimo.toFixed(2)}/u</strong> · Total: <strong>$${ahorroTotalLinea}</strong>).
                   </div>
-                  <button type="button" onclick="cambiarTiendaCarrito(${idx})" class="px-2.5 py-1 rounded-lg bg-[#9B1C1C] hover:bg-[#771D1D] text-white font-bold text-[10px] whitespace-nowrap cursor-pointer transition-colors shadow-sm" title="Cambiar a la oferta de ${item.tienda_mas_barata}">
-                    Cambiar a ${item.tienda_mas_barata}
+                  <button type="button" onclick="cambiarTiendaCarrito(${idx})" class="px-2.5 py-1 rounded-lg bg-[#9B1C1C] hover:bg-[#771D1D] text-white font-bold text-[10px] whitespace-nowrap cursor-pointer transition-colors shadow-sm" title="Cambiar a la oferta de ${esc(item.tienda_mas_barata)}">
+                    Cambiar a ${esc(item.tienda_mas_barata)}
                   </button>
                 </div>
               `;
@@ -322,7 +322,7 @@
             if (item.disponibilidad === "agotado") {
               alertaStock = `
                 <div class="mt-2 p-2 rounded-xl bg-[#FDE8E8] border border-[#F8B4B4] text-[11px] text-[#9B1C1C]">
-                  <strong>Aviso de inventario:</strong> Esta botella figura como <em>agotada</em> en ${item.tienda}. Considera verificar disponibilidad en tienda física o buscar una alternativa en otra cadena.
+                  <strong>Aviso de inventario:</strong> Esta botella figura como <em>agotada</em> en ${esc(item.tienda)}. Considera verificar disponibilidad en tienda física o buscar una alternativa en otra cadena.
                 </div>
               `;
             }
@@ -331,16 +331,16 @@
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 md3-surface-low hover:border-[#8A7B6B] transition-colors min-w-0">
                 <div class="space-y-1 flex-1 min-w-0">
                   <div class="flex flex-wrap items-center gap-1.5">
-                    <span class="badge ${claseBadgeColor} border text-[10px]">${item.categoria_comparable}</span>
+                    <span class="badge ${claseBadgeColor} border text-[10px]">${esc(item.categoria_comparable)}</span>
                     ${tiendaBadge}
                     ${badgeStockCarrito}
                     <span class="text-xs font-mono text-[#574A3D]">${item.ml} ml</span>
                   </div>
                   <div class="font-semibold text-sm text-[#1F1B16] leading-tight break-words">
-                    <a href="${item.url}" target="_blank" rel="noopener noreferrer"
+                    <a href="${urlSegura(item.url)}" target="_blank" rel="noopener noreferrer"
                        class="hover:underline hover:text-[#784516] inline-flex items-center gap-1 group"
-                       title="Ver en tienda oficial ${item.tienda}">
-                      <span>${item.producto}</span>
+                       title="Ver en tienda oficial ${esc(item.tienda)}">
+                      <span>${esc(item.producto)}</span>
                       <span class="text-[10px] text-[#8A7B6B] group-hover:text-[#784516] inline-block">↗</span>
                     </a>
                   </div>

@@ -5,6 +5,7 @@ que se ensamblan en un index.html autocontenido para publicación en GitHub Page
 """
 
 import base64
+import html
 import json
 import os
 import re
@@ -37,6 +38,33 @@ MIME_RECURSOS = {
 }
 
 CAMPANAS_JSON_PATH = ROOT_DIR / "data" / "campanas_activas.json"
+
+
+def _neutralizar_json_para_script(json_str: str) -> str:
+    """
+    Neutraliza secuencias peligrosas al incrustar JSON dentro de una etiqueta <script>.
+
+    Los datos provienen de páginas de terceros (nombres de producto, marcas, campañas),
+    por lo que un valor como ``</script><script>alert(1)</script>`` rompería el contexto
+    HTML y ejecutaría código en el dashboard publicado (XSS almacenado).
+    """
+    return json_str.replace("&", "\\u0026").replace("<", "\\u003c").replace(">", "\\u003e")
+
+
+def _escapar_para_template_literal(texto: str) -> str:
+    """
+    Escapa texto que se inyecta dentro de un template literal de JavaScript.
+
+    Evita que un backtick, ``${...}`` o ``</script>`` presente en datos scrapeados
+    altere el código del dashboard o cierre la etiqueta script.
+    """
+    return (
+        texto.replace("\\", "\\\\")
+        .replace("`", "\\`")
+        .replace("${", "\\${")
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
+    )
 
 
 # =====================================================================
@@ -171,10 +199,10 @@ def renderizar_plantilla(
     ensamblada = ensamblar_plantilla_modular(template_content, base_dir=base_dir)
 
     return (
-        ensamblada.replace("__DATA_JSON__", datos_compactos)
-        .replace("__CAMPANAS_JSON__", campanas_str)
-        .replace("__CORTE_AUDITORIA__", corte)
-        .replace("__RESUMEN_WHATSAPP_VIGENCIAS__", whatsapp)
+        ensamblada.replace("__DATA_JSON__", _neutralizar_json_para_script(datos_compactos))
+        .replace("__CAMPANAS_JSON__", _neutralizar_json_para_script(campanas_str))
+        .replace("__CORTE_AUDITORIA__", html.escape(corte))
+        .replace("__RESUMEN_WHATSAPP_VIGENCIAS__", _escapar_para_template_literal(whatsapp))
     )
 
 

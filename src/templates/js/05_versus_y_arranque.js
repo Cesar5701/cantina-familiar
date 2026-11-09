@@ -233,7 +233,7 @@
               Nota Forense de Arbitraje · Añejo Cristalino
             </div>
             <p class="text-on-surface-variant leading-relaxed">
-              En este duelo directo, <strong>${mejor.producto} en ${mejor.tienda} ($${mejor.precio_promo.toFixed(2)} | $${mejor.precio_por_litro.toFixed(2)}/L)</strong> supera en rendimiento volumétrico a <strong>${otro.producto} en ${otro.tienda} ($${otro.precio_promo.toFixed(2)} | $${otro.precio_por_litro.toFixed(2)}/L)</strong>. Elegir la opción de mejor precio en ${cantBotellas} botellas representa un ahorro directo de <strong class="text-on-surface">$${ahorroTotal.toFixed(2)} MXN</strong> ${textoCuota}.
+              En este duelo directo, <strong>${esc(mejor.producto)} en ${esc(mejor.tienda)} ($${mejor.precio_promo.toFixed(2)} | $${mejor.precio_por_litro.toFixed(2)}/L)</strong> supera en rendimiento volumétrico a <strong>${esc(otro.producto)} en ${esc(otro.tienda)} ($${otro.precio_promo.toFixed(2)} | $${otro.precio_por_litro.toFixed(2)}/L)</strong>. Elegir la opción de mejor precio en ${cantBotellas} botellas representa un ahorro directo de <strong class="text-on-surface">$${ahorroTotal.toFixed(2)} MXN</strong> ${textoCuota}.
             </p>
           </div>
         `;
@@ -246,7 +246,7 @@
               Nota Forense de Arbitraje · Mezcal Artesanal
             </div>
             <p class="text-on-surface-variant leading-relaxed">
-              <strong>${mejor.producto} en ${mejor.tienda} ($${mejor.precio_promo.toFixed(2)} | $${mejor.precio_por_litro.toFixed(2)}/L)</strong> ofrece la mejor relación costo/litro frente a <strong>${otro.producto} en ${otro.tienda} ($${otro.precio_promo.toFixed(2)} | $${otro.precio_por_litro.toFixed(2)}/L)</strong>, generando un diferencial de <strong class="text-on-surface">$${ahorroTotal.toFixed(2)} MXN</strong> en ${cantBotellas} botellas ${textoCuota}.
+              <strong>${esc(mejor.producto)} en ${esc(mejor.tienda)} ($${mejor.precio_promo.toFixed(2)} | $${mejor.precio_por_litro.toFixed(2)}/L)</strong> ofrece la mejor relación costo/litro frente a <strong>${esc(otro.producto)} en ${esc(otro.tienda)} ($${otro.precio_promo.toFixed(2)} | $${otro.precio_por_litro.toFixed(2)}/L)</strong>, generando un diferencial de <strong class="text-on-surface">$${ahorroTotal.toFixed(2)} MXN</strong> en ${cantBotellas} botellas ${textoCuota}.
             </p>
           </div>
         `;
@@ -254,7 +254,7 @@
 
       return `
         <div class="bg-surface-container p-4 rounded border border-outline-variant/70 text-xs text-on-surface-variant leading-relaxed">
-          <strong class="text-on-surface font-mono uppercase text-[11px]">Dictamen de Volumen:</strong> Optar por <strong>${mejor.producto} (${mejor.tienda})</strong> a $${mejor.precio_por_litro.toFixed(2)}/L ahorra <strong class="text-primary">$${ahorroTotal.toFixed(2)} MXN</strong> en una compra de ${cantBotellas} unidades ${textoCuota}.
+          <strong class="text-on-surface font-mono uppercase text-[11px]">Dictamen de Volumen:</strong> Optar por <strong>${esc(mejor.producto)} (${esc(mejor.tienda)})</strong> a $${mejor.precio_por_litro.toFixed(2)}/L ahorra <strong class="text-primary">$${ahorroTotal.toFixed(2)} MXN</strong> en una compra de ${cantBotellas} unidades ${textoCuota}.
         </div>
       `;
     }
@@ -280,7 +280,7 @@
             <div>
               <strong class="font-mono font-bold uppercase text-[11px]">Comparando Escalafones de Maduración Distintos:</strong>
               <p class="mt-0.5">
-                Estás enfrentando <strong>${prodA.categoria_comparable}</strong> contra <strong>${prodB.categoria_comparable}</strong>.
+                Estás enfrentando <strong>${esc(prodA.categoria_comparable)}</strong> contra <strong>${esc(prodB.categoria_comparable)}</strong>.
                 Para una comparativa equivalente en tiempo de barrica, selecciona un subtipo específico arriba.
               </p>
             </div>
@@ -290,7 +290,7 @@
         alertaCompat.innerHTML = `
           <div class="bg-[#eaf4ec] border border-[#c5dfc9] rounded-lg p-3 flex items-center gap-2 text-xs text-[#24592a]">
             <span class="material-symbols-outlined text-[18px]">verified</span>
-            <span class="font-mono text-[11px]"><strong>Paridad Categórica Verificada:</strong> Ambos contendientes pertenecen al escalafón <strong>${prodA.categoria_comparable}</strong>.</span>
+            <span class="font-mono text-[11px]"><strong>Paridad Categórica Verificada:</strong> Ambos contendientes pertenecen al escalafón <strong>${esc(prodA.categoria_comparable)}</strong>.</span>
           </div>
         `;
       }
@@ -343,9 +343,9 @@
             </div>
 
             <div class="min-w-0">
-              <span class="archival-badge text-primary">${p.categoria_comparable}</span>
-              <h4 class="text-lg sm:text-xl font-bold font-headline text-on-surface mt-1 leading-snug break-words">${p.producto}</h4>
-              <p class="font-mono text-xs text-on-surface-variant mt-1 break-words">${p.marca} · ${p.ml} mL · ${getABV(p)}</p>
+              <span class="archival-badge text-primary">${esc(p.categoria_comparable)}</span>
+              <h4 class="text-lg sm:text-xl font-bold font-headline text-on-surface mt-1 leading-snug break-words">${esc(p.producto)}</h4>
+              <p class="font-mono text-xs text-on-surface-variant mt-1 break-words">${esc(p.marca)} · ${p.ml} mL · ${getABV(p)}</p>
             </div>
 
             <!-- Métricas Volumétricas Primarias -->
@@ -378,8 +378,8 @@
             </div>
 
             <div class="pt-3 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2.5 text-xs border-t border-outline-variant/60">
-              <a href="${p.url}" target="_blank" rel="noopener noreferrer" class="font-mono text-xs font-semibold text-primary hover:underline text-center sm:text-left py-1">
-                Ficha en ${p.tienda} ↗
+              <a href="${urlSegura(p.url)}" target="_blank" rel="noopener noreferrer" class="font-mono text-xs font-semibold text-primary hover:underline text-center sm:text-left py-1">
+                Ficha en ${esc(p.tienda)} ↗
               </a>
               <button onclick="agregarDesdeVersus(${idxProd}, false)" class="w-full sm:w-auto px-4 py-2 md3-btn-filled text-xs cursor-pointer text-center">
                 + Añadir al Carrito
@@ -456,19 +456,19 @@
               </span>
             </div>
             <h3 class="text-xl sm:text-2xl font-bold font-headline text-[#fdefdb] break-words leading-snug">
-              Campeón Volumétrico $/Litro: <span class="text-[#ffd6ab]">${ganadorLitro.producto} (${ganadorLitro.tienda})</span>
+              Campeón Volumétrico $/Litro: <span class="text-[#ffd6ab]">${esc(ganadorLitro.producto)} (${esc(ganadorLitro.tienda)})</span>
             </h3>
             <p class="text-xs sm:text-sm text-[#fdefdb]/85 max-w-3xl leading-relaxed break-words">
               Registra un costo estandarizado de <strong class="text-white font-mono">$${ganadorLitro.precio_por_litro.toFixed(2)} / L</strong> frente a
-              <strong class="font-mono">$${perdedorLitro.precio_por_litro.toFixed(2)} / L</strong> de ${perdedorLitro.producto} (${perdedorLitro.tienda}),
+              <strong class="font-mono">$${perdedorLitro.precio_por_litro.toFixed(2)} / L</strong> de ${esc(perdedorLitro.producto)} (${esc(perdedorLitro.tienda)}),
               generando un diferencial verificable de <strong class="text-[#ffd6ab] font-mono">$${difLitro.toFixed(2)} por litro (${pctLitro}% de ahorro)</strong>.
             </p>
           </div>
           <div class="flex items-center gap-2.5 flex-wrap w-full lg:w-auto pt-2 lg:pt-0">
-            <a href="${ganadorLitro.url}" target="_blank" rel="noopener noreferrer"
+            <a href="${urlSegura(ganadorLitro.url)}" target="_blank" rel="noopener noreferrer"
                class="flex-1 sm:flex-initial px-4 py-2.5 rounded bg-[#52443c] hover:bg-[#67574d] text-[#fdefdb] border border-[#85746b] font-mono text-xs font-semibold whitespace-normal sm:whitespace-nowrap inline-flex items-center justify-center gap-1.5 text-center transition-colors"
-               title="Abrir ${ganadorLitro.producto} en ${ganadorLitro.tienda}">
-              <span>Ver en ${ganadorLitro.tienda}</span> <span>↗</span>
+               title="Abrir ${esc(ganadorLitro.producto)} en ${esc(ganadorLitro.tienda)}">
+              <span>Ver en ${esc(ganadorLitro.tienda)}</span> <span>↗</span>
             </a>
             <button onclick="agregarDesdeVersus(${idxGanador}, true)" class="flex-1 sm:flex-initial px-5 py-2.5 rounded bg-[#ffd6ab] hover:bg-[#f3c491] text-[#2b1700] font-mono font-bold text-xs whitespace-normal sm:whitespace-nowrap cursor-pointer text-center transition-colors shadow-sm">
               + Agregar Ganador al Carrito

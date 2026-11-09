@@ -2,6 +2,8 @@
 Evaluación y normalización estricta de productos multitienda bajo NOM-006 y NOM-070.
 """
 
+from urllib.parse import urlparse
+
 from src.clasificacion import (
     KEYWORDS_BLENDED_WHISKY,
     PALABRAS_EXCLUIDAS,
@@ -10,6 +12,25 @@ from src.clasificacion import (
     es_mercancia_o_no_bebible,
     extraer_ml,
 )
+
+ESQUEMAS_URL_PERMITIDOS = {"http", "https"}
+
+
+def _url_segura(url: str | None) -> str:
+    """
+    Normaliza y valida la URL de ficha de producto antes de persistirla.
+
+    Solo se aceptan URLs absolutas http/https con host. Cualquier otro esquema
+    (``javascript:``, ``data:``, ``file:``, etc.) se descarta para evitar que un
+    valor scrapeado se convierta en un enlace ejecutable en el dashboard.
+    """
+    valor = str(url or "").strip()
+    if not valor:
+        return ""
+    parsed = urlparse(valor)
+    if parsed.scheme.lower() not in ESQUEMAS_URL_PERMITIDOS or not parsed.netloc:
+        return ""
+    return valor
 
 
 def evaluar_y_normalizar_producto(
@@ -108,7 +129,7 @@ def evaluar_y_normalizar_producto(
             "condiciones": condicion,
             "disponibilidad": disponible,
             "stock_unidades": stock_unidades,
-            "url": url,
+            "url": _url_segura(url),
             "fecha_consulta": fecha_actual,
             "fuente": fuente,
             "confianza": "Confirmado",
@@ -148,7 +169,7 @@ def evaluar_y_normalizar_producto(
             "condiciones": condicion,
             "disponibilidad": disponible,
             "stock_unidades": stock_unidades,
-            "url": url,
+            "url": _url_segura(url),
             "fecha_consulta": fecha_actual,
             "fuente": fuente,
             "confianza": "Confirmado",
@@ -189,7 +210,7 @@ def evaluar_y_normalizar_producto(
             "condiciones": condicion,
             "disponibilidad": disponible,
             "stock_unidades": stock_unidades,
-            "url": url,
+            "url": _url_segura(url),
             "fecha_consulta": fecha_actual,
             "fuente": fuente,
             "confianza": "Confirmado",
@@ -238,7 +259,7 @@ def evaluar_y_normalizar_producto(
                 "condiciones": condicion,
                 "disponibilidad": disponible,
                 "stock_unidades": stock_unidades,
-                "url": url,
+                "url": _url_segura(url),
                 "fecha_consulta": fecha_actual,
                 "fuente": fuente,
                 "confianza": "Confirmado",
@@ -279,7 +300,7 @@ def evaluar_y_normalizar_producto(
                 "condiciones": condicion,
                 "disponibilidad": disponible,
                 "stock_unidades": stock_unidades,
-                "url": url,
+                "url": _url_segura(url),
                 "fecha_consulta": fecha_actual,
                 "fuente": fuente,
                 "confianza": "Confirmado",

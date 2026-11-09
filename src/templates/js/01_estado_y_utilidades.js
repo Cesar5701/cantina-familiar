@@ -2,6 +2,20 @@
     const DATOS_COMPLETOS = __DATA_JSON__;
     const CAMPANAS_ACTIVAS = __CAMPANAS_JSON__;
 
+    // ESCAPADO HTML OBLIGATORIO PARA DATOS EXTERNOS (productos scrapeados).
+    // Todo valor de texto que se interpole en innerHTML debe pasar por esc().
+    function esc(valor) {
+      return String(valor ?? "").replace(/[&<>"']/g, c => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[c]));
+    }
+
+    // Solo permite enlaces http(s) absolutos; cualquier otro esquema devuelve "#".
+    function urlSegura(valor) {
+      const url = String(valor ?? "").trim();
+      return /^https?:\/\/[^\s]+$/i.test(url) ? esc(url) : "#";
+    }
+
     // PARÁMETROS GLOBALES REACTIVOS (INICIAN EN 0 / EN BLANCO)
     let PRESUPUESTO_OBJETIVO = 0;
     let COOPERADORES_TOTAL = 0;
@@ -361,7 +375,7 @@
             const color = colores[tienda] || "text-on-surface";
             const nom = nombresCortos[tienda] || tienda;
             const fullText = `• ${nom}: ${info.vigencia_corta} (${info.campana})`;
-            return `<li class="truncate" title="${fullText}">• ${nom}: <strong class="${color}">${info.vigencia_corta}</strong> (${info.campana})</li>`;
+            return `<li class="truncate" title="${esc(fullText)}">• ${esc(nom)}: <strong class="${color}">${esc(info.vigencia_corta)}</strong> (${esc(info.campana)})</li>`;
           }).join("");
         }
       }
