@@ -40,8 +40,8 @@ def _buscar_par_chrome_cache() -> tuple[str | None, str | None]:
             bin_driver = os.path.join(driver_dir, ver, "chromedriver")
             if os.path.isfile(bin_chrome) and os.path.isfile(bin_driver):
                 return bin_chrome, bin_driver
-    except OSError:
-        pass
+    except OSError as err:
+        logger.debug(f"Error explorando caché de Selenium: {err}")
     return None, None
 
 
@@ -85,8 +85,8 @@ def inicializar_driver(headless: bool = False, navegador: str = "chrome") -> web
                     _aplicar_stealth_chrome(driver)
                     driver.set_page_load_timeout(45)
                     return driver
-                except (WebDriverException, SessionNotCreatedException, FileNotFoundError, OSError):
-                    pass
+                except (WebDriverException, SessionNotCreatedException, FileNotFoundError, OSError) as e_sub:
+                    logger.debug(f"Fallback con binario de Chrome en caché no tuvo éxito: {e_sub}")
             logger.warning(f"No se pudo iniciar Chrome ({e}). Intentando con Firefox...")
             return inicializar_driver(headless=headless, navegador="firefox")
     else:

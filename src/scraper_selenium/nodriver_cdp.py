@@ -154,8 +154,8 @@ async def _procesar_pdp_tab(
             if tab:
                 try:
                     await tab.close()
-                except (OSError, RuntimeError, TimeoutError, ValueError):
-                    pass
+                except (OSError, RuntimeError, TimeoutError, ValueError) as err_tab:
+                    logger.debug(f"Aviso al cerrar pestaña nodriver: {err_tab}")
 
 
 async def _extraer_datos_pdp_async(

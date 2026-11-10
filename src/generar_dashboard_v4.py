@@ -4,6 +4,7 @@ Desacoplado en arquitectura modular de plantillas (CSS, parciales HTML y módulo
 que se ensamblan en un index.html autocontenido para publicación en GitHub Pages (H29).
 """
 
+import argparse
 import base64
 import html
 import json
@@ -250,6 +251,8 @@ def generar_dashboard(
 
 def main() -> None:
     """Entry point CLI para regenerar el dashboard HTML (H50)."""
+    parser = argparse.ArgumentParser(description="Ensambla y renderiza el Dashboard BI interactivo v6.0 en index.html.")
+    parser.parse_args()
     generar_dashboard()
 
 

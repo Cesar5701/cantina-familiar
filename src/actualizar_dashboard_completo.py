@@ -13,6 +13,7 @@ Script maestro para:
    - data/dashboard_data.json
 """
 
+import argparse
 import os
 
 import pandas as pd
@@ -228,6 +229,10 @@ def actualizar_todo(archivos_fuente: list[str] | None = None, carpeta_salida: st
 
 def main() -> None:
     """Entry point CLI para consolidar catálogos (H50)."""
+    parser = argparse.ArgumentParser(
+        description="Consolida datasets de las 6 tiendas, aplica reglas NOM y genera dashboard_data.json."
+    )
+    parser.parse_args()
     actualizar_todo()
 
 

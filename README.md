@@ -160,15 +160,21 @@ cantina-dashboard
 # Paso C: Auditoría ad-hoc y reporte de rankings en terminal para cualquier archivo CSV
 cantina-analizar --entrada data/bebidas_verificadas.csv --salida data/reporte_ranking.csv
 # (o alternativamente: python -m src.analizador --entrada <ruta_csv>)
+
+# Paso D: Consulta y gestión del historial de precios y semáforo anti-inflación
+cantina-historial --resumen
+# (o consultar una botella: cantina-historial --producto "Don Julio 70")
 ```
 
 > **Diferencia entre comandos:**
 > - `cantina-scrapear` orquesta la extracción automática de catálogos en las 6 tiendas en vivo (Bodegas Alianza, Chedraui, Sam's, Walmart, Soriana, Costco), ejecuta la normalización y consolida el dashboard en una sola invocación.
 > - `cantina-consolidar` ejecuta el flujo integral de ETL multi-tienda sobre los CSVs ya descargados: une los 6 catálogos fuente, aplica clasificación estricta NOM, detecta duplicados, enriquece con comparativas cross-tienda y genera `data/dashboard_data.json` junto a los catálogos unificados.
+> - `cantina-dashboard` compila la plantilla modular HTML y módulos JS reactivos con los datos auditados en `index.html`.
 > - `cantina-analizar` es una herramienta CLI de inspección ad-hoc para evaluar cualquier dataset tabular de forma independiente: audita datos faltantes y duplicados, calcula métricas unitarias e imprime una tabla de rankings por categoría directamente en la terminal.
+> - `cantina-historial` consulta la evolución de precios a lo largo del tiempo, reconstruye snapshots históricos y clasifica el semáforo anti-inflación (`minimo_historico`, `descuento_inflado`, etc.).
 
 ### 2. Ejecutar la Suite de Pruebas Unitarias
-El proyecto cuenta con **200 pruebas automatizadas** organizadas en 8 módulos con una cobertura superior al **83%** (`tests/`), que cubren clasificación NOM, normalización de multipacks (`Pack 6`, `Pack x 3`, `(8 Bot)`, etc.), normalización de medidas (`ml` y `L`), métricas por litro, exclusión explícita de outliers de lujo, umbrales centralizados de presupuesto, arbitraje cross-tienda, validación de esquema, selectores interactivos en cascada, escritura atómica, cliente HTTP con backoff, parseo con mocks, entry points CLI, arquitectura modular de plantillas, accesibilidad WCAG y persistencia de estado:
+El proyecto cuenta con **241 pruebas automatizadas** organizadas en módulos de testing con una cobertura superior al **78%** (`tests/`), que cubren clasificación NOM, normalización de multipacks (`Pack 6`, `Pack x 3`, `(8 Bot)`, etc.), normalización de medidas (`ml` y `L`), métricas por litro, exclusión explícita de outliers de lujo, umbrales centralizados de presupuesto, arbitraje cross-tienda, validación de esquema, selectores interactivos en cascada, escritura atómica, cliente HTTP con backoff, parseo con mocks, entry points CLI, arquitectura modular de plantillas, accesibilidad WCAG y persistencia de estado:
 
 ```bash
 pytest

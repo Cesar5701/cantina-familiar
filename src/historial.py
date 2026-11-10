@@ -175,8 +175,8 @@ def construir_historial_desde_git(ruta_salida: str = RUTA_HISTORIAL_POR_DEFECTO)
                 df_disco = pd.read_csv(ruta_disco)
                 df_norm = normalizar_df_para_historial(df_disco, fecha_por_defecto=fecha_actual)
                 dfs_extraidos.append(df_norm)
-            except (OSError, pd.errors.EmptyDataError, ValueError):
-                pass
+            except (OSError, pd.errors.EmptyDataError, ValueError) as exc:
+                logger.debug("Error leyendo archivo de disco %s: %s", archivo, exc)
 
     if not dfs_extraidos:
         logger.warning("No se encontraron registros para reconstruir historial.")
