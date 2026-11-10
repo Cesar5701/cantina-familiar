@@ -1,0 +1,94 @@
+[
+  {
+    "productId": "vtex_herradura_700",
+    "productName": "Tequila Herradura Ultra Añejo Cristalino 700 ml",
+    "brand": "Herradura",
+    "link": "https://www.chedraui.com.mx/tequila-herradura-ultra-anejo-cristalino-700-ml",
+    "linkText": "tequila-herradura-ultra-anejo-cristalino-700-ml",
+    "items": [
+      {
+        "itemId": "sku_herradura_700",
+        "name": "700 ml",
+        "sellers": [
+          {
+            "sellerId": "1",
+            "commertialOffer": {
+              "Price": 580.0,
+              "ListPrice": 690.0,
+              "AvailableQuantity": 12
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "productId": "vtex_buchanans_750",
+    "productName": "Whisky Buchanan's 12 Años 750 ml",
+    "brand": "Buchanans",
+    "link": "https://www.chedraui.com.mx/whisky-buchanans-12-anos-750-ml",
+    "linkText": "whisky-buchanans-12-anos-750-ml",
+    "items": [
+      {
+        "itemId": "sku_buchanans_750",
+        "name": "750 ml",
+        "sellers": [
+          {
+            "sellerId": "1",
+            "commertialOffer": {
+              "Price": 750.0,
+              "ListPrice": 890.0,
+              "AvailableQuantity": 8
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "productId": "vtex_agotado_1800",
+    "productName": "Tequila 1800 Añejo Cristalino 700 ml",
+    "brand": "1800",
+    "link": "https://www.chedraui.com.mx/tequila-1800-anejo-cristalino-700-ml",
+    "linkText": "tequila-1800-anejo-cristalino-700-ml",
+    "items": [
+      {
+        "itemId": "sku_1800_anejo",
+        "name": "700 ml",
+        "sellers": [
+          {
+            "sellerId": "1",
+            "commertialOffer": {
+              "Price": 650.0,
+              "ListPrice": 650.0,
+              "AvailableQuantity": 0
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "productId": "vtex_descarte_botana",
+    "productName": "Papas Fritas Saladas 150 g",
+    "brand": "Sabritas",
+    "link": "https://www.chedraui.com.mx/papas-fritas-150-g",
+    "linkText": "papas-fritas-150-g",
+    "items": [
+      {
+        "itemId": "sku_botana_150",
+        "name": "150 g",
+        "sellers": [
+          {
+            "sellerId": "1",
+            "commertialOffer": {
+              "Price": 45.0,
+              "ListPrice": 45.0,
+              "AvailableQuantity": 50
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

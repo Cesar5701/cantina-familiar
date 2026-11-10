@@ -1,0 +1,56 @@
+{
+  "products": [
+    {
+      "code": "costco_don_ramon_750",
+      "name": "Tequila Don Ramón Añejo Cristalino Platinium 750 ml",
+      "price": {
+        "value": 589.99,
+        "formattedValue": "$589.99"
+      },
+      "basePrice": {
+        "value": 689.99,
+        "formattedValue": "$689.99"
+      },
+      "couponDiscount": {
+        "discountValue": 100.0
+      },
+      "stock": {
+        "stockLevelStatus": "inStock",
+        "stockLevel": 25
+      },
+      "url": "/Vinos-y-Licores/Tequila-Don-Ramon-750-ml/p/123456"
+    },
+    {
+      "code": "costco_macallan_agotado",
+      "name": "Whisky The Macallan Double Cask 12 Años 700 ml",
+      "price": {
+        "value": 1499.00,
+        "formattedValue": "$1,499.00"
+      },
+      "stock": {
+        "stockLevelStatus": "outOfStock",
+        "stockLevel": 0
+      },
+      "url": "/Vinos-y-Licores/Macallan-12/p/654321"
+    },
+    {
+      "code": "costco_descarte_detergente",
+      "name": "Detergente Líquido 5 Litros",
+      "price": {
+        "value": 350.00,
+        "formattedValue": "$350.00"
+      },
+      "stock": {
+        "stockLevelStatus": "inStock",
+        "stockLevel": 100
+      },
+      "url": "/Limpieza/Detergente-5L/p/999888"
+    }
+  ],
+  "pagination": {
+    "currentPage": 0,
+    "pageSize": 50,
+    "totalPages": 1,
+    "totalResults": 3
+  }
+}
