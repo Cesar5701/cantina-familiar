@@ -74,11 +74,19 @@ def calcular_grupos_cross_tienda(df: pd.DataFrame) -> dict[str, dict]:
         if grp_valid["tienda"].nunique() < 2:
             continue
 
-        if "disponibilidad" in grp_valid.columns:
-            grp_disp = grp_valid[grp_valid["disponibilidad"].astype(str).str.lower() != "agotado"]
-            idx_min = grp_disp[col_ord].idxmin() if not grp_disp.empty else grp_valid[col_ord].idxmin()
-        else:
-            idx_min = grp_valid[col_ord].idxmin()
+        # Priorizar ofertas que no estén agotadas ni congeladas/stale para el precio mínimo
+        candidatos_min = grp_valid.copy()
+        if "disponibilidad" in candidatos_min.columns:
+            no_agotados = candidatos_min[candidatos_min["disponibilidad"].astype(str).str.lower() != "agotado"]
+            if not no_agotados.empty:
+                candidatos_min = no_agotados
+
+        if "es_stale" in candidatos_min.columns:
+            frescos = candidatos_min[~candidatos_min["es_stale"].astype(bool)]
+            if not frescos.empty:
+                candidatos_min = frescos
+
+        idx_min = candidatos_min[col_ord].idxmin()
         idx_max = grp_valid[col_ord].idxmax()
         row_min = grp_valid.loc[idx_min]
         row_max = grp_valid.loc[idx_max]
@@ -121,6 +129,9 @@ def calcular_grupos_cross_tienda(df: pd.DataFrame) -> dict[str, dict]:
                     else None
                 ),
                 "url": r.get("url", ""),
+                "es_stale": bool(r.get("es_stale", False)),
+                "dias_desde_actualizacion": float(r.get("dias_desde_actualizacion", 0.0)),
+                "fecha_consulta": str(r.get("fecha_consulta", "")),
             }
             for _, r in grp_valid.iterrows()
         ]

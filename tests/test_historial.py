@@ -340,6 +340,8 @@ def test_enriquecer_con_metricas_historicas():
     assert df_enriq.loc[2, "precio_min_historico"] == 500.0
 
     assert df_enriq.loc[3, "semaforo_historico"] == "nuevo"
+    assert "ultima_captura_historica" in df_enriq.columns
+    assert df_enriq.loc[0, "ultima_captura_historica"] == "2026-11-06"
 
 
 def test_consultar_historial_trata_el_texto_como_literal(tmp_path: Path):

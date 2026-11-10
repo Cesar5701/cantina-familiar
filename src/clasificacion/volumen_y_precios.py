@@ -45,6 +45,19 @@ def extraer_ml(nombre: str, ml_defecto: int = 750) -> int:
     if m_pack:
         return int(m_pack.group(1)) * int(m_pack.group(2))
 
+    # Formatos compactos NxVolumen: ej. "2x750ml", "2 x 750 ml", "3x700 ml", "2x1L", "2x1.75 L"
+    m_nxvol = re.search(
+        r"\b([1-9]|1\d|2[0-4])\s*x\s*(\d+(?:\.\d+)?)\s*(ml|mls|mililitros|cc|l|lt|lts|litros?)\b",
+        nom_l_analizar,
+    )
+    if m_nxvol:
+        cant = int(m_nxvol.group(1))
+        num_vol = float(m_nxvol.group(2))
+        u = m_nxvol.group(3).lower()
+        vol_u = round(num_vol * 1000) if u in {"l", "lt", "lts", "litro", "litros"} else round(num_vol)
+        if 50 <= vol_u <= 6000:
+            return cant * vol_u
+
     # 2. Detectar multiplicador de paquete (1 a 24 unidades): Pack N, Pack de N, Pack x N, N pack, x N
     # Evitar colisión con ml (ej. "pack 750 ml" no debe tomar 750 como multiplicador)
     mult_pack = 1

@@ -263,6 +263,7 @@ def enriquecer_con_metricas_historicas(df: pd.DataFrame, df_historial: pd.DataFr
         precio_min_historico=("precio_promo", "min"),
         precio_max_historico=("precio_promo", "max"),
         precio_reg_min_historico=("precio_regular", "min"),
+        ultima_captura_historica=("fecha_dia", "max"),
     )
 
     df_out["_prod_key"] = df_out["producto"].astype(str).apply(normalizar_medidas_en_nombre)
@@ -280,10 +281,12 @@ def enriquecer_con_metricas_historicas(df: pd.DataFrame, df_historial: pd.DataFr
     p_reg = pd.to_numeric(df_merged["precio_regular"], errors="coerce").fillna(p_promo)
     ahorro = pd.to_numeric(df_merged.get("ahorro_verificable", 0.0), errors="coerce").fillna(0.0)
 
+    fecha_fallback = pd.Timestamp.now().strftime("%Y-%m-%d")
     df_out["capturas_historicas"] = df_merged["capturas_historicas"].fillna(1).astype(int)
     df_out["precio_min_historico"] = df_merged["precio_min_historico"].fillna(p_promo).round(2)
     df_out["precio_max_historico"] = df_merged["precio_max_historico"].fillna(p_promo).round(2)
     df_out["precio_reg_min_historico"] = df_merged["precio_reg_min_historico"].fillna(p_reg).round(2)
+    df_out["ultima_captura_historica"] = df_merged["ultima_captura_historica"].fillna(fecha_fallback).astype(str)
 
     semaforos = []
     for i in range(len(df_out)):

@@ -60,7 +60,11 @@ from src.clasificacion import (
         ("Tequila Don Ramón Añejo Cristalino Punta Diamante 750 ml con 2 Vasos", 750),
         # Miniaturas descartables
         ("4 pachitas de 200 ml Tequila Jimador", 200),
-        ("Pack miniatura 50 ml Tequila José Cuervo", 50),
+        # Formatos compactos NxVolumen (Q0)
+        ("Tequila Reserva 2x750ml", 1500),
+        ("Whisky Buchanans 2 x 750 ml", 1500),
+        ("Tequila Centenario 2x1L", 2000),
+        ("Tequila Herradura 2x1.75 L", 3500),
         # Fallback si no tiene volumen especificado
         ("Tequila Don Ramón Edición Especial", 750),
     ],

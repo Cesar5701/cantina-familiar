@@ -136,6 +136,23 @@ def test_validar_esquema_columnas_faltantes():
         validar_esquema_y_rangos(df_incompleto, lanzar_error=True)
 
 
+def test_validar_esquema_y_rangos_precios_absurdos():
+    """Valida el descarte de placeholders de retailers como $1.00, $0.00 o precios astronómicos (Q0)."""
+    df = crear_df_prueba(
+        [
+            {"producto": "Precio 1 Peso", "ml": 750, "precio_promo": 1.0},
+            {"producto": "Precio Cero", "ml": 750, "precio_promo": 0.0, "precio_regular": 0.0},
+            {"producto": "Precio Astronomico", "ml": 750, "precio_promo": 9999999.0},
+            {"producto": "Precio Valido", "ml": 750, "precio_promo": 450.0},
+        ]
+    )
+    df_val, reporte = validar_esquema_y_rangos(df)
+    assert reporte["anomalias_precio"] == 3
+    assert reporte["registros_validos"] == 1
+    assert df_val.loc[df_val["producto"] == "Precio Valido", "datos_validos"].iloc[0]
+    assert not df_val.loc[df_val["producto"] == "Precio 1 Peso", "datos_validos"].iloc[0]
+
+
 # ---------------------------------------------------------------------------
 # Pruebas H10: I/O Atómico y Resumen de Scraping
 # ---------------------------------------------------------------------------

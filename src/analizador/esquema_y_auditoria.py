@@ -66,7 +66,18 @@ def validar_esquema_y_rangos(df: pd.DataFrame, lanzar_error: bool = False) -> tu
 
     pr_num = pd.to_numeric(df_val["precio_regular"], errors="coerce")
     pp_num = pd.to_numeric(df_val.get("precio_promo", np.nan), errors="coerce")
-    sin_precio = df_val[(pr_num.isnull() | (pr_num <= 0)) & (pp_num.isnull() | (pp_num <= 0))].index.tolist()
+
+    # Sanity checks de precio:
+    # 1. Ambos precios nulos o no positivos
+    # 2. Piso de cordura general (< $50.0 MXN para descartar errores de carga como $0.00, $1.00)
+    # 3. Techo de cordura (> $1,000,000.0 MXN) ante errores de captura astronómicos
+    sin_precio = df_val[
+        (pr_num.isnull() & pp_num.isnull())
+        | ((pp_num.notnull() & (pp_num > 0) & (pp_num < 50.0)) | (pp_num.isnull() & (pr_num < 50.0)))
+        | ((pr_num.notnull() & (pr_num <= 0)) & (pp_num.isnull() | (pp_num <= 0)))
+        | (pp_num > 1000000.0)
+        | (pr_num > 1000000.0)
+    ].index.tolist()
 
     reporte = {
         "total_registros": len(df_val),
@@ -74,6 +85,7 @@ def validar_esquema_y_rangos(df: pd.DataFrame, lanzar_error: bool = False) -> tu
         "anomalias_volumen_ml": len(anomalias_ml),
         "anomalias_graduacion_abv": len(anomalias_abv),
         "registros_sin_precio": len(sin_precio),
+        "anomalias_precio": len(sin_precio),
         "errores": errores,
     }
 
