@@ -388,3 +388,52 @@
     input[type=number] {
       -moz-appearance: textfield;
     }
+
+    /* ========================================================================
+       VIgencias de tienda: sin desbordamiento, uso eficiente del ancho
+       ======================================================================== */
+    .tira-vigencias {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      overflow-x: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #d7c2b9 #faecd8;
+      padding-bottom: 0.25rem;
+      margin-bottom: -0.25rem;
+    }
+    .tira-vigencias::-webkit-scrollbar {
+      height: 4px;
+    }
+    .tira-vigencias::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .tira-vigencias::-webkit-scrollbar-thumb {
+      background: #d7c2b9;
+      border-radius: 2px;
+    }
+
+    .vigencia-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      white-space: normal;
+      line-height: 1.35;
+      flex-shrink: 0;
+    }
+    .vigencia-item .vigencia-fecha {
+      font-weight: 700;
+      color: var(--md-primary);
+    }
+
+    /* Contenedor principal: aprovecha más ancho en desktop sin desperdiciar laterales */
+    .main-container-wide {
+      max-width: 1700px;
+    }
+
+    /* Header: controles globales más compactos en pantallas medianas */
+    @media (min-width: 640px) {
+      .header-controles-globales .grid {
+        gap: 1rem;
+      }
+    }

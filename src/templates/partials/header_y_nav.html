@@ -1,6 +1,6 @@
   <!-- CABECERA EDITORIAL Y BARRA DE NAVEGACIÓN DE REGISTRO (STITCH ARCHIVAL LEDGER) -->
   <header class="sticky top-0 z-50 w-full bg-[#fff8f3]/95 backdrop-blur-md shadow-[0_1px_8px_rgba(0,0,0,0.04)] border-b border-[#efe1cd]">
-    <div class="max-w-[1440px] mx-auto px-4 lg:px-8">
+    <div class="max-w-[1700px] mx-auto px-4 lg:px-10">
       <!-- Fila Superior: Identidad Editorial & Parámetros Globales Reactivos -->
       <div class="flex flex-col md:flex-row md:items-center md:justify-between py-3 gap-3.5 border-b border-[#d7c2b9]/40">
         <div class="flex items-center gap-4">
@@ -58,6 +58,19 @@
             </div>
           </div>
         </div>
+
+        <!-- Vigencias de tiendas (visible solo en móvil) -->
+        <div class="w-full md:hidden border-b border-[#d7c2b9]/40 mt-2.5">
+          <div class="flex items-start gap-2 font-mono text-[11px] text-on-surface-variant tira-vigencias pb-1">
+            <span class="uppercase tracking-wider text-[10px] text-outline shrink-0">Vigencias:</span>
+            <span class="vigencia-item" title="Bodegas Alianza: Bombazo de Precios hasta 12 Nov / Buen Fin 17 Nov 2026"><span class="w-1.5 h-1.5 rounded-full bg-[#3d7042] flex-shrink-0"></span>Alianza <span class="vigencia-fecha" data-vigencia-tienda="Bodegas Alianza">12 Nov</span></span>
+            <span class="vigencia-item" title="Sam's Club: El Fin Irresistible hasta 18 Nov 2026"><span class="w-1.5 h-1.5 rounded-full bg-[#3d7042] flex-shrink-0"></span>Sam's <span class="vigencia-fecha" data-vigencia-tienda="Sam's Club">18 Nov</span></span>
+            <span class="vigencia-item" title="Costco: Cuponera de Temporada hasta 15 Nov 2026"><span class="w-1.5 h-1.5 rounded-full bg-[#3d7042] flex-shrink-0"></span>Costco <span class="vigencia-fecha" data-vigencia-tienda="Costco">15 Nov</span></span>
+            <span class="vigencia-item" title="Chedraui: Preventa Modo Fin / Buen Fin hasta 17 Nov 2026"><span class="w-1.5 h-1.5 rounded-full bg-[#3d7042] flex-shrink-0"></span>Chedraui <span class="vigencia-fecha" data-vigencia-tienda="Chedraui">17 Nov</span></span>
+            <span class="vigencia-item" title="Soriana: Pre Buen Fin / Precios Reventados hasta 17 Nov 2026"><span class="w-1.5 h-1.5 rounded-full bg-[#3d7042] flex-shrink-0"></span>Soriana <span class="vigencia-fecha" data-vigencia-tienda="Soriana">17 Nov</span></span>
+            <span class="vigencia-item" title="Walmart: El Fin Irresistible hasta 18 Nov 2026"><span class="w-1.5 h-1.5 rounded-full bg-[#3d7042] flex-shrink-0"></span>Walmart <span class="vigencia-fecha" data-vigencia-tienda="Walmart">18 Nov</span></span>
+          </div>
+        </div>
       </div>
 
       <!-- Fila Inferior: Pestañas de Navegación Desktop & Estado de las 6 Cadenas -->
@@ -90,17 +103,17 @@
         </nav>
 
         <!-- Tira de Vigencias y Estado de las 6 Cadenas Auditadas -->
-        <div class="hidden xl:flex items-center gap-2.5 font-mono text-[11px] text-on-surface-variant flex-shrink-0">
-          <span class="uppercase tracking-wider text-[10px] text-outline">Vigencias:</span>
-          <span class="inline-flex items-center gap-1 whitespace-nowrap" title="Bodegas Alianza: Bombazo de Precios hasta 12 Nov / Buen Fin 17 Nov 2026"><span class="w-1.5 h-1.5 rounded-full bg-[#3d7042] flex-shrink-0"></span>Alianza (<span data-vigencia-tienda="Bodegas Alianza">12 Nov</span>)</span>
-          <span class="inline-flex items-center gap-1 whitespace-nowrap" title="Sam's Club: El Fin Irresistible hasta 18 Nov 2026"><span class="w-1.5 h-1.5 rounded-full bg-[#3d7042] flex-shrink-0"></span>Sam's (<span data-vigencia-tienda="Sam's Club">18 Nov</span>)</span>
-          <span class="inline-flex items-center gap-1 whitespace-nowrap" title="Costco: Cuponera de Temporada hasta 15 Nov 2026"><span class="w-1.5 h-1.5 rounded-full bg-[#3d7042] flex-shrink-0"></span>Costco (<span data-vigencia-tienda="Costco">15 Nov</span>)</span>
-          <span class="inline-flex items-center gap-1 whitespace-nowrap" title="Chedraui: Preventa Modo Fin / Buen Fin hasta 17 Nov 2026"><span class="w-1.5 h-1.5 rounded-full bg-[#3d7042] flex-shrink-0"></span>Chedraui (<span data-vigencia-tienda="Chedraui">17 Nov</span>)</span>
-          <span class="inline-flex items-center gap-1 whitespace-nowrap" title="Soriana: Pre Buen Fin / Precios Reventados hasta 17 Nov 2026"><span class="w-1.5 h-1.5 rounded-full bg-[#3d7042] flex-shrink-0"></span>Soriana (<span data-vigencia-tienda="Soriana">17 Nov</span>)</span>
-          <span class="inline-flex items-center gap-1 whitespace-nowrap" title="Walmart: El Fin Irresistible hasta 18 Nov 2026"><span class="w-1.5 h-1.5 rounded-full bg-[#3d7042] flex-shrink-0"></span>Walmart (<span data-vigencia-tienda="Walmart">18 Nov</span>)</span>
+        <div class="hidden sm:flex items-center gap-3 font-mono text-[11px] text-on-surface-variant tira-vigencias">
+          <span class="uppercase tracking-wider text-[10px] text-outline shrink-0">Vigencias:</span>
+          <span class="vigencia-item" title="Bodegas Alianza: Bombazo de Precios hasta 12 Nov / Buen Fin 17 Nov 2026"><span class="w-1.5 h-1.5 rounded-full bg-[#3d7042] flex-shrink-0"></span>Alianza <span class="vigencia-fecha" data-vigencia-tienda="Bodegas Alianza">12 Nov</span></span>
+          <span class="vigencia-item" title="Sam's Club: El Fin Irresistible hasta 18 Nov 2026"><span class="w-1.5 h-1.5 rounded-full bg-[#3d7042] flex-shrink-0"></span>Sam's <span class="vigencia-fecha" data-vigencia-tienda="Sam's Club">18 Nov</span></span>
+          <span class="vigencia-item" title="Costco: Cuponera de Temporada hasta 15 Nov 2026"><span class="w-1.5 h-1.5 rounded-full bg-[#3d7042] flex-shrink-0"></span>Costco <span class="vigencia-fecha" data-vigencia-tienda="Costco">15 Nov</span></span>
+          <span class="vigencia-item" title="Chedraui: Preventa Modo Fin / Buen Fin hasta 17 Nov 2026"><span class="w-1.5 h-1.5 rounded-full bg-[#3d7042] flex-shrink-0"></span>Chedraui <span class="vigencia-fecha" data-vigencia-tienda="Chedraui">17 Nov</span></span>
+          <span class="vigencia-item" title="Soriana: Pre Buen Fin / Precios Reventados hasta 17 Nov 2026"><span class="w-1.5 h-1.5 rounded-full bg-[#3d7042] flex-shrink-0"></span>Soriana <span class="vigencia-fecha" data-vigencia-tienda="Soriana">17 Nov</span></span>
+          <span class="vigencia-item" title="Walmart: El Fin Irresistible hasta 18 Nov 2026"><span class="w-1.5 h-1.5 rounded-full bg-[#3d7042] flex-shrink-0"></span>Walmart <span class="vigencia-fecha" data-vigencia-tienda="Walmart">18 Nov</span></span>
         </div>
       </div>
     </div>
   </header>
 
-  <main class="flex-1 w-full max-w-[1440px] mx-auto px-4 lg:px-8 pt-6 pb-12 space-y-6">
+  <main class="flex-1 w-full main-container-wide mx-auto px-4 lg:px-10 pt-6 pb-12 space-y-6">
