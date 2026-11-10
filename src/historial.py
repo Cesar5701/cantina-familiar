@@ -66,12 +66,22 @@ def normalizar_df_para_historial(df: pd.DataFrame, fecha_por_defecto: str) -> pd
 
     df_norm["fecha_dia"] = df_norm["fecha_consulta"].str.slice(0, 10)
 
-    # Conversión de ml
-    df_norm["ml"] = pd.to_numeric(df_norm["ml"], errors="coerce").fillna(0).astype(int)
+    # Conversión segura de ml
+    if "ml" not in df_norm.columns:
+        df_norm["ml"] = 0
+    else:
+        df_norm["ml"] = pd.to_numeric(df_norm["ml"], errors="coerce").fillna(0).astype(int)
 
-    # Precios
-    df_norm["precio_regular"] = pd.to_numeric(df_norm["precio_regular"], errors="coerce").fillna(0.0).round(2)
-    df_norm["precio_promo"] = pd.to_numeric(df_norm["precio_promo"], errors="coerce").fillna(0.0).round(2)
+    # Precios seguros
+    if "precio_regular" not in df_norm.columns:
+        df_norm["precio_regular"] = 0.0
+    else:
+        df_norm["precio_regular"] = pd.to_numeric(df_norm["precio_regular"], errors="coerce").fillna(0.0).round(2)
+
+    if "precio_promo" not in df_norm.columns:
+        df_norm["precio_promo"] = df_norm["precio_regular"]
+    else:
+        df_norm["precio_promo"] = pd.to_numeric(df_norm["precio_promo"], errors="coerce").fillna(0.0).round(2)
 
     # Si precio regular es 0 o menor que promo, igualar a promo
     mask_regular_invalido = df_norm["precio_regular"] < df_norm["precio_promo"]
@@ -175,7 +185,7 @@ def construir_historial_desde_git(ruta_salida: str = RUTA_HISTORIAL_POR_DEFECTO)
                 df_disco = pd.read_csv(ruta_disco)
                 df_norm = normalizar_df_para_historial(df_disco, fecha_por_defecto=fecha_actual)
                 dfs_extraidos.append(df_norm)
-            except (OSError, pd.errors.EmptyDataError, ValueError) as exc:
+            except (OSError, pd.errors.EmptyDataError, ValueError, KeyError) as exc:
                 logger.debug("Error leyendo archivo de disco %s: %s", archivo, exc)
 
     if not dfs_extraidos:
@@ -287,6 +297,16 @@ def enriquecer_con_metricas_historicas(df: pd.DataFrame, df_historial: pd.DataFr
     df_out["precio_max_historico"] = df_merged["precio_max_historico"].fillna(p_promo).round(2)
     df_out["precio_reg_min_historico"] = df_merged["precio_reg_min_historico"].fillna(p_reg).round(2)
     df_out["ultima_captura_historica"] = df_merged["ultima_captura_historica"].fillna(fecha_fallback).astype(str)
+    df_out["ultima_vez_visto"] = df_out["ultima_captura_historica"]
+    stale_mask = (
+        df_out["es_stale"].astype(bool) if "es_stale" in df_out.columns else pd.Series(False, index=df_out.index)
+    )
+    disp_mask = (
+        df_out["disponibilidad"].astype(str).str.lower() == "agotado"
+        if "disponibilidad" in df_out.columns
+        else pd.Series(False, index=df_out.index)
+    )
+    df_out["activo"] = ~(stale_mask | disp_mask)
 
     semaforos = []
     for i in range(len(df_out)):

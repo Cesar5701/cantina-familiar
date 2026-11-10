@@ -147,6 +147,16 @@ def extraer_item_nextjs(
     return item_norm, is_out_of_stock
 
 
+def _configurar_flag_booleano(valor_param: bool | None, env_var: str, valor_defecto: bool = True) -> bool:
+    """Resuelve banderas de comportamiento mediante parámetro explícito o variable de entorno."""
+    if valor_param is not None:
+        return valor_param
+    val_env = os.environ.get(env_var)
+    if val_env is not None:
+        return val_env.strip().lower() in ("1", "true", "yes", "si", "sí")
+    return valor_defecto
+
+
 def descubrir_productos_pasillos_walmart(
     tienda: str,
     base_domain: str,
@@ -169,8 +179,7 @@ def descubrir_productos_pasillos_walmart(
         env_max = os.environ.get("WALMART_MAX_PAGINAS_PASILLO")
         max_paginas = int(env_max) if env_max and env_max.isdigit() else 2
 
-    if pausar is None:
-        pausar = not bool(os.environ.get("PYTEST_CURRENT_TEST"))
+    pausar = _configurar_flag_booleano(pausar, "SCRAPER_PAUSAR", True)
 
     actualizados = 0
     insertados = 0
@@ -289,8 +298,7 @@ def _ejecutar_contingencia_navegador(
     o Selenium como respaldo secundario cuando las peticiones HTTP son bloqueadas.
     Prioriza consultar directamente URLs de producto (PDP) ya conocidas para Walmart.
     """
-    if pausar is None:
-        pausar = not bool(os.environ.get("PYTEST_CURRENT_TEST"))
+    pausar = _configurar_flag_booleano(pausar, "SCRAPER_PAUSAR", True)
     actualizados_sel = 0
     insertados_sel = 0
     prods_raw: list[dict] = []
@@ -431,14 +439,10 @@ def scrapear_nextjs_walmart_platform(
     resumen = ResumenScraping(tienda)
     bloqueos_waf_consecutivos = 0
 
-    if pausar is None:
-        pausar = not bool(os.environ.get("PYTEST_CURRENT_TEST"))
-
-    if usar_fallback_selenium is None:
-        usar_fallback_selenium = not bool(os.environ.get("PYTEST_CURRENT_TEST"))
-
-    if explorar_pasillos is None:
-        explorar_pasillos = "walmart" in tienda.lower() and not bool(os.environ.get("PYTEST_CURRENT_TEST"))
+    pausar = _configurar_flag_booleano(pausar, "SCRAPER_PAUSAR", True)
+    usar_fallback_selenium = _configurar_flag_booleano(usar_fallback_selenium, "SCRAPER_USAR_FALLBACK_SELENIUM", True)
+    def_explorar = "walmart" in tienda.lower()
+    explorar_pasillos = _configurar_flag_booleano(explorar_pasillos, "SCRAPER_EXPLORAR_PASILLOS", def_explorar)
 
     # 1. Cargar catálogo previo para merge incremental (evita pérdida de productos previos por WAF/IP)
     catalogo_acumulado: dict[str, dict] = {}

@@ -3,7 +3,14 @@ Fixtures y utilidades compartidas para la suite de pruebas de Cantina Familiar.
 Centraliza la creación de DataFrames de prueba y datos base para evitar duplicación.
 """
 
+import os
+
 import pandas as pd
+
+# Desactivar pausas de red y exploraciones masivas en entornos de prueba por defecto
+os.environ.setdefault("SCRAPER_PAUSAR", "false")
+os.environ.setdefault("SCRAPER_USAR_FALLBACK_SELENIUM", "false")
+os.environ.setdefault("SCRAPER_EXPLORAR_PASILLOS", "false")
 
 BASE_REGISTRO_BEBIDA = {
     "tienda": "Bodegas Alianza",

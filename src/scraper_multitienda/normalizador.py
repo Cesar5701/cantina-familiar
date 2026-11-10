@@ -28,30 +28,33 @@ DOMINIOS_TIENDA_PERMITIDOS: dict[str, set[str]] = {
 
 def _url_segura(url: str | None, tienda: str | None = None) -> str:
     """
-    Normaliza y valida la URL de ficha de producto antes de persistirla.
+    Normaliza y valida la URL de ficha de producto antes de persistirla (M-03 fail-closed).
 
     Solo se aceptan URLs absolutas http/https con host. Si se provee la tienda,
     valida estrictamente contra la lista de dominios autorizados para prevenir SSRF
-    o enlaces hacia dominios de terceros.
+    o enlaces hacia dominios de terceros o no reconocidos.
     """
     valor = str(url or "").strip()
     if not valor:
         return ""
-    parsed = urlparse(valor)
-    if parsed.scheme.lower() not in ESQUEMAS_URL_PERMITIDOS or not parsed.netloc:
-        return ""
-
-    hostname = (parsed.hostname or "").lower()
-    if tienda:
-        tienda_key = tienda.lower()
-        dominios_autorizados = set()
-        for k, v in DOMINIOS_TIENDA_PERMITIDOS.items():
-            if k in tienda_key:
-                dominios_autorizados.update(v)
-        if dominios_autorizados and hostname not in dominios_autorizados:
+    try:
+        parsed = urlparse(valor)
+        if parsed.scheme.lower() not in ESQUEMAS_URL_PERMITIDOS or not parsed.netloc:
             return ""
 
-    return valor
+        hostname = (parsed.hostname or "").lower()
+        if tienda:
+            tienda_key = tienda.lower()
+            dominios_autorizados = set()
+            for k, v in DOMINIOS_TIENDA_PERMITIDOS.items():
+                if k in tienda_key:
+                    dominios_autorizados.update(v)
+            if not dominios_autorizados or hostname not in dominios_autorizados:
+                return ""
+
+        return valor
+    except (ValueError, AttributeError):
+        return ""
 
 
 def evaluar_y_normalizar_producto(

@@ -71,16 +71,16 @@ def calcular_metricas(df: pd.DataFrame) -> pd.DataFrame:
 
     df["es_paquete"] = df.apply(es_producto_paquete, axis=1)
 
-    # Frescura honesta del catálogo (Capa 0): cálculo de días desde última verificación
+    # Frescura honesta del catálogo (Capa 0): cálculo de días desde última verificación (M-02 fail-closed)
     if "fecha_consulta" in df.columns:
         ahora = pd.Timestamp.now()
         fechas_dt = pd.to_datetime(df["fecha_consulta"], errors="coerce")
         dias_diff = (ahora - fechas_dt).dt.total_seconds() / 86400.0
-        df["dias_desde_actualizacion"] = dias_diff.fillna(0.0).round(1)
+        df["dias_desde_actualizacion"] = dias_diff.fillna(9999.0).round(1)
         df["es_stale"] = df["dias_desde_actualizacion"] > 7.0
     else:
-        df["dias_desde_actualizacion"] = 0.0
-        df["es_stale"] = False
+        df["dias_desde_actualizacion"] = 9999.0
+        df["es_stale"] = True
 
     return df
 

@@ -185,6 +185,8 @@ def enriquecer_y_exportar_dashboard(df: pd.DataFrame, carpeta_salida: str) -> li
         "dias_desde_actualizacion",
         "es_stale",
         "ultima_captura_historica",
+        "ultima_vez_visto",
+        "activo",
         "especie_agave",
         "condiciones",
         "es_paquete",

@@ -23,10 +23,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        timeout-minutes: 2
 
       - name: Configurar Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        timeout-minutes: 3
         with:
           python-version: '3.12'
           cache: 'pip'
@@ -55,18 +57,22 @@ jobs:
         run: pytest -v --cov=src --cov-report=term-missing
 
       - name: Preparar sitio (solo el dashboard publicado)
+        timeout-minutes: 2
         run: |
           mkdir -p _site
           cp index.html _site/index.html
 
       - name: Configurar GitHub Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
+        timeout-minutes: 2
 
       - name: Subir artefacto para Pages
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
+        timeout-minutes: 3
         with:
           path: '_site'
 
       - name: Desplegar a GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
+        timeout-minutes: 3

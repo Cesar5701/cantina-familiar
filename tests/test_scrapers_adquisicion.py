@@ -1018,3 +1018,70 @@ def test_evaluar_y_normalizar_rechaza_urls_peligrosas():
     item_ok = evaluar_y_normalizar_producto(url="https://www.walmart.com.mx/ip/dobel/001", **base)
     assert item_ok is not None
     assert item_ok["url"] == "https://www.walmart.com.mx/ip/dobel/001"
+
+
+def test_m02_fechas_nulas_o_invalidas_son_stale():
+    """M-02: Valida que fechas nulas o corruptas sean tratadas como stale (fail-closed a 9999 días)."""
+    from src.analizador.metricas_y_outliers import calcular_metricas
+    from tests.conftest import crear_df_base
+
+    df = crear_df_base(
+        [
+            {
+                "tienda": "Bodegas Alianza",
+                "producto": "Tequila Sin Fecha 750 ml",
+                "ml": 750,
+                "precio_promo": 500.0,
+                "precio_regular": 500.0,
+                "fecha_consulta": None,  # Nula
+            },
+            {
+                "tienda": "Walmart",
+                "producto": "Tequila Fecha Invalida 750 ml",
+                "ml": 750,
+                "precio_promo": 600.0,
+                "precio_regular": 600.0,
+                "fecha_consulta": "no-es-una-fecha",  # Invalida
+            },
+        ]
+    )
+    df_calc = calcular_metricas(df)
+
+    assert df_calc.loc[0, "dias_desde_actualizacion"] == 9999.0
+    assert bool(df_calc.loc[0, "es_stale"]) is True
+
+    assert df_calc.loc[1, "dias_desde_actualizacion"] == 9999.0
+    assert bool(df_calc.loc[1, "es_stale"]) is True
+
+
+def test_m03_url_segura_fail_closed_tienda_desconocida():
+    """M-03: Valida que _url_segura sea fail-closed ante tiendas desconocidas o no autorizadas."""
+    from src.scraper_multitienda.normalizador import _url_segura
+
+    # Tienda no reconocida en la lista blanca
+    assert _url_segura("https://www.tienda-desconocida.com/pdp", tienda="tienda_fantasma") == ""
+    # Tienda reconocida pero dominio malicioso
+    assert _url_segura("https://evil.com/pdp", tienda="Walmart") == ""
+    # Esquema no válido
+    assert _url_segura("ftp://www.walmart.com.mx/ip/123", tienda="Walmart") == ""
+    # Válido para tienda autorizada
+    assert _url_segura("https://www.walmart.com.mx/ip/123", tienda="Walmart") == "https://www.walmart.com.mx/ip/123"
+
+
+def test_cli_multitienda_parametros_argparse():
+    """Valida que el CLI multitienda filtre tiendas mediante argumentos de línea de comandos."""
+    from unittest.mock import patch
+
+    from src.scraper_multitienda import cli
+
+    with patch("src.scraper_multitienda.scrapear_chedraui", return_value=[{"producto": "Test Chedraui"}]) as mock_ched:
+        with patch("src.scraper_multitienda.scrapear_nextjs_walmart_platform") as mock_next:
+            with patch("src.scraper_multitienda.scrapear_soriana") as mock_soriana:
+                with patch("src.scraper_multitienda.scrapear_costco") as mock_costco:
+                    with patch("src.scraper_multitienda.cli.guardar_csv_atomico"):
+                        totales = cli.main(args=["--tiendas", "chedraui"])
+                        assert "Chedraui" in totales
+                        assert mock_ched.called
+                        assert not mock_next.called
+                        assert not mock_soriana.called
+                        assert not mock_costco.called
