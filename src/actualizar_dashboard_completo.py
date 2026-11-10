@@ -64,6 +64,11 @@ def depurar_y_clasificar_catalogo(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
         return df
 
+    cols_requeridas = ["producto", "ml", "tienda"]
+    faltantes = [c for c in cols_requeridas if c not in df.columns]
+    if faltantes:
+        raise ValueError(f"El dataset no contiene las columnas requeridas para depurar y clasificar: {faltantes}")
+
     # Normalizar medidas en los nombres de producto (Fase 1)
     df["producto"] = df["producto"].map(normalizar_medidas_en_nombre)
 
@@ -221,6 +226,15 @@ def actualizar_todo(archivos_fuente: list[str] | None = None, carpeta_salida: st
     df_crudo = cargar_fuentes(archivos_fuente)
     if df_crudo.empty:
         return []
+
+    # Validar esquema y columnas críticas antes de proceder (H-02)
+    _, reporte_ini = validar_esquema_y_rangos(df_crudo, lanzar_error=False)
+    if reporte_ini.get("errores"):
+        logger.warning(f"Inconsistencias de esquema detectadas en datos crudos: {reporte_ini['errores']}")
+        cols_criticas = ["producto", "ml", "tienda"]
+        faltantes = [c for c in cols_criticas if c not in df_crudo.columns]
+        if faltantes:
+            raise ValueError(f"No es posible continuar el pipeline. Faltan columnas críticas: {faltantes}")
 
     df_clasificado = depurar_y_clasificar_catalogo(df_crudo)
     df_auditado = auditar_y_filtrar_anomalias(df_clasificado)

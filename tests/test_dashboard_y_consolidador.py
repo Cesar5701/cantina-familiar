@@ -6,6 +6,7 @@ y el consolidador integral de datos (H24 / H25).
 import re
 from pathlib import Path
 
+import pandas as pd
 import pytest
 
 from src.actualizar_dashboard_completo import actualizar_todo
@@ -502,3 +503,52 @@ def test_filtro_y_badges_disponibilidad_en_dashboard():
     assert 'item.disponibilidad === "agotado"' in contenido
     assert "Últimas" in contenido
     assert "Existencia:" in contenido
+
+
+def test_h02_depurar_y_clasificar_falla_si_faltan_columnas():
+    """H-02: Valida que depurar_y_clasificar_catalogo levante ValueError claro si faltan columnas críticas."""
+    import pytest
+
+    from src.actualizar_dashboard_completo import depurar_y_clasificar_catalogo
+
+    df_sin_ml = pd.DataFrame([{"producto": "Tequila 750 ml", "tienda": "Walmart"}])
+    with pytest.raises(ValueError, match="El dataset no contiene las columnas requeridas.*ml"):
+        depurar_y_clasificar_catalogo(df_sin_ml)
+
+    df_sin_prod = pd.DataFrame([{"ml": 750, "tienda": "Walmart"}])
+    with pytest.raises(ValueError, match="El dataset no contiene las columnas requeridas.*producto"):
+        depurar_y_clasificar_catalogo(df_sin_prod)
+
+
+def test_m01_validar_esquema_excluye_anomalias_abv_de_datos_validos():
+    """M-01: Valida que anomalías de graduación alcohólica (ABV) sean excluidas de datos_validos."""
+    from src.analizador.esquema_y_auditoria import validar_esquema_y_rangos
+
+    df_abv_invalido = pd.DataFrame(
+        [
+            {
+                "tienda": "Bodegas Alianza",
+                "producto": "Tequila Dobel 750 ml",
+                "categoria": "Tequila",
+                "ml": 750,
+                "abv": 150.0,  # Imposible físico: > 100%
+                "precio_regular": 700.0,
+                "precio_promo": 600.0,
+            },
+            {
+                "tienda": "Walmart",
+                "producto": "Tequila Dobel 750 ml",
+                "categoria": "Tequila",
+                "ml": 750,
+                "abv": 38.0,  # Válido
+                "precio_regular": 700.0,
+                "precio_promo": 600.0,
+            },
+        ]
+    )
+    df_val, reporte = validar_esquema_y_rangos(df_abv_invalido)
+
+    assert reporte["anomalias_graduacion_abv"] == 1
+    assert reporte["registros_validos"] == 1
+    assert bool(df_val.loc[0, "datos_validos"]) is False
+    assert bool(df_val.loc[1, "datos_validos"]) is True

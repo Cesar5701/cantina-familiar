@@ -34,8 +34,10 @@ BASE_REGISTRO_BEBIDA = {
 def crear_df_base(filas: list[dict]) -> pd.DataFrame:
     """Crea un DataFrame de prueba rellenando columnas obligatorias por defecto."""
     registros = []
+    fecha_actual = pd.Timestamp.now().strftime("%Y-%m-%d %H:%M")
     for f in filas:
         item = BASE_REGISTRO_BEBIDA.copy()
+        item["fecha_consulta"] = fecha_actual
         item.update(f)
         registros.append(item)
     return pd.DataFrame(registros)

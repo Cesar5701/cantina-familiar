@@ -6,6 +6,7 @@ detección de desafíos/WAF con mocks y control de flujo del scraper sin requeri
 
 from unittest.mock import MagicMock, patch
 
+import pytest
 from bs4 import BeautifulSoup
 from selenium.common.exceptions import WebDriverException
 
@@ -401,3 +402,129 @@ def test_consultar_urls_secuenciales_mock():
                     assert len(resultados) == 1
                     assert resultados[0]["producto"] == "Tequila 1800 Añejo 700 ml"
                     assert mock_driver.quit.called
+
+
+# ---------------------------------------------------------------------------
+# 8. Pruebas de Resiliencia y Detección WAF en nodriver CDP (H-03)
+# ---------------------------------------------------------------------------
+
+
+def test_nodriver_es_url_tienda_valida():
+    """Valida la función es_url_tienda_valida contra ataques SSRF y dominios no autorizados."""
+    from src.scraper_selenium.nodriver_cdp import es_url_tienda_valida
+
+    assert es_url_tienda_valida("https://www.walmart.com.mx/ip/tequila/123", "www.walmart.com.mx") is True
+    assert es_url_tienda_valida("http://www.walmart.com.mx/ip/tequila/123", "www.walmart.com.mx") is False  # No HTTPS
+    assert es_url_tienda_valida("https://evil.com/ip/tequila/123", "www.walmart.com.mx") is False  # Dominio ajeno
+    assert (
+        es_url_tienda_valida("https://169.254.169.254/latest/meta-data/", "www.walmart.com.mx") is False
+    )  # SSRF metadata
+    assert es_url_tienda_valida("not_a_url", "www.walmart.com.mx") is False
+
+
+def test_nodriver_procesar_pdp_tab_bloqueo_waf():
+    """Valida que _procesar_pdp_tab levante BloqueoWAF y active el evento de aborto al detectar /blocked."""
+    import asyncio
+    from unittest.mock import AsyncMock
+
+    from src.scraper_selenium.nodriver_cdp import BloqueoWAF, _procesar_pdp_tab
+
+    async def _test():
+        mock_tab = AsyncMock()
+        mock_tab.url = "https://www.walmart.com.mx/blocked?reason=perimeterx"
+        mock_tab.get_content = AsyncMock(return_value="<html><title>Verifica tu identidad</title></html>")
+        mock_tab.sleep = AsyncMock()
+        mock_tab.close = AsyncMock()
+
+        mock_browser = AsyncMock()
+        mock_browser.get = AsyncMock(return_value=mock_tab)
+
+        sem = asyncio.Semaphore(1)
+        event_abort = asyncio.Event()
+
+        with pytest.raises(BloqueoWAF, match="Bloqueo PerimeterX detectado"):
+            await _procesar_pdp_tab(
+                browser=mock_browser,
+                url="https://www.walmart.com.mx/ip/tequila-don-julio/123",
+                idx=1,
+                total=1,
+                semaphore=sem,
+                delay_min=0.01,
+                delay_max=0.02,
+                tienda="Walmart",
+                base_domain="www.walmart.com.mx",
+                timeout_tab=2.0,
+                event_abort=event_abort,
+            )
+
+        assert event_abort.is_set() is True
+        assert mock_tab.close.called
+
+    asyncio.run(_test())
+
+
+def test_nodriver_procesar_pdp_tab_timeout():
+    """Valida que un timeout en la carga de la pestaña no cause una caída y sea manejado limpiamente."""
+    import asyncio
+    from unittest.mock import AsyncMock
+
+    from src.scraper_selenium.nodriver_cdp import _procesar_pdp_tab
+
+    async def _test():
+        mock_browser = AsyncMock()
+        mock_browser.get = AsyncMock(side_effect=asyncio.TimeoutError())
+
+        sem = asyncio.Semaphore(1)
+        event_abort = asyncio.Event()
+
+        res = await _procesar_pdp_tab(
+            browser=mock_browser,
+            url="https://www.walmart.com.mx/ip/tequila-don-julio/123",
+            idx=1,
+            total=1,
+            semaphore=sem,
+            delay_min=0.01,
+            delay_max=0.02,
+            tienda="Walmart",
+            base_domain="www.walmart.com.mx",
+            timeout_tab=0.05,
+            event_abort=event_abort,
+        )
+
+        assert res is None
+        assert event_abort.is_set() is False
+
+    asyncio.run(_test())
+
+
+def test_nodriver_procesar_pdp_tab_omite_tras_abort():
+    """Valida que si event_abort ya está activo, no intente cargar URLs subsecuentes."""
+    import asyncio
+    from unittest.mock import AsyncMock
+
+    from src.scraper_selenium.nodriver_cdp import _procesar_pdp_tab
+
+    async def _test():
+        mock_browser = AsyncMock()
+        sem = asyncio.Semaphore(1)
+        event_abort = asyncio.Event()
+        event_abort.set()
+
+        res = await _procesar_pdp_tab(
+            browser=mock_browser,
+            url="https://www.walmart.com.mx/ip/tequila-don-julio/123",
+            idx=2,
+            total=5,
+            semaphore=sem,
+            delay_min=0.01,
+            delay_max=0.02,
+            tienda="Walmart",
+            base_domain="www.walmart.com.mx",
+            timeout_tab=2.0,
+            event_abort=event_abort,
+        )
+
+        assert res is None
+        assert not mock_browser.get.called
+
+    asyncio.run(_test())

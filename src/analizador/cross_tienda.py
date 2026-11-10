@@ -42,8 +42,16 @@ def detectar_duplicados(df: pd.DataFrame) -> pd.DataFrame:
         claves.append(f"{prod_norm}_{vol_tag}")
     df["clave_comparativa"] = claves
 
-    conteo_tiendas = df.groupby("clave_comparativa")["tienda"].nunique()
-    df["num_tiendas_disponibles"] = df["clave_comparativa"].map(conteo_tiendas)
+    df_activos = df.copy()
+    if "es_stale" in df_activos.columns:
+        df_activos = df_activos[~df_activos["es_stale"].astype(bool)]
+    if "disponibilidad" in df_activos.columns:
+        no_agotados = df_activos[df_activos["disponibilidad"].astype(str).str.lower() != "agotado"]
+        if not no_agotados.empty:
+            df_activos = no_agotados
+
+    conteo_tiendas = df_activos.groupby("clave_comparativa")["tienda"].nunique()
+    df["num_tiendas_disponibles"] = df["clave_comparativa"].map(conteo_tiendas).fillna(1).astype(int)
     df["es_comparable_cross_tienda"] = df["num_tiendas_disponibles"] > 1
 
     return df
@@ -74,22 +82,33 @@ def calcular_grupos_cross_tienda(df: pd.DataFrame) -> dict[str, dict]:
         if grp_valid["tienda"].nunique() < 2:
             continue
 
-        # Priorizar ofertas que no estén agotadas ni congeladas/stale para el precio mínimo
-        candidatos_min = grp_valid.copy()
-        if "disponibilidad" in candidatos_min.columns:
-            no_agotados = candidatos_min[candidatos_min["disponibilidad"].astype(str).str.lower() != "agotado"]
+        # Arbitraje cross-tienda solo es legítimo entre ofertas frescas (no-stale)
+        frescos = grp_valid.copy()
+        if "es_stale" in frescos.columns:
+            frescos = frescos[~frescos["es_stale"].astype(bool)]
+
+        # Sin al menos 2 tiendas frescas, no hay comparativa en vivo posible
+        if frescos.empty or frescos["tienda"].nunique() < 2:
+            continue
+
+        # Para determinar el arbitraje realizable (min/max/ahorro), descartar productos agotados
+        candidatos_arbitraje = frescos.copy()
+        if "disponibilidad" in candidatos_arbitraje.columns:
+            no_agotados = candidatos_arbitraje[
+                candidatos_arbitraje["disponibilidad"].astype(str).str.lower() != "agotado"
+            ]
             if not no_agotados.empty:
-                candidatos_min = no_agotados
+                candidatos_arbitraje = no_agotados
 
-        if "es_stale" in candidatos_min.columns:
-            frescos = candidatos_min[~candidatos_min["es_stale"].astype(bool)]
-            if not frescos.empty:
-                candidatos_min = frescos
+        # Sin al menos 2 tiendas disponibles, no hay arbitraje realizable
+        if candidatos_arbitraje["tienda"].nunique() < 2:
+            continue
 
-        idx_min = candidatos_min[col_ord].idxmin()
-        idx_max = grp_valid[col_ord].idxmax()
-        row_min = grp_valid.loc[idx_min]
-        row_max = grp_valid.loc[idx_max]
+        tiendas_arbitraje = candidatos_arbitraje["tienda"].unique()
+        idx_min = candidatos_arbitraje[col_ord].idxmin()
+        idx_max = candidatos_arbitraje[col_ord].idxmax()
+        row_min = candidatos_arbitraje.loc[idx_min]
+        row_max = candidatos_arbitraje.loc[idx_max]
 
         # Determinar columna de precio base (precio_promo para consolidador o precio_efectivo para analizador)
         col_precio = (
@@ -133,12 +152,12 @@ def calcular_grupos_cross_tienda(df: pd.DataFrame) -> dict[str, dict]:
                 "dias_desde_actualizacion": float(r.get("dias_desde_actualizacion", 0.0)),
                 "fecha_consulta": str(r.get("fecha_consulta", "")),
             }
-            for _, r in grp_valid.iterrows()
+            for _, r in frescos.iterrows()
         ]
 
         grupos_cross[clave] = {
-            "num_tiendas": len(tiendas_unicas),
-            "tiendas_disponibles": sorted(tiendas_unicas.tolist()),
+            "num_tiendas": len(tiendas_arbitraje),
+            "tiendas_disponibles": sorted(tiendas_arbitraje.tolist()),
             "producto": row_min["producto"],
             "categoria": row_min.get("categoria", ""),
             "subcategoria": row_min.get("subcategoria", ""),
@@ -205,9 +224,11 @@ def _construir_registro_base(row: pd.Series, cols: Optional[list[str]]) -> dict:
 
 
 def _es_precio_mas_bajo(row: pd.Series, info: dict, p_litro_actual: float) -> bool:
-    """Determina el mejor precio por litro, descartando precios fantasma de productos agotados."""
+    """Determina el mejor precio por litro, descartando ofertas agotadas o congeladas/stale."""
+    if bool(row.get("es_stale", False)):
+        return False
     disp_actual = str(row.get("disponibilidad", "disponible")).lower()
-    if disp_actual == "agotado" and info.get("disponibilidad_min", "disponible") != "agotado":
+    if disp_actual == "agotado":
         return False
     return bool(p_litro_actual <= info["precio_por_litro_min"] + 0.05)
 

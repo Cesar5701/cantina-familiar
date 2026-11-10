@@ -83,9 +83,10 @@ def validar_esquema_y_rangos(df: pd.DataFrame, lanzar_error: bool = False) -> tu
         | (pr_num > 1000000.0)
     ].index.tolist()
 
+    indices_anomalias = set(anomalias_ml + anomalias_abv + sin_precio)
     reporte = {
         "total_registros": len(df_val),
-        "registros_validos": len(df_val) - len(set(anomalias_ml + sin_precio)),
+        "registros_validos": len(df_val) - len(indices_anomalias),
         "anomalias_volumen_ml": len(anomalias_ml),
         "anomalias_graduacion_abv": len(anomalias_abv),
         "registros_sin_precio": len(sin_precio),
@@ -93,7 +94,7 @@ def validar_esquema_y_rangos(df: pd.DataFrame, lanzar_error: bool = False) -> tu
         "errores": errores,
     }
 
-    df_val["datos_validos"] = ~df_val.index.isin(set(anomalias_ml + sin_precio))
+    df_val["datos_validos"] = ~df_val.index.isin(indices_anomalias)
     return df_val, reporte
 
 

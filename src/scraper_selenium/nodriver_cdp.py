@@ -26,6 +26,21 @@ except (ImportError, OSError):
     uc = None
 
 
+class BloqueoWAF(Exception):
+    """Excepción alzada cuando el WAF (PerimeterX, Cloudflare, Akamai) bloquea la navegación."""
+
+    pass
+
+
+def es_url_tienda_valida(url: str, base_domain: str = "www.walmart.com.mx") -> bool:
+    """Valida que una URL pertenezca al dominio seguro de la tienda y use HTTPS (anti-SSRF)."""
+    try:
+        parsed = urlparse(url)
+        return parsed.scheme == "https" and bool(parsed.hostname) and parsed.hostname.lower() == base_domain.lower()
+    except (ValueError, AttributeError):
+        return False
+
+
 def obtener_binario_chrome_disponible() -> Optional[str]:
     """
     Localiza un ejecutable de Google Chrome o Chromium en el sistema o en cachés conocidas.
@@ -78,24 +93,33 @@ async def _procesar_pdp_tab(
     delay_max: float,
     tienda: str = "Walmart",
     base_domain: str = "www.walmart.com.mx",
+    timeout_tab: float = 20.0,
+    event_abort: Optional[asyncio.Event] = None,
 ) -> Optional[Dict[str, Any]]:
     """
-    Procesa una PDP individual en su propia pestaña concurrente, gobernado por un semáforo.
+    Procesa una PDP individual en su propia pestaña concurrente, gobernado por un semáforo,
+    timeout estricto por pestaña y aborto temprano ante desafío WAF.
     """
+    if event_abort is not None and event_abort.is_set():
+        logger.info(f"Omitiendo PDP [{idx}/{total}]: sesión abortada previamente por bloqueo WAF.")
+        return None
+
     async with semaphore:
-        parsed = urlparse(url)
-        if parsed.scheme != "https" or not parsed.hostname or parsed.hostname.lower() != base_domain.lower():
+        if event_abort is not None and event_abort.is_set():
+            return None
+
+        if not es_url_tienda_valida(url, base_domain):
             logger.warning(f"URL de PDP rechazada por seguridad (no coincide con https://{base_domain}): {url}")
             return None
 
         tab = None
         try:
             logger.info(f"[{idx}/{total}] Consultando PDP con nodriver: {url}")
-            tab = await browser.get(url, new_tab=True)
+            tab = await asyncio.wait_for(browser.get(url, new_tab=True), timeout=timeout_tab)
             pausa = random.uniform(delay_min, delay_max)
             await tab.sleep(pausa)
 
-            content = await tab.get_content()
+            content = await asyncio.wait_for(tab.get_content(), timeout=timeout_tab)
             if not content:
                 logger.warning(f"  Respuesta vacía en {url}")
                 return None
@@ -103,7 +127,10 @@ async def _procesar_pdp_tab(
             if "__NEXT_DATA__" not in content:
                 tab_url = getattr(tab, "url", "")
                 if "/blocked" in tab_url or "verifica tu identidad" in content.lower():
-                    logger.warning(f"  [Desafío PX] Bloqueo detectado en {url}")
+                    logger.warning(f"  [Desafío PX] Bloqueo detectado en {url}. Activando aborto de sesión.")
+                    if event_abort is not None:
+                        event_abort.set()
+                    raise BloqueoWAF(f"Bloqueo PerimeterX detectado en {url}")
                 else:
                     logger.warning(f"  Sin __NEXT_DATA__ en {url}")
                 return None
@@ -147,6 +174,11 @@ async def _procesar_pdp_tab(
             logger.info(f"  ✓ Extraído: {nombre} | Promo: ${p_promo} | Reg: ${p_reg} | Disp: {disp_norm}")
             return item_raw
 
+        except asyncio.TimeoutError:
+            logger.warning(f"  Timeout ({timeout_tab}s) esperando respuesta de PDP en {url}")
+            return None
+        except BloqueoWAF:
+            raise
         except (json.JSONDecodeError, KeyError, ValueError, OSError, RuntimeError) as e:
             logger.warning(f"  Error procesando {url}: {e}")
             return None
@@ -154,7 +186,7 @@ async def _procesar_pdp_tab(
             if tab:
                 try:
                     await tab.close()
-                except (OSError, RuntimeError, TimeoutError, ValueError) as err_tab:
+                except (OSError, RuntimeError, TimeoutError, ValueError, AttributeError) as err_tab:
                     logger.debug(f"Aviso al cerrar pestaña nodriver: {err_tab}")
 
 
@@ -166,10 +198,11 @@ async def _extraer_datos_pdp_async(
     concurrencia: int = 3,
     tienda: str = "Walmart",
     base_domain: str = "www.walmart.com.mx",
+    timeout_tab: float = 20.0,
 ) -> List[Dict[str, Any]]:
     """
-    Navega concurrentemente por una lista de páginas de producto (PDP) con control de semáforo
-    y calentamiento de sesión en la página de inicio.
+    Navega concurrentemente por una lista de páginas de producto (PDP) con control de semáforo,
+    timeout por pestaña, aborto temprano ante WAF y calentamiento de sesión en la página de inicio.
     """
     if uc is None:
         logger.warning("nodriver no está disponible en este entorno.")
@@ -195,12 +228,13 @@ async def _extraer_datos_pdp_async(
     )
 
     resultados: List[Dict[str, Any]] = []
+    event_abort = asyncio.Event()
 
     try:
         # Calentar sesión en la página principal correspondiente para establecer contexto residencial orgánico
         url_home = f"https://{base_domain}"
         logger.info(f"Estableciendo sesión orgánica en {tienda} ({url_home})...")
-        home_tab = await browser.get(url_home)
+        home_tab = await asyncio.wait_for(browser.get(url_home), timeout=timeout_tab)
         await home_tab.sleep(random.uniform(2.5, 3.5))
 
         sem = asyncio.Semaphore(concurrencia)
@@ -216,6 +250,8 @@ async def _extraer_datos_pdp_async(
                 delay_max=delay_max,
                 tienda=tienda,
                 base_domain=base_domain,
+                timeout_tab=timeout_tab,
+                event_abort=event_abort,
             )
             for i, url in enumerate(urls, 1)
         ]
@@ -224,6 +260,8 @@ async def _extraer_datos_pdp_async(
         for r in respuestas:
             if isinstance(r, dict):
                 resultados.append(r)
+            elif isinstance(r, BloqueoWAF):
+                logger.warning(f"Aborto temprano por bloqueo WAF en nodriver: {r}")
             elif isinstance(r, Exception):
                 logger.warning(f"Excepción en tarea concurrente de PDP: {r}")
 
@@ -231,7 +269,7 @@ async def _extraer_datos_pdp_async(
         try:
             browser.stop()
             logger.info("Navegador nodriver detenido.")
-        except (OSError, RuntimeError, TimeoutError, ValueError) as e:
+        except (OSError, RuntimeError, TimeoutError, ValueError, AttributeError) as e:
             logger.debug(f"Error deteniendo navegador nodriver: {e}")
 
     return resultados
@@ -245,6 +283,7 @@ def consultar_pdps_con_nodriver(
     concurrencia: int = 3,
     tienda: str = "Walmart",
     base_domain: str = "www.walmart.com.mx",
+    timeout_tab: float = 20.0,
 ) -> List[Dict[str, Any]]:
     """
     Función sincrónica para consultar URLs de productos (PDPs) mediante nodriver con concurrencia.
@@ -258,5 +297,6 @@ def consultar_pdps_con_nodriver(
             concurrencia=concurrencia,
             tienda=tienda,
             base_domain=base_domain,
+            timeout_tab=timeout_tab,
         )
     )

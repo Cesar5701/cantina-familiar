@@ -1097,3 +1097,75 @@ def test_generar_resumen_whatsapp_vigencias():
     assert "Walmart: hasta 18 Nov (El Fin Irresistible)" in resumen
     assert "Chedraui: hasta 17 Nov (Preventa Modo Fin / Buen Fin)" in resumen
     assert "Soriana: hasta 17 Nov (Pre Buen Fin / Precios Reventados)" in resumen
+
+
+def test_h01_arbitraje_descarta_ofertas_stale_y_no_genera_arbitraje_fantasma():
+    """H-01: Valida que ofertas stale nunca inflen el precio_max/ahorro ni generen arbitraje fantasma."""
+    # Caso 1: 1 fresca ($100) vs 1 stale ($500) -> NO debe generar grupo de arbitraje cross-tienda
+    df_stale_vs_fresca = crear_df_base(
+        [
+            {
+                "tienda": "Bodegas Alianza",
+                "producto": "Tequila Fresco 750 ml",
+                "ml": 750,
+                "precio_promo": 100.0,
+                "precio_regular": 100.0,
+                "fecha_consulta": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"),
+            },
+            {
+                "tienda": "Walmart",
+                "producto": "Tequila Fresco 750 ml",
+                "ml": 750,
+                "precio_promo": 500.0,
+                "precio_regular": 500.0,
+                "fecha_consulta": "2026-09-01 12:00",  # > 60 días stale
+            },
+        ]
+    )
+    grupos_1 = calcular_grupos_cross_tienda(df_stale_vs_fresca)
+    assert len(grupos_1) == 0, "No debe publicarse arbitraje cross-tienda con solo 1 tienda fresca"
+
+    # Caso 2: 2 frescas ($100 y $120) vs 1 stale ($500) -> Arbitraje legítimo entre Alianza y Sam's ($20 ahorro)
+    df_dos_frescas_una_stale = crear_df_base(
+        [
+            {
+                "tienda": "Bodegas Alianza",
+                "producto": "Tequila Fresco 750 ml",
+                "ml": 750,
+                "precio_promo": 100.0,
+                "precio_regular": 100.0,
+                "fecha_consulta": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"),
+            },
+            {
+                "tienda": "Sam's Club",
+                "producto": "Tequila Fresco 750 ml",
+                "ml": 750,
+                "precio_promo": 120.0,
+                "precio_regular": 120.0,
+                "fecha_consulta": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"),
+            },
+            {
+                "tienda": "Walmart",
+                "producto": "Tequila Fresco 750 ml",
+                "ml": 750,
+                "precio_promo": 500.0,
+                "precio_regular": 500.0,
+                "fecha_consulta": "2026-09-01 12:00",  # > 60 días stale
+            },
+        ]
+    )
+    grupos_2 = calcular_grupos_cross_tienda(df_dos_frescas_una_stale)
+    assert len(grupos_2) == 1
+    info = list(grupos_2.values())[0]
+
+    assert info["tienda_min"] == "Bodegas Alianza"
+    assert info["precio_min"] == 100.0
+    assert info["tienda_max"] == "Sam's Club"
+    assert info["precio_max"] == 120.0  # NO el $500 stale de Walmart
+    assert info["ahorro_max"] == 20.0  # NO $400 de ahorro fantasma
+    assert round(info["porcentaje_ahorro_max"], 1) == 16.7
+    assert info["num_tiendas"] == 2
+    assert sorted(info["tiendas_disponibles"]) == ["Bodegas Alianza", "Sam's Club"]
+    # La oferta stale no debe figurar en ofertas
+    tiendas_ofertas = [o["tienda"] for o in info["ofertas"]]
+    assert "Walmart" not in tiendas_ofertas
