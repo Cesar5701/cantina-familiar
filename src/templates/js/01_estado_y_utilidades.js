@@ -5,8 +5,8 @@
     // ESCAPADO HTML OBLIGATORIO PARA DATOS EXTERNOS (productos scrapeados).
     // Todo valor de texto que se interpole en innerHTML debe pasar por esc().
     function esc(valor) {
-      return String(valor ?? "").replace(/[&<>"']/g, c => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      return String(valor ?? "").replace(/[&<>"'`]/g, c => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;", "`": "&#96;"
       }[c]));
     }
 
