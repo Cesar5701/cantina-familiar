@@ -2,7 +2,6 @@
 Scraper para Soriana mediante catálogo HTML de Salesforce Commerce Cloud (.product-tile).
 """
 
-import time
 import urllib.error
 import urllib.parse
 from datetime import datetime
@@ -11,7 +10,7 @@ from bs4 import BeautifulSoup
 
 import src.scraper_multitienda as _pkg
 from src.clasificacion import limpiar_precio
-from src.http_utils import HEADERS_DEFAULT
+from src.http_utils import HEADERS_DEFAULT, pausa_aleatoria
 from src.io_utils import ResumenScraping
 from src.logger import get_logger
 from src.scraper_multitienda.normalizador import evaluar_y_normalizar_producto
@@ -143,7 +142,7 @@ def scrapear_soriana(terminos: list[str] | None = None) -> list[dict]:
                 else:
                     resumen.registrar_descarte("criterio exclusión o volumen")
             logger.info(f"  -> '{t}': +{nuevos_q} productos (Acumulado Soriana: {len(resultados)})")
-            time.sleep(0.5)
+            pausa_aleatoria(0.5, 1.1)
         except (
             urllib.error.URLError,
             urllib.error.HTTPError,

@@ -3,7 +3,6 @@ Cliente paginado VTEX y orquestador de extracción exhaustiva para Bodegas Alian
 """
 
 import json
-import time
 import urllib.error
 import urllib.parse
 from datetime import datetime
@@ -11,7 +10,7 @@ from datetime import datetime
 import pandas as pd
 
 import src.scraper_catalogo_completo as _pkg
-from src.http_utils import HEADERS_BOT
+from src.http_utils import HEADERS_BOT, pausa_aleatoria
 from src.io_utils import ResumenScraping, guardar_csv_atomico
 from src.logger import get_logger
 from src.scraper_catalogo_completo.clasificador_alianza import evaluar_item_alianza
@@ -47,7 +46,7 @@ def consultar_endpoint_paginado(
                 resumen.registrar_error_red(url, e)
             logger.warning(f"Fin o error en '{termino}' pag {pag}: {e}")
             break
-        time.sleep(0.25)
+        pausa_aleatoria(0.25, 0.6)
     return items
 
 

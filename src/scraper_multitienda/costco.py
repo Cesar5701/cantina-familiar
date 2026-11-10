@@ -3,13 +3,12 @@ Scraper para Costco México mediante API REST nativa OCC v2 de SAP Commerce Clou
 """
 
 import json
-import time
 import urllib.error
 import urllib.parse
 from datetime import datetime
 
 import src.scraper_multitienda as _pkg
-from src.http_utils import HEADERS_DEFAULT
+from src.http_utils import HEADERS_DEFAULT, pausa_aleatoria
 from src.io_utils import ResumenScraping
 from src.logger import get_logger
 from src.scraper_multitienda.normalizador import evaluar_y_normalizar_producto
@@ -129,7 +128,7 @@ def scrapear_costco(terminos: list[str] | None = None) -> list[dict]:
                 if pagina >= total_pags:
                     break
 
-                time.sleep(0.4)
+                pausa_aleatoria(0.4, 0.9)
 
             except (
                 urllib.error.URLError,

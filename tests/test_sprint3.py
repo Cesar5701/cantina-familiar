@@ -17,7 +17,15 @@ from unittest.mock import patch
 
 import pytest
 
-from src.http_utils import descargar_json_con_reintentos, peticion_curl_cffi, peticion_http_con_reintentos
+from src.http_utils import (
+    _calcular_espera,
+    descargar_json_con_reintentos,
+    extraer_retry_after,
+    pausa_aleatoria,
+    peticion_curl_cffi,
+    peticion_http_con_reintentos,
+    sanitizar_url_para_logs,
+)
 from src.logger import configurar_logging, get_logger
 
 # ---------------------------------------------------------------------------
@@ -151,6 +159,51 @@ def test_peticion_curl_cffi_lanzar_error_400():
         mock_curl.get.return_value = MockCurlResp400()
         with pytest.raises(ValueError, match="HTTP 400"):
             peticion_curl_cffi("https://test.com/bad", lanzar_error=True)
+
+
+def test_sanitizar_url_para_logs_oculta_secretos():
+    """Valida que parámetros sensibles como token, api_key, secret se enmascaren en logs."""
+    url = "https://api.tienda.com/search?query=tequila&api_key=XYZ123&token=SECRET_TOKEN&page=1"
+    url_limpia = sanitizar_url_para_logs(url)
+    assert "XYZ123" not in url_limpia
+    assert "SECRET_TOKEN" not in url_limpia
+    assert "api_key=***" in url_limpia
+    assert "token=***" in url_limpia
+    assert "query=tequila" in url_limpia
+    assert "page=1" in url_limpia
+
+    # URLs sin parámetros o vacías
+    assert sanitizar_url_para_logs("https://tienda.com/pdp") == "https://tienda.com/pdp"
+    assert sanitizar_url_para_logs("") == ""
+
+
+def test_extraer_retry_after_segundos_y_errores():
+    """Valida la extracción correcta de la cabecera Retry-After en segundos."""
+    assert extraer_retry_after({"Retry-After": "15"}) == 15.0
+    assert extraer_retry_after({"retry-after": "2.5"}) == 2.5
+    # Valor excesivo acotado a max_segundos
+    assert extraer_retry_after({"Retry-After": "120"}, max_segundos=60.0) == 60.0
+    # Cabecera vacía o ausente
+    assert extraer_retry_after({}) is None
+    assert extraer_retry_after(None) is None
+
+
+def test_calcular_espera_con_retry_after_y_jitter():
+    """Valida que _calcular_espera use retry_after cuando está disponible."""
+    espera = _calcular_espera(intento=0, delay_inicial=1.0, factor_backoff=2.0, jitter=False, retry_after=5.0)
+    assert espera == 5.0
+
+    espera_jitter = _calcular_espera(intento=1, delay_inicial=1.0, factor_backoff=2.0, jitter=True, retry_after=None)
+    assert 1.4 <= espera_jitter <= 2.6
+
+
+def test_pausa_aleatoria_ejecuta_sleep():
+    """Valida que pausa_aleatoria llame a time.sleep dentro del rango especificado."""
+    with patch("time.sleep") as mock_sleep:
+        pausa_aleatoria(min_seg=0.3, max_seg=0.7)
+        mock_sleep.assert_called_once()
+        args, _ = mock_sleep.call_args
+        assert 0.3 <= args[0] <= 0.7
 
 
 # ---------------------------------------------------------------------------

@@ -16,6 +16,7 @@ concurrency:
 
 jobs:
   build-and-deploy:
+    timeout-minutes: 15
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -31,22 +32,26 @@ jobs:
           cache: 'pip'
 
       - name: Instalar dependencias
+        timeout-minutes: 5
         run: |
           pip install --upgrade pip
           pip install -r requirements.lock
           pip install -e . --no-deps
 
       - name: Validar linting y formato con Ruff
+        timeout-minutes: 3
         run: |
           ruff check .
           ruff format --check .
 
       - name: Regenerar Catálogos y Dashboard
+        timeout-minutes: 5
         run: |
           python src/actualizar_dashboard_completo.py
           python src/generar_dashboard_v4.py
 
       - name: Ejecutar pruebas unitarias y cobertura
+        timeout-minutes: 5
         run: pytest -v --cov=src --cov-report=term-missing
 
       - name: Preparar sitio (solo el dashboard publicado)

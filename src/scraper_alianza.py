@@ -6,14 +6,13 @@ Consulta exclusivamente la API pública permitida en robots.txt:
 
 import argparse
 import json
-import time
 import urllib.error
 import urllib.parse
 from datetime import datetime
 
 BASE_URL = "https://www.bodegasalianza.com/api/catalog_system/pub/products/search/{term}"
 from src.clasificacion import clasificar_categoria, extraer_ml
-from src.http_utils import HEADERS_BOT, descargar_json_con_reintentos
+from src.http_utils import HEADERS_BOT, descargar_json_con_reintentos, pausa_aleatoria
 from src.io_utils import ResumenScraping, guardar_csv_atomico
 from src.logger import get_logger
 
@@ -107,7 +106,7 @@ def consultar_api_alianza(
         if resumen:
             resumen.registrar_exito()
 
-    time.sleep(delay_segundos)
+    pausa_aleatoria(delay_segundos * 0.8, delay_segundos * 1.3)
     return productos
 
 

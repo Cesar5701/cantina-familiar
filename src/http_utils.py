@@ -5,13 +5,16 @@ Proporciona funciones seguras y resilientes para consultas HTTP a APIs y portale
 manejando automáticamente interrupciones de red, rate limits (HTTP 429) y errores temporales de servidor (HTTP 5xx).
 """
 
+import email.utils
 import http.client
 import json
 import random
 import socket
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
+from datetime import datetime
 from typing import Any, Dict, Optional
 
 from src.logger import get_logger
@@ -100,12 +103,90 @@ def _preparar_encabezados(headers: Optional[Dict[str, str]]) -> Dict[str, str]:
     return encabezados
 
 
-def _calcular_espera(intento: int, delay_inicial: float, factor_backoff: float, jitter: bool) -> float:
-    """Calcula el backoff exponencial del intento, con jitter opcional."""
-    delay = delay_inicial * (factor_backoff**intento)
+def sanitizar_url_para_logs(url: str) -> str:
+    """Oculta tokens, api keys y secretos en parámetros URL para evitar fugas en logs de CI/CD."""
+    if not url or "?" not in url:
+        return url
+    try:
+        parsed = urllib.parse.urlsplit(url)
+        query_dict = urllib.parse.parse_qs(parsed.query, keep_blank_values=True)
+        campos_sensibles = {
+            "token",
+            "key",
+            "api_key",
+            "apikey",
+            "secret",
+            "password",
+            "auth",
+            "access_token",
+            "signature",
+        }
+        sanitized_pairs = []
+        for k, v_list in query_dict.items():
+            if k.lower() in campos_sensibles:
+                sanitized_pairs.append(f"{k}=***")
+            else:
+                for v in v_list:
+                    sanitized_pairs.append(f"{k}={v}")
+        new_query = "&".join(sanitized_pairs)
+        return urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, parsed.path, new_query, parsed.fragment))
+    except (ValueError, TypeError, AttributeError):
+        return url
+
+
+def pausa_aleatoria(min_seg: float = 0.4, max_seg: float = 1.0) -> None:
+    """Pausa con jitter aleatorio para mitigar la detección por cadencia fija en scrapers."""
+    if max_seg < min_seg:
+        max_seg = min_seg
+    time.sleep(random.uniform(min_seg, max_seg))
+
+
+def extraer_retry_after(cabeceras_o_error: Any, max_segundos: float = 60.0) -> Optional[float]:
+    """Extrae y valida la cabecera Retry-After de un error o respuesta HTTP."""
+    if cabeceras_o_error is None:
+        return None
+    headers = getattr(cabeceras_o_error, "headers", None)
+    if headers is None and isinstance(cabeceras_o_error, dict):
+        headers = cabeceras_o_error
+    if headers is None:
+        return None
+
+    raw_val = None
+    if hasattr(headers, "get"):
+        raw_val = headers.get("Retry-After") or headers.get("retry-after")
+    if not raw_val:
+        return None
+
+    try:
+        val_seg = float(raw_val)
+        return min(max(0.5, val_seg), max_segundos)
+    except (ValueError, TypeError):
+        try:
+            parsed_time = email.utils.parsedate_to_datetime(str(raw_val))
+            diff = (parsed_time - datetime.now(parsed_time.tzinfo)).total_seconds()
+            if 0 < diff <= max_segundos:
+                return diff
+        except (ValueError, TypeError, AttributeError, IndexError):
+            pass
+    return None
+
+
+def _calcular_espera(
+    intento: int,
+    delay_inicial: float,
+    factor_backoff: float,
+    jitter: bool,
+    retry_after: Optional[float] = None,
+) -> float:
+    """Calcula el backoff exponencial del intento con jitter multiplicativo real o respeta Retry-After."""
+    if retry_after is not None and retry_after > 0:
+        return retry_after + (random.uniform(0.1, 0.5) if jitter else 0.0)
+
+    delay_base = delay_inicial * (factor_backoff**intento)
     if jitter:
-        delay += random.uniform(0.1, delay * 0.3)
-    return delay
+        # Full jitter multiplicativo: 70% a 130% del retraso base
+        return delay_base * random.uniform(0.7, 1.3)
+    return delay_base
 
 
 def _intentar_peticion(
@@ -114,25 +195,26 @@ def _intentar_peticion(
     headers: Dict[str, str],
     metodo: str,
     timeout: float,
-) -> tuple[Optional[str], Optional[BaseException], bool]:
+) -> tuple[Optional[str], Optional[BaseException], bool, Optional[float]]:
     """
     Ejecuta un intento HTTP y clasifica el resultado.
 
-    Retorna (contenido, error, reintentar):
-    - Éxito: (texto, None, False)
-    - Error transitorio: (None, excepción, True)
-    - Error definitivo: (None, excepción, False)
+    Retorna (contenido, error, reintentar, retry_after):
+    - Éxito: (texto, None, False, None)
+    - Error transitorio: (None, excepción, True, retry_after)
+    - Error definitivo: (None, excepción, False, None)
     """
     try:
         req = urllib.request.Request(url, data=data, headers=headers, method=metodo)
         with urllib.request.urlopen(req, timeout=timeout) as resp:
-            return resp.read().decode("utf-8", errors="ignore"), None, False
+            return resp.read().decode("utf-8", errors="ignore"), None, False, None
     except urllib.error.HTTPError as e:
-        return None, e, e.code in CODIGOS_REINTENTO
+        retry_after = extraer_retry_after(e)
+        return None, e, e.code in CODIGOS_REINTENTO, retry_after
     except (urllib.error.URLError, socket.timeout, TimeoutError, ConnectionError, http.client.HTTPException) as e:
-        return None, e, True
+        return None, e, True, None
     except (OSError, UnicodeDecodeError) as e:
-        return None, e, False
+        return None, e, False, None
 
 
 def peticion_http_con_reintentos(
@@ -167,9 +249,10 @@ def peticion_http_con_reintentos(
     """
     encabezados = _preparar_encabezados(headers)
     ultimo_error: Optional[BaseException] = None
+    url_segura = sanitizar_url_para_logs(url)
 
     for intento in range(max_intentos):
-        contenido, error, reintentar = _intentar_peticion(url, data, encabezados, metodo, timeout)
+        contenido, error, reintentar, retry_after = _intentar_peticion(url, data, encabezados, metodo, timeout)
         if contenido is not None:
             return contenido
 
@@ -177,19 +260,19 @@ def peticion_http_con_reintentos(
         if not reintentar:
             if lanzar_error and error is not None:
                 raise error
-            logger.warning("Petición HTTP a %s falló definitivamente: %s", url, error)
+            logger.warning("Petición HTTP a %s falló definitivamente: %s", url_segura, error)
             return None
 
         # Si aún quedan reintentos, calcular el backoff exponencial
         if intento < max_intentos - 1:
-            espera = _calcular_espera(intento, delay_inicial, factor_backoff, jitter)
-            logger.debug("Reintentando petición a %s en %.2fs tras fallo transitorio (%s)", url, espera, error)
+            espera = _calcular_espera(intento, delay_inicial, factor_backoff, jitter, retry_after=retry_after)
+            logger.debug("Reintentando petición a %s en %.2fs tras fallo transitorio (%s)", url_segura, espera, error)
             time.sleep(espera)
 
     if lanzar_error and ultimo_error:
         raise ultimo_error
     if ultimo_error:
-        logger.warning("Petición HTTP a %s agotó los %s intentos: %s", url, max_intentos, ultimo_error)
+        logger.warning("Petición HTTP a %s agotó los %s intentos: %s", url_segura, max_intentos, ultimo_error)
 
     return None
 
@@ -246,8 +329,9 @@ def peticion_curl_cffi(
     el handshake TLS/JA3/HTTP2 de un navegador real (ej. chrome124).
     Si curl_cffi no está disponible o falla, recurre de forma segura a peticion_http_con_reintentos.
     """
+    url_segura = sanitizar_url_para_logs(url)
     if curl_requests is None:
-        logger.debug("curl_cffi no está disponible; se usa urllib como fallback para %s", url)
+        logger.debug("curl_cffi no está disponible; se usa urllib como fallback para %s", url_segura)
     else:
         try:
             hdrs = (HEADERS_SSR_NEXTJS if headers is None else headers).copy()
@@ -261,12 +345,15 @@ def peticion_curl_cffi(
             if resp.status_code in {200, 304}:
                 return resp.text
 
-            logger.warning("curl_cffi recibió código HTTP %s al consultar %s", resp.status_code, url)
+            logger.warning("curl_cffi recibió código HTTP %s al consultar %s", resp.status_code, url_segura)
             if resp.status_code in CODIGOS_REINTENTO:
-                logger.info("Reintentando código transitorio HTTP %s con backoff exponencial...", resp.status_code)
+                retry_after = extraer_retry_after(getattr(resp, "headers", {}))
+                delay_ini = retry_after if retry_after else 1.0
+                logger.info("Reintentando código transitorio HTTP %s con backoff adaptativo...", resp.status_code)
                 return peticion_http_con_reintentos(
                     url=url,
                     headers=headers,
+                    delay_inicial=delay_ini,
                     timeout=timeout,
                     lanzar_error=lanzar_error,
                 )
@@ -280,5 +367,5 @@ def peticion_curl_cffi(
         except (CurlRequestException, OSError, RuntimeError, TimeoutError, ConnectionError, ValueError) as exc:
             if lanzar_error:
                 raise
-            logger.warning("curl_cffi falló para %s (%s); se reintenta con urllib", url, exc)
+            logger.warning("curl_cffi falló para %s (%s); se reintenta con urllib", url_segura, exc)
     return peticion_http_con_reintentos(url=url, headers=headers, timeout=timeout, lanzar_error=lanzar_error)

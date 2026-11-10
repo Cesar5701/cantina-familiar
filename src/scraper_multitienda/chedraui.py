@@ -3,13 +3,12 @@ Scraper para Chedraui mediante API pública VTEX (/api/catalog_system/pub/produc
 """
 
 import json
-import time
 import urllib.error
 import urllib.parse
 from datetime import datetime
 
 import src.scraper_multitienda as _pkg
-from src.http_utils import HEADERS_DEFAULT
+from src.http_utils import HEADERS_DEFAULT, pausa_aleatoria
 from src.io_utils import ResumenScraping
 from src.logger import get_logger
 from src.scraper_multitienda.normalizador import evaluar_y_normalizar_producto
@@ -108,7 +107,7 @@ def scrapear_chedraui(terminos: list[str] | None = None) -> list[dict]:
                         resumen.registrar_descarte("criterio exclusión o volumen")
                 if len(data) < 50:
                     break
-                time.sleep(0.3)
+                pausa_aleatoria(0.3, 0.7)
             except (
                 urllib.error.URLError,
                 urllib.error.HTTPError,
