@@ -2,8 +2,9 @@
 # Generado con pip freeze excluyendo paquete local en desarrollo
 attrs==26.1.0
 beautifulsoup4==4.15.0
-certifi==2026.7.22
+certifi==2026.10.23
 cffi==2.1.1
+charset-normalizer==3.5.2
 coverage==7.16.2
 curl_cffi==0.17.0
 Deprecated==3.0.1
@@ -23,6 +24,7 @@ PySocks==1.7.1
 pytest==9.1.1
 pytest-cov==7.1.0
 python-dateutil==2.9.0.post0
+requests==2.34.2
 ruff==0.17.1
 selenium==4.51.0
 setuptools==84.0.0
@@ -33,6 +35,7 @@ soupsieve==3.0.3
 trio==0.34.0
 trio-websocket==0.12.2
 typing_extensions==4.16.0
+undetected-chromedriver==3.5.5
 urllib3==2.8.0
 websocket-client==1.9.2
 websockets==17.4
