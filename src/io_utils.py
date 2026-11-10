@@ -36,14 +36,17 @@ def guardar_csv_atomico(df: pd.DataFrame, ruta_archivo: str, **kwargs) -> str:
 
     fd, ruta_tmp = tempfile.mkstemp(dir=directorio, prefix=".tmp_", suffix=".csv")
     os.close(fd)
-
+    exito = False
     try:
         df.to_csv(ruta_tmp, **kwargs)
         os.replace(ruta_tmp, ruta_archivo)
-    except (OSError, TypeError, ValueError):
-        if os.path.exists(ruta_tmp):
-            os.remove(ruta_tmp)
-        raise
+        exito = True
+    finally:
+        if not exito and os.path.exists(ruta_tmp):
+            try:
+                os.remove(ruta_tmp)
+            except OSError:
+                pass
 
     return ruta_archivo
 
@@ -56,14 +59,19 @@ def guardar_json_atomico(data: Any, ruta_archivo: str, indent: Optional[int] = N
     os.makedirs(directorio, exist_ok=True)
 
     fd, ruta_tmp = tempfile.mkstemp(dir=directorio, prefix=".tmp_", suffix=".json")
+    os.close(fd)
+    exito = False
     try:
-        with open(fd, "w", encoding="utf-8") as f:
+        with open(ruta_tmp, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=ensure_ascii, indent=indent)
         os.replace(ruta_tmp, ruta_archivo)
-    except (OSError, TypeError, ValueError):
-        if os.path.exists(ruta_tmp):
-            os.remove(ruta_tmp)
-        raise
+        exito = True
+    finally:
+        if not exito and os.path.exists(ruta_tmp):
+            try:
+                os.remove(ruta_tmp)
+            except OSError:
+                pass
 
     return ruta_archivo
 

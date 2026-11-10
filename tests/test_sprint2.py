@@ -7,6 +7,7 @@ Suite de pruebas unitarias para Sprint 2:
 
 import os
 import tempfile
+from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
@@ -168,6 +169,37 @@ def test_guardar_json_atomico():
         with open(ruta, "r", encoding="utf-8") as f:
             cargado = json.load(f)
         assert cargado == data
+
+
+def test_guardar_json_atomico_limpieza_error():
+    """Valida que ante un error de serialización JSON, no queden archivos temporales huérfanos."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        ruta = os.path.join(tmpdir, "invalido.json")
+        # Objeto no serializable en JSON (un set)
+        dato_invalido = {"no_serializable": {1, 2, 3}}
+
+        with pytest.raises(TypeError):
+            guardar_json_atomico(dato_invalido, ruta)
+
+        # No debe existir ni el archivo final ni temporales .tmp_*
+        assert not os.path.exists(ruta)
+        archivos_restantes = os.listdir(tmpdir)
+        assert len([f for f in archivos_restantes if f.startswith(".tmp_")]) == 0
+
+
+def test_guardar_csv_atomico_limpieza_error():
+    """Valida que ante un error durante la escritura del CSV se eliminen archivos temporales."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        ruta = os.path.join(tmpdir, "invalido.csv")
+        df = pd.DataFrame([{"a": 1}])
+
+        with patch.object(pd.DataFrame, "to_csv", side_effect=OSError("Disk full")):
+            with pytest.raises(OSError, match="Disk full"):
+                guardar_csv_atomico(df, ruta)
+
+        assert not os.path.exists(ruta)
+        archivos_restantes = os.listdir(tmpdir)
+        assert len([f for f in archivos_restantes if f.startswith(".tmp_")]) == 0
 
 
 def test_resumen_scraping_metricas():

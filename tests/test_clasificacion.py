@@ -90,6 +90,10 @@ def test_extraer_ml_casos_limite(nombre, esperado):
         (None, None),
         ("", None),
         ("Consultar en tienda", None),
+        (True, None),
+        (False, None),
+        (float("inf"), None),
+        (float("nan"), None),
     ],
 )
 def test_limpiar_precio(entrada, esperado):

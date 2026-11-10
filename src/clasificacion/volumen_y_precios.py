@@ -2,6 +2,7 @@
 Extracción y normalización de volumen (ml / L) y parseo de precios (H2 y H6).
 """
 
+import math
 import re
 from typing import Any, Optional
 
@@ -114,18 +115,18 @@ def normalizar_medidas_en_nombre(nombre: str) -> str:
 def limpiar_precio(val: Any) -> Optional[float]:
     """
     Parsea y limpia representaciones de precio numéricas o en cadena de texto.
-    Retorna float positivo o None si no es válido.
+    Retorna float positivo y finito o None si no es válido.
     """
-    if val is None:
+    if val is None or isinstance(val, bool):
         return None
     if isinstance(val, (int, float)):
-        return float(val) if val > 0 else None
+        return float(val) if (math.isfinite(val) and val > 0) else None
     s = str(val).replace("\xa0", " ").strip()
     m = re.search(r"[\$]?\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?|\d+(?:\.\d{2})?)", s)
     if m:
         try:
             v = float(m.group(1).replace(",", ""))
-            return v if v > 0 else None
+            return v if (math.isfinite(v) and v > 0) else None
         except ValueError:
             return None
     return None
