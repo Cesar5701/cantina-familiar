@@ -59,10 +59,17 @@ def _aplicar_stealth_chrome(driver: webdriver.Remote) -> None:
     )
 
 
-def inicializar_driver(headless: bool = False, navegador: str = "chrome") -> webdriver.Remote:
+def inicializar_driver(
+    headless: bool = False,
+    navegador: str = "chrome",
+    user_data_dir: str | None = None,
+) -> webdriver.Remote:
     """Inicializa Selenium en Chrome (o Firefox) con User-Agent y banderas de navegador real."""
+    dir_perfil = user_data_dir or os.environ.get("CHROME_USER_DATA_DIR")
     if navegador.lower() == "chrome":
         options = ChromeOptions()
+        if dir_perfil:
+            options.add_argument(f"--user-data-dir={dir_perfil}")
         if headless:
             options.add_argument("--headless=new")
         options.add_argument("--start-maximized")

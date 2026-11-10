@@ -85,7 +85,9 @@ REGLAS_NORMALIZACION_CLAVE: tuple[ReglaNormalizacion, ...] = (
 )
 
 
-STOP_WORDS_CLAVE: frozenset[str] = frozenset({"de", "del", "el", "la", "los", "las", "en", "para", "licor", "100"})
+STOP_WORDS_CLAVE: frozenset[str] = frozenset(
+    {"de", "del", "el", "la", "los", "las", "en", "para", "licor", "100", "y", "a", "al", "c"}
+)
 
 
 def normalizar_texto_clave(texto: str) -> str:
@@ -93,18 +95,20 @@ def normalizar_texto_clave(texto: str) -> str:
     if not texto or pd.isnull(texto):
         return ""
 
-    s_orig = str(texto)
+    s_orig = str(texto).strip()
     # H35: Extraer volumen previo a la limpieza para preservar formatos no estándar
     ml = extraer_ml(s_orig, ml_defecto=750)
 
     s = unicodedata.normalize("NFKD", s_orig).encode("ascii", "ignore").decode("utf-8")
+    s = re.sub(r"[\-_/]+", " ", s)
 
     # Aplicar tabla declarativa de transformaciones por regex compiladas (H38)
     for regla in REGLAS_NORMALIZACION_CLAVE:
         s = regla.patron.sub(regla.reemplazo, s)
 
     s = re.sub(r"[^a-zA-Z0-9\s]", " ", s.lower())
-    tokens = [t for t in s.split() if t not in STOP_WORDS_CLAVE]
+    s = re.sub(r"\s+", " ", s).strip()
+    tokens = [t for t in s.split() if t and t not in STOP_WORDS_CLAVE]
 
     # Blindaje H35: botellas no estándar (<650 ml o >800 ml) conservan su tamaño canónico
     if ml and (ml < 650 or ml > 800):
@@ -119,39 +123,64 @@ def es_producto_paquete(row_o_nombre: Any, condiciones: Optional[str] = None) ->
     Identifica si un producto es un paquete, combo promocional, kit o edición con obsequio.
     """
     if isinstance(row_o_nombre, str):
-        nom = row_o_nombre.lower()
-        cond = (condiciones or "").lower()
+        nom = row_o_nombre
+        cond = condiciones or ""
     elif hasattr(row_o_nombre, "get"):
-        nom = str(row_o_nombre.get("producto", "")).lower()
-        cond = str(row_o_nombre.get("condiciones", "")).lower()
+        nom = str(row_o_nombre.get("producto", ""))
+        cond = str(row_o_nombre.get("condiciones", ""))
     else:
-        nom = str(row_o_nombre["producto"]).lower()
-        cond = str(row_o_nombre.get("condiciones", "")).lower()
+        nom = str(row_o_nombre["producto"])
+        cond = str(row_o_nombre.get("condiciones", ""))
 
-    if "🎁" in cond or "obsequio" in cond or "combo" in cond or "kit" in cond:
+    cond_l = cond.lower()
+    nom_l = nom.lower()
+
+    # Normalizar acentos para robustez en búsquedas
+    nom_norm = unicodedata.normalize("NFKD", nom_l).encode("ascii", "ignore").decode("utf-8")
+    cond_norm = unicodedata.normalize("NFKD", cond_l).encode("ascii", "ignore").decode("utf-8")
+
+    if (
+        "🎁" in cond
+        or "obsequio" in cond_norm
+        or "combo" in cond_norm
+        or "kit" in cond_norm
+        or "paquete" in cond_norm
+        or "regalo" in cond_norm
+    ):
         return True
 
-    # Palabras clave de paquetes y combos en el nombre
-    patron = (
-        r"\b(?:pack|paquete|combo|kit|caja|set)\b"
+    # 1. Palabras clave de paquetes, combos, multipacks y promociones 2x1 / 3x2 en el nombre
+    patron_multipack = (
+        r"\b(?:pack|duopack|tripack|multipack|paquete|combo|kit|caja|set)\b"
         r"|\b\d+\s*pzas?\b"
         r"|\bx\s*\d+\b"
         r"|\b\d+\s*botellas?\b"
-        r"|\bcon\s+(?:vaso|copa|termo|shaker|tumbler|caballito|sal|kit)\b"
+        r"|\b(?:pack\s*)?[234]x[123]\b"
     )
-    if re.search(patron, nom):
+    if re.search(patron_multipack, nom_norm):
         return True
 
-    # Detección de complementos en el nombre con '+' o 'c/'
-    if " + " in nom or " c/" in nom or " con " in nom:
+    # 2. Cristalería, accesorios y ediciones especiales con obsequio
+    patron_accesorios = (
+        r"vasos?|copas?|tarros?|hieleras?|termos?|shakers?|tumblers?|caballitos?|"
+        r"sal\b|kit|estuches?|cilindros?|mezclador(?:es)?|escurridor(?:es)?|destapador(?:es)?|mandil(?:es)?"
+    )
+
+    if re.search(r"\bedici[oó]n\s+especial\s+con\b", nom_norm) or re.search(
+        rf"\bcon\s+(?:\d+\s*)?(?:{patron_accesorios})", nom_norm
+    ):
+        return True
+
+    # 3. Detección de complementos en el nombre con '+' o 'c/'
+    if "+" in nom_norm or "c/" in nom_norm or "con" in nom_norm:
         if re.search(
-            r"\+\s*(?:\d+|vaso|copa|termo|sal|bot|agua|refresco|chivas|jack|absolut|woodford|mason|shaker|tumbler)",
-            nom,
+            rf"\+\s*(?:\d*\s*(?:{patron_accesorios}|bot|agua|refresco|chivas|jack|absolut|woodford|mason)|\d+)",
+            nom_norm,
         ):
             return True
         if re.search(
-            r"c\/\s*(?:\d+|bot|vaso|copa|bal[oó]n|caballito|termo|porta|kit|escurridor|concentrado|tamborin|sangria|tinto|vino|ultra|reposado|joven|pechuga)",
-            nom,
+            rf"c\/\s*(?:\d*\s*(?:{patron_accesorios}|bot|balon|porta|concentrado|tamborin|sangria|tinto|vino|ultra|reposado|joven|pechuga)|\d+)",
+            nom_norm,
         ):
             return True
 

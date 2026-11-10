@@ -519,3 +519,87 @@ def test_sincronizar_clasificacion_catalogo():
     row_whisky = df_res[df_res["producto"].str.contains("Black & White")].iloc[0]
     assert row_whisky["categoria"] == "Whisky"
     assert row_whisky["categoria_comparable"] == "Whisky - Blended Scotch"
+
+
+def test_m07_mutation_testing_boundary_conditions():
+    """
+    Prueba de mutación y condiciones frontera (M-07 / H-Sanity):
+    Verifica que la suite detecte mutaciones en operadores de comparación (<, <=, >, >=, ==, !=)
+    en las reglas NOM (NOM-006, NOM-070) y filtros de esquema/cordura (volumen, abv, precios).
+    """
+    from src.analizador.esquema_y_auditoria import COLUMNAS_OBLIGATORIAS, validar_esquema_y_rangos
+
+    # 1. Fronteras exactas de volumen (100 <= ml <= 10000)
+    def crear_fila_base(ml=750, abv=40.0, pr=500.0, pp=450.0):
+        fila = {c: "test" for c in COLUMNAS_OBLIGATORIAS}
+        fila.update({"ml": ml, "abv": abv, "precio_regular": pr, "precio_promo": pp})
+        return fila
+
+    df_ml = pd.DataFrame(
+        [
+            crear_fila_base(ml=99),  # Inválido: < 100
+            crear_fila_base(ml=100),  # Válido: frontera inferior exacta
+            crear_fila_base(ml=10000),  # Válido: frontera superior exacta
+            crear_fila_base(ml=10001),  # Inválido: > 10000
+        ]
+    )
+    val_ml, _ = validar_esquema_y_rangos(df_ml)
+    assert not val_ml.loc[0, "datos_validos"]
+    assert val_ml.loc[1, "datos_validos"]
+    assert val_ml.loc[2, "datos_validos"]
+    assert not val_ml.loc[3, "datos_validos"]
+
+    # 2. Fronteras exactas de graduación alcohólica abv (0 < abv <= 100)
+    df_abv = pd.DataFrame(
+        [
+            crear_fila_base(abv=-0.1),  # Inválido: <= 0
+            crear_fila_base(abv=0.0),  # Inválido: frontera cero
+            crear_fila_base(abv=0.1),  # Válido: > 0
+            crear_fila_base(abv=55.0),  # Válido: límite NOM típica
+            crear_fila_base(abv=100.0),  # Válido: frontera superior exacta
+            crear_fila_base(abv=100.1),  # Inválido: > 100
+        ]
+    )
+    val_abv, rep_abv = validar_esquema_y_rangos(df_abv)
+    assert not val_abv.loc[0, "datos_validos"]
+    assert not val_abv.loc[1, "datos_validos"]
+    assert val_abv.loc[2, "datos_validos"]
+    assert val_abv.loc[3, "datos_validos"]
+    assert val_abv.loc[4, "datos_validos"]
+    assert not val_abv.loc[5, "datos_validos"]
+    assert rep_abv["anomalias_graduacion_abv"] == 3
+
+    # 3. Fronteras exactas de precio (50.0 <= precio <= 1000000.0)
+    df_precio = pd.DataFrame(
+        [
+            crear_fila_base(pp=49.99, pr=None),  # Inválido: < 50.0
+            crear_fila_base(pp=50.0, pr=None),  # Válido: frontera inferior exacta
+            crear_fila_base(pp=1000000.0, pr=None),  # Válido: frontera superior exacta
+            crear_fila_base(pp=1000001.0, pr=None),  # Inválido: > 1000000.0
+        ]
+    )
+    val_p, rep_p = validar_esquema_y_rangos(df_precio)
+    assert not val_p.loc[0, "datos_validos"]
+    assert val_p.loc[1, "datos_validos"]
+    assert val_p.loc[2, "datos_validos"]
+    assert not val_p.loc[3, "datos_validos"]
+    assert rep_p["anomalias_precio"] == 2
+
+    # 4. Fronteras y mutaciones de reglas NOM
+    # NOM-006: Plata/Blanco debe anularse si existe descriptor de añejamiento o reposado
+    c_blanco, _, _ = clasificar_estricto("Tequila Centenario Plata 700 ml", "Tequila")
+    assert c_blanco == "Tequila - Blanco / Plata"
+    c_no_blanco, _, _ = clasificar_estricto("Tequila Centenario Plata Reposado 700 ml", "Tequila")
+    assert c_no_blanco == "Tequila - Reposado Tradicional"
+
+    # NOM-006: Cristalino con marca de norma reposado cristalino vs añejo
+    c_rep_crist, _, _ = clasificar_estricto("Tequila Mayorazgo Cristalino 750 ml", "Tequila")
+    assert c_rep_crist == "Tequila - Reposado Cristalino"
+    c_ane_crist, _, _ = clasificar_estricto("Tequila Mayorazgo Añejo Cristalino 750 ml", "Tequila")
+    assert c_ane_crist == "Tequila - Añejo Cristalino"
+
+    # NOM-070: Silvestre no debe clasificar como silvestre si es reposado o añejo
+    c_mez_silv, _, _ = clasificar_estricto("Mezcal 400 Conejos Tobalá 750 ml", "Mezcal")
+    assert c_mez_silv == "Mezcal - Silvestre"
+    c_mez_rep, _, _ = clasificar_estricto("Mezcal 400 Conejos Tobalá Reposado 750 ml", "Mezcal")
+    assert c_mez_rep == "Mezcal - Reposado"

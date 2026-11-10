@@ -323,9 +323,9 @@
         if (p.disponibilidad === "agotado") {
           stockBadge = `<span class="badge bg-[#fbeae8] text-[#ba1a1a] border border-[#ffdad6] text-[10px] font-semibold">Agotado</span>`;
         } else if (p.stock_unidades !== null && p.stock_unidades !== undefined && p.stock_unidades !== "" && Number(p.stock_unidades) > 0 && Number(p.stock_unidades) <= 5) {
-          stockBadge = `<span class="badge bg-[#fef3eb] text-[#8c5332] border border-[#f3ddce] text-[10px] font-semibold">Últimas ${p.stock_unidades} pzas</span>`;
+          stockBadge = `<span class="badge bg-[#fef3eb] text-[#8c5332] border border-[#f3ddce] text-[10px] font-semibold" title="${esc(p.stock_unidades)} unidades en inventario">Últimas ${esc(p.stock_unidades)} pzas</span>`;
         } else if (p.stock_unidades !== null && p.stock_unidades !== undefined && p.stock_unidades !== "" && Number(p.stock_unidades) > 5) {
-          stockBadge = `<span class="badge bg-[#eaf4ec] text-[#24592a] border border-[#c5dfc9] text-[10px] font-medium">Existencia: ${p.stock_unidades}</span>`;
+          stockBadge = `<span class="badge bg-[#eaf4ec] text-[#24592a] border border-[#c5dfc9] text-[10px] font-medium" title="${esc(p.stock_unidades)} unidades disponibles">Existencia: ${esc(p.stock_unidades)}</span>`;
         }
 
         const rangoHistHtml = (p.precio_min_historico && p.precio_max_historico)

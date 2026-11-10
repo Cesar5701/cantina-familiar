@@ -315,7 +315,7 @@
             if (item.disponibilidad === "agotado") {
               badgeStockCarrito = `<span class="badge bg-[#fbeae8] text-[#ba1a1a] border border-[#ffdad6] text-[10px] font-bold">⚠️ Agotado</span>`;
             } else if (item.stock_unidades !== null && item.stock_unidades !== undefined && item.stock_unidades !== "" && Number(item.stock_unidades) > 0 && Number(item.stock_unidades) <= 5) {
-              badgeStockCarrito = `<span class="badge bg-[#fef3eb] text-[#8c5332] border border-[#f3ddce] text-[10px] font-semibold">Últimas ${item.stock_unidades} pzas</span>`;
+              badgeStockCarrito = `<span class="badge bg-[#fef3eb] text-[#8c5332] border border-[#f3ddce] text-[10px] font-semibold" title="${esc(item.stock_unidades)} unidades en inventario">Últimas ${esc(item.stock_unidades)} pzas</span>`;
             }
 
             let alertaStock = "";

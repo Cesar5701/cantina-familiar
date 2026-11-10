@@ -199,6 +199,7 @@ async def _extraer_datos_pdp_async(
     tienda: str = "Walmart",
     base_domain: str = "www.walmart.com.mx",
     timeout_tab: float = 20.0,
+    user_data_dir: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """
     Navega concurrentemente por una lista de páginas de producto (PDP) con control de semáforo,
@@ -221,11 +222,16 @@ async def _extraer_datos_pdp_async(
     if os.environ.get("DOCKER_CONTAINER") or os.environ.get("CI") or os.path.exists("/.dockerenv"):
         args_navegador.append("--no-sandbox")
 
-    browser = await uc.start(
-        browser_executable_path=chrome_bin,
-        headless=headless,
-        browser_args=args_navegador,
-    )
+    dir_perfil = user_data_dir or os.environ.get("CHROME_USER_DATA_DIR")
+    kwargs_uc: Dict[str, Any] = {
+        "browser_executable_path": chrome_bin,
+        "headless": headless,
+        "browser_args": args_navegador,
+    }
+    if dir_perfil:
+        kwargs_uc["user_data_dir"] = dir_perfil
+
+    browser = await uc.start(**kwargs_uc)
 
     resultados: List[Dict[str, Any]] = []
     event_abort = asyncio.Event()
@@ -284,6 +290,7 @@ def consultar_pdps_con_nodriver(
     tienda: str = "Walmart",
     base_domain: str = "www.walmart.com.mx",
     timeout_tab: float = 20.0,
+    user_data_dir: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """
     Función sincrónica para consultar URLs de productos (PDPs) mediante nodriver con concurrencia.
@@ -298,5 +305,6 @@ def consultar_pdps_con_nodriver(
             tienda=tienda,
             base_domain=base_domain,
             timeout_tab=timeout_tab,
+            user_data_dir=user_data_dir,
         )
     )

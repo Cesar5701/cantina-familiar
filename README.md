@@ -174,7 +174,7 @@ cantina-historial --resumen
 > - `cantina-historial` consulta la evolución de precios a lo largo del tiempo, reconstruye snapshots históricos y clasifica el semáforo anti-inflación (`minimo_historico`, `descuento_inflado`, etc.).
 
 ### 2. Ejecutar la Suite de Pruebas Unitarias
-El proyecto cuenta con **241 pruebas automatizadas** organizadas en módulos de testing con una cobertura superior al **78%** (`tests/`), que cubren clasificación NOM, normalización de multipacks (`Pack 6`, `Pack x 3`, `(8 Bot)`, etc.), normalización de medidas (`ml` y `L`), métricas por litro, exclusión explícita de outliers de lujo, umbrales centralizados de presupuesto, arbitraje cross-tienda, validación de esquema, selectores interactivos en cascada, escritura atómica, cliente HTTP con backoff, parseo con mocks, entry points CLI, arquitectura modular de plantillas, accesibilidad WCAG y persistencia de estado:
+El proyecto cuenta con **266 pruebas automatizadas** organizadas en módulos de testing con una cobertura del **80%** (`tests/`), que cubren clasificación NOM, normalización de multipacks (`Pack 6`, `Pack x 3`, `(8 Bot)`, etc.), normalización de medidas (`ml` y `L`), métricas por litro, exclusión explícita de outliers de lujo, umbrales centralizados de presupuesto, arbitraje cross-tienda no-stale, validación de esquema y cordura (volumen, ABV, precios), selectores interactivos en cascada, escritura atómica, cliente HTTP con backoff y Retry-After, detección y aborto de retos WAF en nodriver CDP, parseo con mocks/fixtures congelados, entry points CLI, arquitectura modular de plantillas, accesibilidad WCAG y persistencia de estado:
 
 ```bash
 pytest
@@ -183,11 +183,17 @@ pytest
 ### 3. Ejecutar Scrapers Específicos
 
 - **Scraper Multitienda por Lote (Sam's Club, Costco, Walmart, Chedraui, Soriana):**
-  Motor de adquisición bajo demanda que consulta APIs y SSR de las cadenas comerciales para actualizar los CSVs fuente de entrada:
+  Motor de adquisición bajo demanda que consulta APIs y SSR de las cadenas comerciales para actualizar los CSVs fuente de entrada con soporte para parametrización granular:
   ```bash
+  # Ejecutar todas las tiendas (por defecto)
   python -m src.scraper_multitienda
+
+  # Filtrar tiendas específicas mediante argumento CLI
+  python -m src.scraper_multitienda --tiendas chedraui,sams
+  python -m src.scraper_multitienda --tiendas walmart --walmart-cdp
+  python -m src.scraper_multitienda --tiendas sams --forzar-selenium --headless
   ```
-  *(Genera `data/scraped_chedraui.csv`, `data/scraped_sams.csv`, `data/scraped_walmart.csv`, `data/scraped_soriana.csv` y `data/scraped_costco.csv`).*
+  *(Parámetros soportados: `--tiendas`, `--forzar-selenium`, `--sin-fallback-selenium`, `--headless`, `--walmart-cdp`, `--pausa`).*
 
 - **Bodegas Alianza (Catálogo exhaustivo o búsqueda por términos):**
   ```bash
@@ -195,18 +201,24 @@ pytest
   python src/scraper_alianza.py --terminos "1800" "Herradura" "Amarás" "Red Label" "Jack Daniel" --salida data/scraped_alianza.csv
   ```
 
-- **Scraper Asistido con Selenium (Sam's Club / SPAs):**
-  Abre un navegador real (Chrome por defecto, o `--navegador firefox`) para permitir que el JavaScript hidrate precios y existencias en modo Human-in-the-Loop:
+- **Scraper Asistido con Selenium y nodriver CDP (Sam's Club / Walmart / SPAs):**
+  Permite navegación secuencial con hidratación de JavaScript o recolección CDP ultra-rápida con detección de retos:
   ```bash
   python -m src.scraper_selenium --urls "https://www.sams.com.mx" --tienda "Sam's Club" --salida data/scraped_selenium.csv
   ```
-  *(Para ejecutar en modo sin cabeza usar la bandera `--headless`).*
+  *(Para aislar perfiles de Chrome se puede configurar la variable de entorno `CHROME_USER_DATA_DIR` o pasar un directorio dedicado).*
 
 ---
 
-## Robustez, Observabilidad y Ética
+## Robustez, Observabilidad y Gobernanza de Datos
 
-- **Cliente HTTP Resiliente (`src/http_utils.py`):** Todas las descargas gestionan errores transitorios de red y límites de tasa (`HTTP 429`, `500`, `502`, `503`, `504`) mediante reintentos con retraso exponencial y fluctuación estocástica (*full jitter*).
+- **Cliente HTTP Resiliente y Anti-WAF (`src/http_utils.py`):** Todas las descargas gestionan errores transitorios de red y límites de tasa (`HTTP 429`, `500`, `502`, `503`, `504`) mediante reintentos con retraso exponencial, fluctuación estocástica (*full jitter*) y respeto estricto del encabezado `Retry-After`. Se incluye sanitización de parámetros sensibles y secretos en URLs para evitar fugas en logs de CI/CD.
+- **Detección de Retos WAF y Abort Flag en CDP (`src/scraper_selenium/nodriver_cdp.py`):** Monitoreo activo de URLs bloqueadas (`/blocked`, captchas, challenges de PerimeterX/Cloudflare). Ante un bloqueo, se levanta la excepción `BloqueoWAF` y se activa un `asyncio.Event` de aborto que cancela de inmediato la recolección en paralelo, evitando quemar IPs o proxies. Cada pestaña opera bajo un timeout estricto de 20s.
+- **Integridad de Datos y Arbitraje Anti-Phantom (`src/analizador/`):**
+  - **Filtros de cordura:** validación de rangos biológicos y comerciales ($100 \le \text{ml} \le 10,000$, $0 < \text{ABV} \le 100\%$, precios entre $\$50.00$ y $\$1,000,000.00$). Anomalías de ABV o precios absurdos son excluidas de `datos_validos`.
+  - **Fail-closed freshness:** registros con fecha nula o no parseable reciben $9999.0$ días de antigüedad y son marcados como `es_stale = True`.
+  - **Arbitraje Real:** el cálculo de ahorro cross-tienda descarta automáticamente ofertas stale y requiere un mínimo de 2 tiendas frescas y activas para publicar recomendaciones de ahorro, evitando ahorros fantasma.
+  - **URLs Seguras:** validación estricta de dominios permitidos por tienda (`_url_segura`) con rechazo por omisión (fail-closed) para prevenir SSRF o inyecciones de enlaces arbitrarios.
 - **Logging Estructurado Centralizado (`src/logger.py`):** Los registros emiten formato limpio y legible con emojis a consola (`sys.stdout`) y bitácora rotativa persistente de hasta 2 MB en `logs/cantina_familiar.log`.
 - **Escritura Atómica (`src/io_utils.py`):** La persistencia de CSV y JSON se realiza en archivos temporales con reemplazo atómico atado al sistema de archivos, impidiendo corrupción ante interrupciones.
 - **Política de Scraping Ético (`docs/politica_scraping.md`):** Regula el cumplimiento de `robots.txt`, la tasa de peticiones y el carácter educativo no comercial del proyecto.

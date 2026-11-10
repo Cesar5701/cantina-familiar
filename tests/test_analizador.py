@@ -454,6 +454,14 @@ def test_h35_normalizar_texto_clave_distingue_volumen_no_estandar():
     assert clave_1000 != clave_750
     assert clave_200 != clave_750
 
+    # Robustez contra espacios consecutivos, guiones, barras y stopwords (B-02)
+    clave_puntuacion = normalizar_texto_clave("Tequila - Herradura / Ultra - Añejo  700 ml")
+    assert clave_puntuacion == clave_700
+    clave_espacios = normalizar_texto_clave("Tequila   Herradura    Ultra   Añejo   700 ml")
+    assert clave_espacios == clave_700
+    clave_stopword = normalizar_texto_clave("Tequila Herradura y Ultra Añejo 700 ml")
+    assert clave_stopword == clave_700
+
 
 def test_unificacion_honey_cross_tienda():
     """
@@ -600,6 +608,16 @@ def test_es_producto_paquete():
         ("Mezcal Aluchín Joven 100% 750 ml C/4 Caballitos", "Precio regular"),
         ("Whisky Chivas Regal 12 Años 750 ml + Absolut Vodka 200 ml", "Oferta en línea"),
         ("Vino Tinto Cuatro Soles 2 pzas de 750 ml c/u", "Precio socio"),
+        # Casos ampliados B-05: cristalería, accesorios y promociones 2x1 / 3x2
+        ("Tequila Don Julio 70 700 ml + 2 vasos", ""),
+        ("Tequila Centenario Plata 700 ml + 2 Copas", ""),
+        ("Whisky Buchanan's 12 Años 750 ml + Hielera", ""),
+        ("Tequila Herradura Reposado 700 ml 2x1", ""),
+        ("Pack 2x1 Ron Zacapa 23 750 ml", ""),
+        ("Ginebra Tanqueray 750 ml con Shaker", ""),
+        ("Whisky Red Label 700 ml edición especial con vasos", ""),
+        ("Vodka Smirnoff 750 ml con mezclador", ""),
+        ("Tequila Don Ramón Punta Diamante 750 ml con tarro", ""),
     ]
     for nom, cond in paquetes:
         assert es_producto_paquete(nom, cond) is True, f"Debería detectarse como paquete/combo: {nom}"
