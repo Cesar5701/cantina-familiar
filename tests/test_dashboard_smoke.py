@@ -58,6 +58,9 @@ def test_dashboard_smoke_renderizado_completo():
     assert soup.find("html") is not None
     assert soup.find("head") is not None
     assert soup.find("body") is not None
+    csp_meta = soup.find("meta", attrs={"http-equiv": "Content-Security-Policy"})
+    assert csp_meta is not None
+    assert "default-src 'self'" in csp_meta["content"]
 
     # 2. Pestañas de navegación
     assert soup.find(id="btn-tab-rankings") is not None

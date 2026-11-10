@@ -17,7 +17,7 @@ from unittest.mock import patch
 
 import pytest
 
-from src.http_utils import descargar_json_con_reintentos, peticion_http_con_reintentos
+from src.http_utils import descargar_json_con_reintentos, peticion_curl_cffi, peticion_http_con_reintentos
 from src.logger import configurar_logging, get_logger
 
 # ---------------------------------------------------------------------------
@@ -94,6 +94,63 @@ def test_descargar_json_con_reintentos_parseo():
         data = descargar_json_con_reintentos("https://test.com/api/vtex")
         assert "productos" in data
         assert data["productos"][0]["nombre"] == "Don Julio 70"
+
+
+def test_peticion_curl_cffi_exito_200():
+    """Valida que peticion_curl_cffi devuelva el texto de respuesta ante código 200."""
+
+    class MockCurlResp:
+        status_code = 200
+        text = "<html><body>Éxito SSR</body></html>"
+
+    with patch("src.http_utils.curl_requests") as mock_curl:
+        mock_curl.get.return_value = MockCurlResp()
+        res = peticion_curl_cffi("https://test.com/pdp", timeout=5)
+        assert res == "<html><body>Éxito SSR</body></html>"
+
+
+def test_peticion_curl_cffi_error_404_retorna_none():
+    """Valida que códigos 4xx no devuelvan el cuerpo de error HTML y retornen None."""
+
+    class MockCurlResp404:
+        status_code = 404
+        text = "<html>404 Not Found</html>"
+
+    with patch("src.http_utils.curl_requests") as mock_curl:
+        mock_curl.get.return_value = MockCurlResp404()
+        res = peticion_curl_cffi("https://test.com/pdp-inexistente", lanzar_error=False)
+        assert res is None
+
+
+def test_peticion_curl_cffi_error_transitorio_reintenta_urllib():
+    """Valida que códigos transitorios (ej. 503) recurran a peticion_http_con_reintentos."""
+
+    class MockCurlResp503:
+        status_code = 503
+        text = "<html>503 Service Unavailable</html>"
+
+    with patch("src.http_utils.curl_requests") as mock_curl:
+        mock_curl.get.return_value = MockCurlResp503()
+        with patch("src.http_utils.peticion_http_con_reintentos", return_value="OK Fallback") as mock_urllib:
+            res = peticion_curl_cffi("https://test.com/pdp-busy")
+            assert res == "OK Fallback"
+            mock_urllib.assert_called_once()
+
+
+def test_peticion_curl_cffi_lanzar_error_400():
+    """Valida que si lanzar_error=True y status>=400, invoque raise_for_status."""
+
+    class MockCurlResp400:
+        status_code = 400
+        text = "Bad Request"
+
+        def raise_for_status(self):
+            raise ValueError("HTTP 400 Bad Request")
+
+    with patch("src.http_utils.curl_requests") as mock_curl:
+        mock_curl.get.return_value = MockCurlResp400()
+        with pytest.raises(ValueError, match="HTTP 400"):
+            peticion_curl_cffi("https://test.com/bad", lanzar_error=True)
 
 
 # ---------------------------------------------------------------------------

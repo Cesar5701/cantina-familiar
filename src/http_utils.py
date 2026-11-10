@@ -18,8 +18,10 @@ from src.logger import get_logger
 
 try:
     from curl_cffi import requests as curl_requests
+    from curl_cffi.requests.exceptions import RequestException as CurlRequestException
 except (ImportError, OSError):
     curl_requests = None
+    CurlRequestException = Exception  # type: ignore[misc, assignment]
 
 logger = get_logger("http_utils")
 
@@ -175,14 +177,19 @@ def peticion_http_con_reintentos(
         if not reintentar:
             if lanzar_error and error is not None:
                 raise error
+            logger.warning("Petición HTTP a %s falló definitivamente: %s", url, error)
             return None
 
         # Si aún quedan reintentos, calcular el backoff exponencial
         if intento < max_intentos - 1:
-            time.sleep(_calcular_espera(intento, delay_inicial, factor_backoff, jitter))
+            espera = _calcular_espera(intento, delay_inicial, factor_backoff, jitter)
+            logger.debug("Reintentando petición a %s en %.2fs tras fallo transitorio (%s)", url, espera, error)
+            time.sleep(espera)
 
     if lanzar_error and ultimo_error:
         raise ultimo_error
+    if ultimo_error:
+        logger.warning("Petición HTTP a %s agotó los %s intentos: %s", url, max_intentos, ultimo_error)
 
     return None
 
@@ -253,10 +260,24 @@ def peticion_curl_cffi(
             )
             if resp.status_code in {200, 304}:
                 return resp.text
-            if lanzar_error and resp.status_code >= 400:
-                resp.raise_for_status()
+
+            logger.warning("curl_cffi recibió código HTTP %s al consultar %s", resp.status_code, url)
+            if resp.status_code in CODIGOS_REINTENTO:
+                logger.info("Reintentando código transitorio HTTP %s con backoff exponencial...", resp.status_code)
+                return peticion_http_con_reintentos(
+                    url=url,
+                    headers=headers,
+                    timeout=timeout,
+                    lanzar_error=lanzar_error,
+                )
+
+            if resp.status_code >= 400:
+                if lanzar_error:
+                    resp.raise_for_status()
+                return None
+
             return resp.text
-        except (OSError, RuntimeError, TimeoutError, ConnectionError, ValueError) as exc:
+        except (CurlRequestException, OSError, RuntimeError, TimeoutError, ConnectionError, ValueError) as exc:
             if lanzar_error:
                 raise
             logger.warning("curl_cffi falló para %s (%s); se reintenta con urllib", url, exc)
