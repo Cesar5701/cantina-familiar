@@ -1,49 +1,49 @@
 {
   "Bodegas Alianza": {
     "campana": "Bombazo de Precios",
-    "detalle_campana": "Bombazo de Precios (160 con rebaja)",
+    "detalle_campana": "Bombazo de Precios (158 con rebaja)",
     "vigencia_corta": "12 Nov",
-    "fecha_auditoria": "2026-11-08 19:50",
-    "items_totales": 555,
-    "items_con_rebaja": 160
+    "fecha_auditoria": "2026-11-09 20:06",
+    "items_totales": 553,
+    "items_con_rebaja": 158
   },
   "Sam's Club": {
     "campana": "El Fin Irresistible",
     "detalle_campana": "El Fin Irresistible (49 con rebaja)",
     "vigencia_corta": "18 Nov",
-    "fecha_auditoria": "2026-11-08 19:51",
+    "fecha_auditoria": "2026-11-09 20:06",
     "items_totales": 91,
     "items_con_rebaja": 49
   },
   "Costco": {
     "campana": "Cuponera de Temporada",
-    "detalle_campana": "Cuponera de Temporada (40 con rebaja)",
+    "detalle_campana": "Cuponera de Temporada (46 con rebaja)",
     "vigencia_corta": "15 Nov",
-    "fecha_auditoria": "2026-11-08 19:56",
-    "items_totales": 44,
-    "items_con_rebaja": 40
+    "fecha_auditoria": "2026-11-09 20:10",
+    "items_totales": 51,
+    "items_con_rebaja": 46
   },
   "Walmart": {
     "campana": "El Fin Irresistible",
-    "detalle_campana": "El Fin Irresistible (375 con rebaja)",
+    "detalle_campana": "El Fin Irresistible (379 con rebaja)",
     "vigencia_corta": "18 Nov",
-    "fecha_auditoria": "2026-11-09 15:53",
-    "items_totales": 430,
-    "items_con_rebaja": 375
+    "fecha_auditoria": "2026-11-09 20:08",
+    "items_totales": 434,
+    "items_con_rebaja": 379
   },
   "Chedraui": {
     "campana": "Preventa Modo Fin / Buen Fin",
     "detalle_campana": "Preventa Modo Fin / Buen Fin (17 con rebaja)",
     "vigencia_corta": "17 Nov",
-    "fecha_auditoria": "2026-11-08 19:50",
-    "items_totales": 138,
+    "fecha_auditoria": "2026-11-09 20:06",
+    "items_totales": 137,
     "items_con_rebaja": 17
   },
   "Soriana": {
     "campana": "Pre Buen Fin / Reventados",
     "detalle_campana": "Pre Buen Fin / Reventados (2 con rebaja)",
     "vigencia_corta": "17 Nov",
-    "fecha_auditoria": "2026-11-08 19:55",
+    "fecha_auditoria": "2026-11-09 20:08",
     "items_totales": 142,
     "items_con_rebaja": 2
   }
