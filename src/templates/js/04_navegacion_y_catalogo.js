@@ -447,11 +447,11 @@
           stockBadgeDesktop = `<div class="mt-1"><span class="badge bg-[#fbeae8] text-[#ba1a1a] border border-[#ffdad6] font-semibold" title="Sin existencias reportadas">Agotado</span></div>`;
           stockBadgeMovil = `<span class="badge bg-[#fbeae8] text-[#ba1a1a] border border-[#ffdad6] text-[10px] font-semibold">Agotado</span>`;
         } else if (item.stock_unidades !== null && item.stock_unidades !== undefined && item.stock_unidades !== "" && Number(item.stock_unidades) > 0 && Number(item.stock_unidades) <= 5) {
-          stockBadgeDesktop = `<div class="mt-1"><span class="badge bg-[#fef3eb] text-[#8c5332] border border-[#f3ddce] font-semibold" title="${item.stock_unidades} unidades en inventario">Últimas ${item.stock_unidades} pzas</span></div>`;
-          stockBadgeMovil = `<span class="badge bg-[#fef3eb] text-[#8c5332] border border-[#f3ddce] text-[10px] font-semibold">Últimas ${item.stock_unidades} pzas</span>`;
+          stockBadgeDesktop = `<div class="mt-1"><span class="badge bg-[#fef3eb] text-[#8c5332] border border-[#f3ddce] font-semibold" title="${esc(item.stock_unidades)} unidades en inventario">Últimas ${esc(item.stock_unidades)} pzas</span></div>`;
+          stockBadgeMovil = `<span class="badge bg-[#fef3eb] text-[#8c5332] border border-[#f3ddce] text-[10px] font-semibold">Últimas ${esc(item.stock_unidades)} pzas</span>`;
         } else if (item.stock_unidades !== null && item.stock_unidades !== undefined && item.stock_unidades !== "" && Number(item.stock_unidades) > 5) {
-          stockBadgeDesktop = `<div class="mt-1"><span class="badge bg-[#eaf4ec] text-[#24592a] border border-[#c5dfc9] font-medium" title="${item.stock_unidades} unidades disponibles">Existencia: ${item.stock_unidades}</span></div>`;
-          stockBadgeMovil = `<span class="badge bg-[#eaf4ec] text-[#24592a] border border-[#c5dfc9] text-[10px] font-medium">Existencia: ${item.stock_unidades}</span>`;
+          stockBadgeDesktop = `<div class="mt-1"><span class="badge bg-[#eaf4ec] text-[#24592a] border border-[#c5dfc9] font-medium" title="${esc(item.stock_unidades)} unidades disponibles">Existencia: ${esc(item.stock_unidades)}</span></div>`;
+          stockBadgeMovil = `<span class="badge bg-[#eaf4ec] text-[#24592a] border border-[#c5dfc9] text-[10px] font-medium">Existencia: ${esc(item.stock_unidades)}</span>`;
         }
 
         // 1. Fila Desktop (tr) — Stitch Archival Ledger Row

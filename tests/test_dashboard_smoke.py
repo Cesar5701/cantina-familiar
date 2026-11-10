@@ -427,3 +427,5 @@ def test_template_incluye_helpers_de_seguridad_js():
     assert "function esc(valor)" in contenido
     assert "function urlSegura(valor)" in contenido
     assert 'href="${urlSegura(' in contenido
+    assert "&#96;" in contenido
+    assert 'title="${esc(' in contenido
