@@ -30,15 +30,15 @@ Para garantizar la máxima estabilidad y respeto a los sistemas de los comercios
                                ▼
 ┌─────────────────────────────────────────────────────────────┐
 │ 2. Extracción Estática de SSR / __NEXT_DATA__               │
-│    - Sam's Club, Walmart, Soriana                           │
+│    - Sam's Club, Walmart (Pasillos oficiales), Soriana      │
 │    - Descarga de HTML sin ejecución continua de JavaScript  │
 └──────────────────────────────┬──────────────────────────────┘
-                               │ (solo en contingencia / HITL)
+                               │ (solo en contingencia / WAF)
                                ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ 3. Automatización con Navegador (Selenium - No Oficial)     │
-│    - Modo asistido (Human-in-the-Loop)                      │
-│    - Frágil, no programable en bucles desatendidos          │
+│ 3. Automatización con Navegador CDP / nodriver (Ruta C)     │
+│    - Modo indetectable vía Chrome DevTools Protocol         │
+│    - Consulta directa a PDPs y resolución manual HITL       │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -46,8 +46,9 @@ Para garantizar la máxima estabilidad y respeto a los sistemas de los comercios
 
 ## 3. Respeto a `robots.txt` y Cortesía de Red
 
-1. **Cumplimiento de robots.txt:**
+1. **Cumplimiento de robots.txt y Pasillos Oficiales:**
    - Se revisan y respetan las directrices de `robots.txt` de los sitios consultados.
+   - Para **Walmart México**, se prioriza la navegación por los **pasillos oficiales de categorías** (`/browse/cervezas,-vinos-y-licores/...`) en lugar del endpoint de búsqueda `/search` restringido en su `robots.txt`.
    - Para **Bodegas Alianza**, la consulta se realiza contra sus endpoints públicos de búsqueda de catálogo catalogados en el sitemap de productos.
 2. **Control de Frecuencia y Delays Aleatorios (Jitter):**
    - El sistema implementa pausas obligatorias entre consultas consecutivas (`1.0 s` a `3.0 s`).

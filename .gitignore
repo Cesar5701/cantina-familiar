@@ -36,3 +36,7 @@ data/reporte_ranking.csv
 # Logs (H19)
 logs/
 *.log
+
+# Mockups y prototipos locales obsoletos
+stitch_cantina_familiar_spirits_comparison/
+stitch_cantina_familiar_spirits_comparison.zip

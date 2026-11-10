@@ -1,5 +1,5 @@
 """
-Paquete Scraper automatizado con Selenium y BeautifulSoup para páginas dinámicas (SPA).
+Paquete Scraper automatizado con nodriver (Chrome DevTools Protocol - CDP) y fallback WebDriver/Selenium (H34/Ruta C).
 """
 
 from selenium import webdriver
