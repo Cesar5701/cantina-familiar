@@ -58,14 +58,18 @@ def validar_esquema_y_rangos(df: pd.DataFrame, lanzar_error: bool = False) -> tu
             raise ValueError(f"El dataset no contiene las columnas requeridas: {faltantes}")
 
     df_val = df.copy()
-    ml_num = pd.to_numeric(df_val["ml"], errors="coerce")
+    col_ml = df_val["ml"] if "ml" in df_val.columns else pd.Series(np.nan, index=df_val.index)
+    ml_num = pd.to_numeric(col_ml, errors="coerce")
     anomalias_ml = df_val[ml_num.isnull() | (ml_num < 100) | (ml_num > 10000)].index.tolist()
 
-    abv_num = pd.to_numeric(df_val.get("abv", np.nan), errors="coerce")
+    col_abv = df_val["abv"] if "abv" in df_val.columns else pd.Series(np.nan, index=df_val.index)
+    abv_num = pd.to_numeric(col_abv, errors="coerce")
     anomalias_abv = df_val[abv_num.notnull() & ((abv_num <= 0) | (abv_num > 100))].index.tolist()
 
-    pr_num = pd.to_numeric(df_val["precio_regular"], errors="coerce")
-    pp_num = pd.to_numeric(df_val.get("precio_promo", np.nan), errors="coerce")
+    col_pr = df_val["precio_regular"] if "precio_regular" in df_val.columns else pd.Series(np.nan, index=df_val.index)
+    col_pp = df_val["precio_promo"] if "precio_promo" in df_val.columns else pd.Series(np.nan, index=df_val.index)
+    pr_num = pd.to_numeric(col_pr, errors="coerce")
+    pp_num = pd.to_numeric(col_pp, errors="coerce")
 
     # Sanity checks de precio:
     # 1. Ambos precios nulos o no positivos
