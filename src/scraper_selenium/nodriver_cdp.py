@@ -5,10 +5,13 @@ sin binario chromedriver ni variables globales cdc_*.
 """
 
 import asyncio
+import glob
 import json
 import os
 import random
+import shutil
 from typing import Any, Dict, List, Optional
+from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
 
@@ -26,10 +29,34 @@ except (ImportError, OSError):
 def obtener_binario_chrome_disponible() -> Optional[str]:
     """
     Localiza un ejecutable de Google Chrome o Chromium en el sistema o en cachés conocidas.
+    Permite anular la ruta mediante la variable de entorno CHROME_BIN.
     """
+    env_bin = os.environ.get("CHROME_BIN")
+    if env_bin and os.path.isfile(env_bin) and os.access(env_bin, os.X_OK):
+        return env_bin
+
+    # 1. Búsqueda en PATH del sistema
+    for cmd in ["google-chrome", "google-chrome-stable", "chromium-browser", "chromium"]:
+        ruta = shutil.which(cmd)
+        if ruta and os.access(ruta, os.X_OK):
+            return ruta
+
+    # 2. Búsqueda dinámica en caché de selenium (~/.cache/selenium/chrome/linux64/*/chrome)
+    patron_selenium = os.path.expanduser("~/.cache/selenium/chrome/linux64/*/chrome")
+    coincidencias = sorted(glob.glob(patron_selenium), reverse=True)
+    for c in coincidencias:
+        if os.path.isfile(c) and os.access(c, os.X_OK):
+            return c
+
+    # 3. Búsqueda dinámica en caché de playwright
+    patron_playwright = os.path.expanduser("~/.cache/ms-playwright/chromium-*/chrome-linux64/chrome")
+    coincidencias_pw = sorted(glob.glob(patron_playwright), reverse=True)
+    for c in coincidencias_pw:
+        if os.path.isfile(c) and os.access(c, os.X_OK):
+            return c
+
+    # 4. Rutas fijas estándar
     rutas_candidatas = [
-        os.path.expanduser("~/.cache/selenium/chrome/linux64/142.0.7444.175/chrome"),
-        os.path.expanduser("~/.cache/ms-playwright/chromium-1223/chrome-linux64/chrome"),
         "/usr/bin/google-chrome-stable",
         "/usr/bin/google-chrome",
         "/usr/bin/chromium-browser",
@@ -49,11 +76,18 @@ async def _procesar_pdp_tab(
     semaphore: asyncio.Semaphore,
     delay_min: float,
     delay_max: float,
+    tienda: str = "Walmart",
+    base_domain: str = "www.walmart.com.mx",
 ) -> Optional[Dict[str, Any]]:
     """
     Procesa una PDP individual en su propia pestaña concurrente, gobernado por un semáforo.
     """
     async with semaphore:
+        parsed = urlparse(url)
+        if parsed.scheme != "https" or not parsed.hostname or parsed.hostname.lower() != base_domain.lower():
+            logger.warning(f"URL de PDP rechazada por seguridad (no coincide con https://{base_domain}): {url}")
+            return None
+
         tab = None
         try:
             logger.info(f"[{idx}/{total}] Consultando PDP con nodriver: {url}")
@@ -107,8 +141,8 @@ async def _procesar_pdp_tab(
                 "precio_regular": p_reg,
                 "disponibilidad": disp_norm,
                 "url": url,
-                "condiciones": "Portal oficial Walmart (nodriver CDP)",
-                "fuente": "Walmart México (nodriver CDP)",
+                "condiciones": f"Portal oficial {tienda} (nodriver CDP)",
+                "fuente": f"{tienda} (nodriver CDP)",
             }
             logger.info(f"  ✓ Extraído: {nombre} | Promo: ${p_promo} | Reg: ${p_reg} | Disp: {disp_norm}")
             return item_raw
@@ -130,6 +164,8 @@ async def _extraer_datos_pdp_async(
     delay_min: float = 2.5,
     delay_max: float = 4.0,
     concurrencia: int = 3,
+    tienda: str = "Walmart",
+    base_domain: str = "www.walmart.com.mx",
 ) -> List[Dict[str, Any]]:
     """
     Navega concurrentemente por una lista de páginas de producto (PDP) con control de semáforo
@@ -147,18 +183,24 @@ async def _extraer_datos_pdp_async(
     logger.info(
         f"Iniciando navegador CDP nodriver (binario: {chrome_bin}, headless: {headless}, workers: {concurrencia})..."
     )
+    # Solo agregar --no-sandbox si corre dentro de contenedores o si está explícitamente configurado
+    args_navegador = ["--disable-dev-shm-usage"]
+    if os.environ.get("DOCKER_CONTAINER") or os.environ.get("CI") or os.path.exists("/.dockerenv"):
+        args_navegador.append("--no-sandbox")
+
     browser = await uc.start(
         browser_executable_path=chrome_bin,
         headless=headless,
-        browser_args=["--no-sandbox", "--disable-dev-shm-usage"],
+        browser_args=args_navegador,
     )
 
     resultados: List[Dict[str, Any]] = []
 
     try:
-        # Calentar sesión en la página principal para establecer contexto residencial orgánico
-        logger.info("Estableciendo sesión orgánica en Walmart...")
-        home_tab = await browser.get("https://www.walmart.com.mx")
+        # Calentar sesión en la página principal correspondiente para establecer contexto residencial orgánico
+        url_home = f"https://{base_domain}"
+        logger.info(f"Estableciendo sesión orgánica en {tienda} ({url_home})...")
+        home_tab = await browser.get(url_home)
         await home_tab.sleep(random.uniform(2.5, 3.5))
 
         sem = asyncio.Semaphore(concurrencia)
@@ -172,6 +214,8 @@ async def _extraer_datos_pdp_async(
                 semaphore=sem,
                 delay_min=delay_min,
                 delay_max=delay_max,
+                tienda=tienda,
+                base_domain=base_domain,
             )
             for i, url in enumerate(urls, 1)
         ]
@@ -180,13 +224,15 @@ async def _extraer_datos_pdp_async(
         for r in respuestas:
             if isinstance(r, dict):
                 resultados.append(r)
+            elif isinstance(r, Exception):
+                logger.warning(f"Excepción en tarea concurrente de PDP: {r}")
 
     finally:
         try:
             browser.stop()
             logger.info("Navegador nodriver detenido.")
-        except (OSError, RuntimeError, TimeoutError, ValueError):
-            pass
+        except (OSError, RuntimeError, TimeoutError, ValueError) as e:
+            logger.debug(f"Error deteniendo navegador nodriver: {e}")
 
     return resultados
 
@@ -197,6 +243,8 @@ def consultar_pdps_con_nodriver(
     delay_min: float = 2.5,
     delay_max: float = 4.0,
     concurrencia: int = 3,
+    tienda: str = "Walmart",
+    base_domain: str = "www.walmart.com.mx",
 ) -> List[Dict[str, Any]]:
     """
     Función sincrónica para consultar URLs de productos (PDPs) mediante nodriver con concurrencia.
@@ -208,5 +256,7 @@ def consultar_pdps_con_nodriver(
             delay_min=delay_min,
             delay_max=delay_max,
             concurrencia=concurrencia,
+            tienda=tienda,
+            base_domain=base_domain,
         )
     )

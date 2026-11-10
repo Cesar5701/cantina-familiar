@@ -17,6 +17,7 @@ def main(
     usar_fallback_selenium: bool | None = None,
     forzar_selenium: bool = False,
     headless_selenium: bool = False,
+    walmart_cdp: bool = False,
 ):
     os.makedirs("data", exist_ok=True)
 
@@ -54,8 +55,8 @@ def main(
     if prods_sams:
         guardar_csv_atomico(pd.DataFrame(prods_sams), "data/scraped_sams.csv")
 
-    # 3. Walmart (Ruta C directa con nodriver CDP)
-    forzar_walmart = forzar_selenium or (not bool(os.environ.get("PYTEST_CURRENT_TEST")))
+    # 3. Walmart (Ruta C directa con nodriver CDP si forzar_selenium o walmart_cdp está activo)
+    forzar_walmart = forzar_selenium or walmart_cdp
     prods_walmart = _pkg.scrapear_nextjs_walmart_platform(
         "Walmart",
         "www.walmart.com.mx",

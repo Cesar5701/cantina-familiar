@@ -297,11 +297,13 @@ def _ejecutar_contingencia_navegador(
 
     # Ruta C: Si tenemos productos conocidos con URL /ip/ en el dominio (Walmart o Sam's Club),
     # consultar directamente via nodriver CDP por lotes categóricos
-    items_pdp = [
-        item
-        for item in catalogo_acumulado.values()
-        if item.get("url") and "/ip/" in item["url"] and base_domain in item["url"]
-    ]
+    def _es_url_pdp_valida(u: str | None) -> bool:
+        if not u or "/ip/" not in u:
+            return False
+        parsed = urllib.parse.urlparse(u)
+        return parsed.scheme == "https" and (parsed.hostname or "").lower() == base_domain.lower()
+
+    items_pdp = [item for item in catalogo_acumulado.values() if _es_url_pdp_valida(item.get("url"))]
 
     es_plataforma_nextjs = any(k in tienda.lower() for k in ["walmart", "sam"])
     if es_plataforma_nextjs and items_pdp and getattr(_sel_pkg, "consultar_pdps_con_nodriver", None):
@@ -338,6 +340,8 @@ def _ejecutar_contingencia_navegador(
                     delay_min=2.0,
                     delay_max=3.5,
                     concurrencia=3,
+                    tienda=tienda,
+                    base_domain=base_domain,
                 )
                 if lote_extraido:
                     prods_raw.extend(lote_extraido)

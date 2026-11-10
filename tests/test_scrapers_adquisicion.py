@@ -1006,6 +1006,9 @@ def test_evaluar_y_normalizar_rechaza_urls_peligrosas():
         "data:text/html,<script>alert(1)</script>",
         "file:///etc/passwd",
         "/ruta-relativa",
+        "https://evil.tld/ip/x#www.walmart.com.mx",
+        "https://malicious-site.com/pdp",
+        "https://sams.com.mx/pdp",  # Dominio cruzado no autorizado para tienda Walmart
     ]
     for url_peligrosa in urls_peligrosas:
         item = evaluar_y_normalizar_producto(url=url_peligrosa, **base)

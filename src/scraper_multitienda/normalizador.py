@@ -15,14 +15,24 @@ from src.clasificacion import (
 
 ESQUEMAS_URL_PERMITIDOS = {"http", "https"}
 
+DOMINIOS_TIENDA_PERMITIDOS: dict[str, set[str]] = {
+    "walmart": {"www.walmart.com.mx", "walmart.com.mx"},
+    "sam": {"www.sams.com.mx", "sams.com.mx"},
+    "sams": {"www.sams.com.mx", "sams.com.mx"},
+    "chedraui": {"www.chedraui.com.mx", "chedraui.com.mx"},
+    "soriana": {"www.soriana.com", "soriana.com"},
+    "alianza": {"www.bodegasalianza.com", "bodegasalianza.com"},
+    "costco": {"www.costco.com.mx", "costco.com.mx"},
+}
 
-def _url_segura(url: str | None) -> str:
+
+def _url_segura(url: str | None, tienda: str | None = None) -> str:
     """
     Normaliza y valida la URL de ficha de producto antes de persistirla.
 
-    Solo se aceptan URLs absolutas http/https con host. Cualquier otro esquema
-    (``javascript:``, ``data:``, ``file:``, etc.) se descarta para evitar que un
-    valor scrapeado se convierta en un enlace ejecutable en el dashboard.
+    Solo se aceptan URLs absolutas http/https con host. Si se provee la tienda,
+    valida estrictamente contra la lista de dominios autorizados para prevenir SSRF
+    o enlaces hacia dominios de terceros.
     """
     valor = str(url or "").strip()
     if not valor:
@@ -30,6 +40,17 @@ def _url_segura(url: str | None) -> str:
     parsed = urlparse(valor)
     if parsed.scheme.lower() not in ESQUEMAS_URL_PERMITIDOS or not parsed.netloc:
         return ""
+
+    hostname = (parsed.hostname or "").lower()
+    if tienda:
+        tienda_key = tienda.lower()
+        dominios_autorizados = set()
+        for k, v in DOMINIOS_TIENDA_PERMITIDOS.items():
+            if k in tienda_key:
+                dominios_autorizados.update(v)
+        if dominios_autorizados and hostname not in dominios_autorizados:
+            return ""
+
     return valor
 
 
@@ -129,7 +150,7 @@ def evaluar_y_normalizar_producto(
             "condiciones": condicion,
             "disponibilidad": disponible,
             "stock_unidades": stock_unidades,
-            "url": _url_segura(url),
+            "url": _url_segura(url, tienda=tienda),
             "fecha_consulta": fecha_actual,
             "fuente": fuente,
             "confianza": "Confirmado",
@@ -169,7 +190,7 @@ def evaluar_y_normalizar_producto(
             "condiciones": condicion,
             "disponibilidad": disponible,
             "stock_unidades": stock_unidades,
-            "url": _url_segura(url),
+            "url": _url_segura(url, tienda=tienda),
             "fecha_consulta": fecha_actual,
             "fuente": fuente,
             "confianza": "Confirmado",
@@ -210,7 +231,7 @@ def evaluar_y_normalizar_producto(
             "condiciones": condicion,
             "disponibilidad": disponible,
             "stock_unidades": stock_unidades,
-            "url": _url_segura(url),
+            "url": _url_segura(url, tienda=tienda),
             "fecha_consulta": fecha_actual,
             "fuente": fuente,
             "confianza": "Confirmado",
@@ -259,7 +280,7 @@ def evaluar_y_normalizar_producto(
                 "condiciones": condicion,
                 "disponibilidad": disponible,
                 "stock_unidades": stock_unidades,
-                "url": _url_segura(url),
+                "url": _url_segura(url, tienda=tienda),
                 "fecha_consulta": fecha_actual,
                 "fuente": fuente,
                 "confianza": "Confirmado",
@@ -300,7 +321,7 @@ def evaluar_y_normalizar_producto(
                 "condiciones": condicion,
                 "disponibilidad": disponible,
                 "stock_unidades": stock_unidades,
-                "url": _url_segura(url),
+                "url": _url_segura(url, tienda=tienda),
                 "fecha_consulta": fecha_actual,
                 "fuente": fuente,
                 "confianza": "Confirmado",
