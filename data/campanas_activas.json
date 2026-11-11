@@ -1,50 +1,50 @@
 {
   "Bodegas Alianza": {
     "campana": "Bombazo de Precios",
-    "detalle_campana": "Bombazo de Precios (158 con rebaja)",
+    "detalle_campana": "Bombazo de Precios (163 con rebaja)",
     "vigencia_corta": "12 Nov",
-    "fecha_auditoria": "2026-11-09 20:06",
-    "items_totales": 553,
-    "items_con_rebaja": 158
+    "fecha_auditoria": "2026-11-11 00:43",
+    "items_totales": 547,
+    "items_con_rebaja": 163
   },
   "Sam's Club": {
     "campana": "El Fin Irresistible",
-    "detalle_campana": "El Fin Irresistible (49 con rebaja)",
+    "detalle_campana": "El Fin Irresistible (48 con rebaja)",
     "vigencia_corta": "18 Nov",
-    "fecha_auditoria": "2026-11-09 20:06",
+    "fecha_auditoria": "2026-11-11 00:43",
     "items_totales": 91,
-    "items_con_rebaja": 49
+    "items_con_rebaja": 48
   },
   "Costco": {
     "campana": "Cuponera de Temporada",
-    "detalle_campana": "Cuponera de Temporada (46 con rebaja)",
+    "detalle_campana": "Cuponera de Temporada (42 con rebaja)",
     "vigencia_corta": "15 Nov",
-    "fecha_auditoria": "2026-11-09 20:10",
-    "items_totales": 51,
-    "items_con_rebaja": 46
+    "fecha_auditoria": "2026-11-11 00:47",
+    "items_totales": 47,
+    "items_con_rebaja": 42
   },
   "Walmart": {
     "campana": "El Fin Irresistible",
-    "detalle_campana": "El Fin Irresistible (379 con rebaja)",
+    "detalle_campana": "El Fin Irresistible (360 con rebaja)",
     "vigencia_corta": "18 Nov",
-    "fecha_auditoria": "2026-11-09 20:08",
-    "items_totales": 434,
-    "items_con_rebaja": 379
+    "fecha_auditoria": "2026-11-11 00:45",
+    "items_totales": 456,
+    "items_con_rebaja": 360
   },
   "Chedraui": {
     "campana": "Preventa Modo Fin / Buen Fin",
-    "detalle_campana": "Preventa Modo Fin / Buen Fin (17 con rebaja)",
+    "detalle_campana": "Preventa Modo Fin / Buen Fin (140 con rebaja)",
     "vigencia_corta": "17 Nov",
-    "fecha_auditoria": "2026-11-09 20:06",
-    "items_totales": 137,
-    "items_con_rebaja": 17
+    "fecha_auditoria": "2026-11-11 00:43",
+    "items_totales": 145,
+    "items_con_rebaja": 140
   },
   "Soriana": {
     "campana": "Pre Buen Fin / Reventados",
-    "detalle_campana": "Pre Buen Fin / Reventados (2 con rebaja)",
+    "detalle_campana": "Pre Buen Fin / Reventados (1 con rebaja)",
     "vigencia_corta": "17 Nov",
-    "fecha_auditoria": "2026-11-09 20:08",
-    "items_totales": 142,
-    "items_con_rebaja": 2
+    "fecha_auditoria": "2026-11-11 00:45",
+    "items_totales": 143,
+    "items_con_rebaja": 1
   }
 }
