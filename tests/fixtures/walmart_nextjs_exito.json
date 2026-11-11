@@ -1,0 +1,90 @@
+{
+  "query": {
+    "q": "tequila"
+  },
+  "props": {
+    "pageProps": {
+      "initialData": {
+        "searchResult": {
+          "title": "Resultados para \"tequila\"",
+          "itemStacks": [
+            {
+              "items": [
+                {
+                  "usItemId": "wm_exito_001",
+                  "name": "Tequila Don Julio 70 Añejo Cristalino 700 ml",
+                  "brand": "Don Julio",
+                  "canonicalUrl": "/ip/tequila-don-julio-70-700-ml/wm_exito_001",
+                  "availabilityStatusV2": {
+                    "value": "IN_STOCK",
+                    "display": "Disponible"
+                  },
+                  "priceInfo": {
+                    "linePrice": "$829.00",
+                    "wasPrice": "$1,049.00",
+                    "savings": "Ahorra $220.00"
+                  }
+                },
+                {
+                  "usItemId": "wm_exito_001",
+                  "name": "Tequila Don Julio 70 Añejo Cristalino 700 ml",
+                  "brand": "Don Julio",
+                  "canonicalUrl": "/ip/tequila-don-julio-70-700-ml/wm_exito_001",
+                  "availabilityStatusV2": {
+                    "value": "IN_STOCK"
+                  },
+                  "priceInfo": {
+                    "linePrice": "$829.00",
+                    "wasPrice": "$1,049.00"
+                  }
+                },
+                {
+                  "usItemId": "wm_exito_002",
+                  "name": "Mezcal 400 Conejos Joven Espadín 750 ml",
+                  "brand": "400 Conejos",
+                  "canonicalUrl": "https://www.walmart.com.mx/ip/mezcal-400-conejos-750-ml/wm_exito_002",
+                  "availabilityStatusV2": {
+                    "value": "IN_STOCK"
+                  },
+                  "priceInfo": {
+                    "linePrice": "$525.00",
+                    "wasPrice": "$525.00"
+                  }
+                },
+                {
+                  "usItemId": "wm_agotado_003",
+                  "name": "Whisky Buchanan's 12 Años DeLuxe 750 ml",
+                  "brand": "Buchanan's",
+                  "canonicalUrl": "/ip/whisky-buchanans-12/wm_agotado_003",
+                  "availabilityStatusV2": {
+                    "value": "OUT_OF_STOCK",
+                    "display": "Agotado"
+                  },
+                  "priceInfo": {
+                    "linePrice": "$790.00",
+                    "wasPrice": "$890.00"
+                  }
+                },
+                {
+                  "usItemId": "wm_descarte_004",
+                  "name": "Refresco de Cola Sin Azúcar 2 L",
+                  "brand": "Genérico",
+                  "canonicalUrl": "/ip/refresco-cola/wm_descarte_004",
+                  "availabilityStatusV2": {
+                    "value": "IN_STOCK"
+                  },
+                  "priceInfo": {
+                    "linePrice": "$32.00"
+                  }
+                },
+                {
+                  "name": "Producto sin ID que debe ignorarse en loop"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

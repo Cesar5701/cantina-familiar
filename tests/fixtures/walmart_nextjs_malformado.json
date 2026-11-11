@@ -1,0 +1,39 @@
+{
+  "variantes": {
+    "sin_props": {},
+    "sin_search_result": {
+      "props": {
+        "pageProps": {
+          "initialData": {}
+        }
+      }
+    },
+    "sin_item_stacks": {
+      "props": {
+        "pageProps": {
+          "initialData": {
+            "searchResult": {
+              "title": "Resultados para \"whisky\""
+            }
+          }
+        }
+      }
+    },
+    "stacks_vacios": {
+      "props": {
+        "pageProps": {
+          "initialData": {
+            "searchResult": {
+              "itemStacks": [
+                {},
+                {
+                  "items": []
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

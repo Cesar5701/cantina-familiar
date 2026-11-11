@@ -103,7 +103,8 @@ Cantina Familiar/
 │   ├── test_red_http_y_empaquetado.py # Pruebas de HTTP backoff, mocks, empaquetado y entry points (22 pruebas)
 │   ├── test_regression_fixtures.py # Pruebas de parseo con fixtures congelados contra regresiones (6 pruebas)
 │   ├── test_scraper_selenium.py    # Pruebas del scraper asistido Selenium y detección de retos (23 pruebas)
-│   └── test_scrapers_adquisicion.py# Pruebas de scrapers de adquisición y normalización multi-tienda (20 pruebas)
+│   ├── test_scrapers_adquisicion.py# Pruebas de scrapers de adquisición y normalización multi-tienda (20 pruebas)
+│   └── test_walmart_sams_fixtures.py # Pruebas exhaustivas de Walmart/Sam's con fixtures congelados (9 pruebas)
 ├── pyproject.toml                  # Empaquetado estándar pip, entry points CLI y metadatos (H13, H50)
 ├── requirements.txt                # Dependencias base de producción con cotas fijadas
 ├── requirements-dev.txt            # Dependencias de desarrollo y testing (pytest, ruff)
@@ -188,7 +189,7 @@ cantina-historial --resumen
 > - `cantina-historial` consulta la evolución de precios a lo largo del tiempo, reconstruye snapshots históricos y clasifica el semáforo anti-inflación (`minimo_historico`, `descuento_inflado`, etc.).
 
 ### 2. Ejecutar la Suite de Pruebas Unitarias
-El proyecto cuenta con **266 pruebas automatizadas** organizadas en módulos de testing con una cobertura del **80%** (`tests/`), que cubren clasificación NOM, normalización de multipacks (`Pack 6`, `Pack x 3`, `(8 Bot)`, etc.), normalización de medidas (`ml` y `L`), métricas por litro, exclusión explícita de outliers de lujo, umbrales centralizados de presupuesto, arbitraje cross-tienda no-stale, validación de esquema y cordura (volumen, ABV, precios), selectores interactivos en cascada, escritura atómica, cliente HTTP con backoff y Retry-After, detección y aborto de retos WAF en nodriver CDP, parseo con mocks/fixtures congelados, entry points CLI, arquitectura modular de plantillas, accesibilidad WCAG y persistencia de estado:
+El proyecto cuenta con **275 pruebas automatizadas** organizadas en módulos de testing con una cobertura del **83%** (`tests/`), que cubren clasificación NOM, normalización de multipacks (`Pack 6`, `Pack x 3`, `(8 Bot)`, etc.), normalización de medidas (`ml` y `L`), métricas por litro, exclusión explícita de outliers de lujo, umbrales centralizados de presupuesto, arbitraje cross-tienda no-stale, validación de esquema y cordura (volumen, ABV, precios), selectores interactivos en cascada, escritura atómica, cliente HTTP con backoff y Retry-After, detección y aborto de retos WAF en nodriver CDP, parseo con mocks/fixtures congelados, entry points CLI, arquitectura modular de plantillas, accesibilidad WCAG y persistencia de estado:
 
 ```bash
 pytest
