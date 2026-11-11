@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Cantina Familiar</title>
+  <meta name="theme-color" content="#8C5332">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self'; base-uri 'self'; form-action 'self';">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <link rel="icon" type="image/svg+xml" href="<!-- @datauri assets/favicon.svg -->">
+  <link rel="apple-touch-icon" sizes="180x180" href="<!-- @datauri assets/apple-touch-icon.png -->">
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  <!-- ZERO-FLICKER TAB PRE-RENDER (Evita FOUC al recargar en una pestaña secundaria) -->
+  <script>
+    (function() {
+      try {
+        var h = decodeURIComponent(String(location.hash || "").replace(/^#/, "")).trim().toLowerCase().replace(/^tab-/, "");
+        var validas = ["versus", "carrito", "matriz"];
+        if (validas.indexOf(h) !== -1) {
+          var s = document.createElement("style");
+          s.id = "tab-preload-style";
+          s.textContent = "#tab-rankings{display:none !important;}#tab-" + h + "{display:block !important;}" +
+                          "#btn-tab-rankings{background-color:transparent !important;color:#52443c !important;box-shadow:none !important;}" +
+                          "#btn-tab-" + h + "{background-color:#8c5332 !important;color:#ffffff !important;box-shadow:0 1px 2px 0 rgba(0,0,0,0.08) !important;}" +
+                          "#mob-btn-tab-rankings{color:#85746b !important;font-weight:500 !important;}" +
+                          "#mob-btn-tab-" + h + "{color:#703c1d !important;font-weight:700 !important;}";
+          document.head.appendChild(s);
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <style>
+<!-- @include css/estilos.css -->
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-surface text-on-surface font-body selection:bg-secondary-container selection:text-on-secondary-fixed antialiased">
+
+  <!-- SNACKBAR / TOAST ARCHIVAL -->
+  <div id="toast-notif" class="toast">Producto añadido al carrito</div>
+
+<!-- @include secciones/cabecera_y_navegacion.html -->
+
+<!-- @include secciones/vista_rankings.html -->
+
+<!-- @include secciones/vista_versus.html -->
+
+<!-- @include secciones/vista_carrito.html -->
+
+<!-- @include secciones/vista_matriz.html -->
+
+<!-- @include secciones/pie_y_modales.html -->
+
+  <!-- SCRIPT DE INTELIGENCIA DE NEGOCIO Y REACTIVIDAD -->
+  <script>
+<!-- @include js/estado_y_utilidades.js -->
+
+<!-- @include js/modales_y_subtipos.js -->
+
+<!-- @include js/carrito_y_canastas.js -->
+
+<!-- @include js/navegacion_y_catalogo.js -->
+
+<!-- @include js/versus_y_arranque.js -->
+  </script>
+</body>
+</html>

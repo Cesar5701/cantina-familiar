@@ -49,8 +49,8 @@ jobs:
       - name: Regenerar Catálogos y Dashboard
         timeout-minutes: 5
         run: |
-          python src/actualizar_dashboard_completo.py
-          python src/generar_dashboard.py
+          python src/sincronizador.py
+          python src/interfaz/compilador_web.py
 
       - name: Ejecutar pruebas unitarias y cobertura
         timeout-minutes: 5

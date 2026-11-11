@@ -50,11 +50,11 @@ dev = [
 ]
 
 [project.scripts]
-cantina-scrapear = "src.scrapear_todo:main"
-cantina-consolidar = "src.actualizar_dashboard_completo:main"
-cantina-dashboard = "src.generar_dashboard:main"
-cantina-analizar = "src.analizador:main"
-cantina-historial = "src.historial:main"
+cantina-scrapear = "src.orquestador:main"
+cantina-consolidar = "src.sincronizador:main"
+cantina-dashboard = "src.interfaz.compilador_web:main"
+cantina-analizar = "src.catalogo:main"
+cantina-historial = "src.catalogo.series_historicas:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

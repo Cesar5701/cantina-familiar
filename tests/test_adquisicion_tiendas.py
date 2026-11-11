@@ -1,0 +1,1089 @@
+"""
+Suite de pruebas unitarias exhaustivas para la capa de adquisición (H43):
+- scraper_multitienda (evaluar_y_normalizar_producto, Chedraui, Walmart, Sam's Club, Soriana)
+- scraper_catalogo_completo (procesar_catalogo_completo con mocks VTEX)
+- alianza (consultar_api_alianza con manejo defensivo)
+"""
+
+import json
+from unittest.mock import patch
+
+from src.adquisicion import (
+    consultar_api_alianza,
+    evaluar_y_normalizar_producto,
+    procesar_catalogo_completo,
+    scrapear_chedraui,
+    scrapear_costco,
+    scrapear_nextjs_walmart_platform,
+    scrapear_soriana,
+)
+
+# ==============================================================================
+# 1. PRUEBAS DE NORMALIZACIÓN Y CLASIFICACIÓN MULTITIENDA
+# ==============================================================================
+
+
+def test_evaluar_y_normalizar_producto_tequilas():
+    """Valida la clasificación de Tequilas permitidos (Añejo Cristalino, Reposado Cristalino, Añejo Tradicional)."""
+    fecha = "2026-10-17 12:00"
+
+    # Añejo Cristalino
+    dobel = evaluar_y_normalizar_producto(
+        tienda="Walmart",
+        nombre="Tequila Maestro Dobel Diamante 700 ml",
+        marca="Maestro Dobel",
+        precio_regular=800.0,
+        precio_promo=650.0,
+        disponible="disponible",
+        url="https://walmart.com/dobel",
+        condicion="Oferta",
+        fuente="Walmart",
+        fecha_actual=fecha,
+    )
+    assert dobel is not None
+    assert dobel["categoria"] == "Tequila"
+    assert dobel["subcategoria"] == "Añejo Cristalino"
+    assert dobel["precio_promo"] == 650.0
+    assert dobel["ml"] == 700
+
+    # Reposado Cristalino
+    mayorazgo = evaluar_y_normalizar_producto(
+        tienda="Chedraui",
+        nombre="Tequila Mayorazgo Cristalino 750 ml",
+        marca="Mayorazgo",
+        precio_regular=550.0,
+        precio_promo=430.0,
+        disponible="disponible",
+        url="https://chedraui.com/mayorazgo",
+        condicion="Precio regular",
+        fuente="Chedraui",
+        fecha_actual=fecha,
+    )
+    assert mayorazgo is not None
+    assert mayorazgo["subcategoria"] == "Reposado Cristalino"
+
+    # Añejo Tradicional
+    herradura = evaluar_y_normalizar_producto(
+        tienda="Soriana",
+        nombre="Tequila Herradura Añejo 750 ml",
+        marca="Herradura",
+        precio_regular=920.0,
+        precio_promo=780.0,
+        disponible="disponible",
+        url="https://soriana.com/herradura",
+        condicion="Descuento",
+        fuente="Soriana",
+        fecha_actual=fecha,
+    )
+    assert herradura is not None
+    assert herradura["subcategoria"] == "Añejo Tradicional"
+
+
+def test_evaluar_y_normalizar_producto_mezcales():
+    """Valida la clasificación de Mezcales (Silvestres, Reposados, Añejos, Espadín Joven)."""
+    fecha = "2026-10-17 12:00"
+
+    # Silvestre
+    tobala = evaluar_y_normalizar_producto(
+        tienda="Walmart",
+        nombre="Mezcal Ojo de Tigre Tobalá Silvestre 750 ml",
+        marca="Ojo de Tigre",
+        precio_regular=850.0,
+        precio_promo=720.0,
+        disponible="disponible",
+        url="https://walmart.com/tobala",
+        condicion="Oferta",
+        fuente="Walmart",
+        fecha_actual=fecha,
+    )
+    assert tobala is not None
+    assert tobala["categoria"] == "Mezcal"
+    assert tobala["subcategoria"] == "Silvestre"
+
+    # Reposado
+    zignum = evaluar_y_normalizar_producto(
+        tienda="Bodegas Alianza",
+        nombre="Mezcal Zignum Reposado 700 ml",
+        marca="Zignum",
+        precio_regular=620.0,
+        precio_promo=510.0,
+        disponible="disponible",
+        url="https://alianza.com/zignum",
+        condicion="Precio regular",
+        fuente="Bodegas Alianza",
+        fecha_actual=fecha,
+    )
+    assert zignum is not None
+    assert zignum["subcategoria"] == "Reposado"
+
+    # Espadín Joven
+    conejos = evaluar_y_normalizar_producto(
+        tienda="Sam's Club",
+        nombre="Mezcal 400 Conejos Espadín Joven 750 ml",
+        marca="400 Conejos",
+        precio_regular=600.0,
+        precio_promo=499.0,
+        disponible="disponible",
+        url="https://sams.com/400conejos",
+        condicion="Precio socio",
+        fuente="Sam's Club",
+        fecha_actual=fecha,
+    )
+    assert conejos is not None
+    assert conejos["subcategoria"] == "Espadín Joven"
+
+
+def test_evaluar_y_normalizar_producto_whiskies_y_licores():
+    """Valida la clasificación de Whisky Blended Scotch y Licores Honey."""
+    fecha = "2026-10-17 12:00"
+
+    # Blended Scotch
+    jw = evaluar_y_normalizar_producto(
+        tienda="Chedraui",
+        nombre="Whisky Johnnie Walker Black Label 750 ml",
+        marca="Johnnie Walker",
+        precio_regular=900.0,
+        precio_promo=750.0,
+        disponible="disponible",
+        url="https://chedraui.com/jw",
+        condicion="Oferta",
+        fuente="Chedraui",
+        fecha_actual=fecha,
+    )
+    assert jw is not None
+    assert jw["categoria"] == "Whisky"
+    assert jw["subcategoria"] == "Blended Scotch"
+
+    # Jack Daniel's Old No. 7 (Tennessee Whiskey clasificado en vista general de Whisky)
+    jd_old7 = evaluar_y_normalizar_producto(
+        tienda="Bodegas Alianza",
+        nombre="Whiskey Jack Daniel’s Old No. 7 Tennessee 1 L",
+        marca="Jack Daniel's",
+        precio_regular=550.0,
+        precio_promo=504.0,
+        disponible="disponible",
+        url="https://bodegasalianza.com/jd7",
+        condicion="Oferta",
+        fuente="Bodegas Alianza",
+        fecha_actual=fecha,
+    )
+    assert jd_old7 is not None
+    assert jd_old7["categoria"] == "Whisky"
+    assert jd_old7["subcategoria"] == "Blended Scotch"
+
+    # Honey Liqueur (Jack Daniel's Honey)
+    jd_honey = evaluar_y_normalizar_producto(
+        tienda="Walmart",
+        nombre="Whiskey Jack Daniel's Honey Tennessee 700 ml",
+        marca="Jack Daniel's",
+        precio_regular=550.0,
+        precio_promo=440.0,
+        disponible="disponible",
+        url="https://walmart.com/jd-honey",
+        condicion="Oferta",
+        fuente="Walmart",
+        fecha_actual=fecha,
+    )
+    assert jd_honey is not None
+    assert jd_honey["categoria"] == "Licor de Whisky"
+    assert jd_honey["subcategoria"] == "Honey Liqueur"
+
+    # Apple Liqueur (Jack Daniel's Apple) en la misma categoría de Honey
+    jd_apple = evaluar_y_normalizar_producto(
+        tienda="Sam's Club",
+        nombre="Whiskey Jack Daniel's Tennesse Apple 700 ml",
+        marca="Jack Daniel's",
+        precio_regular=450.0,
+        precio_promo=360.10,
+        disponible="disponible",
+        url="https://sams.com.mx/jd-apple",
+        condicion="Precio socio",
+        fuente="Sam's Club",
+        fecha_actual=fecha,
+    )
+    assert jd_apple is not None
+    assert jd_apple["categoria"] == "Licor de Whisky"
+    assert jd_apple["subcategoria"] == "Honey Liqueur"
+
+
+def test_evaluar_y_normalizar_producto_vinos_tintos():
+    """Valida la clasificación de Vino Tinto Clericot y garrafas familiares."""
+    fecha = "2026-10-17 12:00"
+
+    # Botella estándar económica
+    vino = evaluar_y_normalizar_producto(
+        tienda="Soriana",
+        nombre="Vino Tinto Concha y Toro Reservado Cabernet 750 ml",
+        marca="Concha y Toro",
+        precio_regular=180.0,
+        precio_promo=135.0,
+        disponible="disponible",
+        url="https://soriana.com/vino",
+        condicion="Precio regular",
+        fuente="Soriana",
+        fecha_actual=fecha,
+    )
+    assert vino is not None
+    assert vino["categoria"] == "Vino"
+    assert vino["subcategoria"] == "Tinto Clericot"
+
+    # Garrafa familiar (3L)
+    garrafa = evaluar_y_normalizar_producto(
+        tienda="Sam's Club",
+        nombre="Vino Tinto Carlo Rossi 3 L",
+        marca="Carlo Rossi",
+        precio_regular=420.0,
+        precio_promo=360.0,
+        disponible="disponible",
+        url="https://sams.com/rossi",
+        condicion="Precio socio",
+        fuente="Sam's Club",
+        fecha_actual=fecha,
+    )
+    assert garrafa is not None
+    assert garrafa["categoria"] == "Vino"
+    assert garrafa["ml"] == 3000
+
+
+def test_evaluar_y_normalizar_producto_descartes():
+    """Valida los filtros defensivos de descarte de productos no deseados."""
+    fecha = "2026-10-17 12:00"
+
+    # Nombre muy corto
+    assert (
+        evaluar_y_normalizar_producto("Tienda", "Teq", "M", 500, 400, "disponible", "https://x.com", "O", "F", fecha)
+        is None
+    )
+
+    # Miniatura < 650 ml
+    assert (
+        evaluar_y_normalizar_producto(
+            "Tienda",
+            "Tequila Don Julio 70 50 ml miniatura",
+            "M",
+            120,
+            90,
+            "disponible",
+            "https://x.com",
+            "O",
+            "F",
+            fecha,
+        )
+        is None
+    )
+
+    # Mercancía no bebible
+    assert (
+        evaluar_y_normalizar_producto(
+            "Tienda",
+            "Vaso tequilero caballito 750 ml vidrio",
+            "M",
+            200,
+            150,
+            "disponible",
+            "https://x.com",
+            "O",
+            "F",
+            fecha,
+        )
+        is None
+    )
+
+    # Bebida excluida (Vodka, Ron, Ginebra)
+    assert (
+        evaluar_y_normalizar_producto(
+            "Tienda",
+            "Vodka Smirnoff Tamarindo 750 ml",
+            "Smirnoff",
+            300,
+            240,
+            "disponible",
+            "https://x.com",
+            "O",
+            "F",
+            fecha,
+        )
+        is None
+    )
+
+    # Precio inválido o menor a umbral mínimo ($50)
+    assert (
+        evaluar_y_normalizar_producto(
+            "Tienda",
+            "Tequila Don Julio 70 700 ml",
+            "M",
+            40,
+            30,
+            "disponible",
+            "https://x.com",
+            "O",
+            "F",
+            fecha,
+        )
+        is None
+    )
+
+    # Tequila Blanco o Reposado tradicional (fuera del alcance familiar)
+    assert (
+        evaluar_y_normalizar_producto(
+            "Tienda",
+            "Tequila Don Ramón Blanco Plata 750 ml",
+            "Don Ramón",
+            350,
+            280,
+            "disponible",
+            "https://x.com",
+            "O",
+            "F",
+            fecha,
+        )
+        is None
+    )
+
+    # Vino blanco descartado
+    assert (
+        evaluar_y_normalizar_producto(
+            "Tienda",
+            "Vino Blanco Chardonnay Concha y Toro 750 ml",
+            "Concha y Toro",
+            200,
+            160,
+            "disponible",
+            "https://x.com",
+            "O",
+            "F",
+            fecha,
+        )
+        is None
+    )
+
+
+# ==============================================================================
+# 2. PRUEBAS DE SCRAPERS MULTITIENDA CON MOCKS
+# ==============================================================================
+
+
+def test_scrapear_chedraui_mock_exitoso():
+    """Valida la ejecución de scrapear_chedraui con respuesta mock de la API VTEX (H43)."""
+    mock_item = [
+        {
+            "productId": "12345",
+            "productName": "Tequila Maestro Dobel Diamante 700 ml",
+            "brand": "Maestro Dobel",
+            "link": "https://chedraui.com.mx/dobel",
+            "items": [
+                {
+                    "sellers": [
+                        {
+                            "commertialOffer": {
+                                "Price": 629.0,
+                                "ListPrice": 799.0,
+                                "AvailableQuantity": 8,
+                            }
+                        }
+                    ]
+                }
+            ],
+        },
+        # Item agotado (debe descartarse)
+        {
+            "productId": "67890",
+            "productName": "Tequila Herradura Añejo 750 ml",
+            "brand": "Herradura",
+            "link": "https://chedraui.com.mx/herradura",
+            "items": [
+                {
+                    "sellers": [
+                        {
+                            "commertialOffer": {
+                                "Price": 700.0,
+                                "ListPrice": 850.0,
+                                "AvailableQuantity": 0,
+                            }
+                        }
+                    ]
+                }
+            ],
+        },
+    ]
+
+    with patch("src.adquisicion.chedraui.descargar_json_con_reintentos", return_value=mock_item):
+        resultados = scrapear_chedraui(terminos=["tequila cristalino"])
+        assert len(resultados) == 1
+        p = resultados[0]
+        assert p["tienda"] == "Chedraui"
+        assert p["producto"] == "Tequila Maestro Dobel Diamante 700 ml"
+        assert p["precio_promo"] == 629.0
+        assert p["precio_regular"] == 799.0
+        assert p["disponibilidad"] == "disponible"
+
+
+def test_scrapear_nextjs_walmart_platform_mock():
+    """Valida la extracción desde SSR __NEXT_DATA__ para Walmart y Sam's Club (H43)."""
+    next_data = {
+        "props": {
+            "pageProps": {
+                "initialData": {
+                    "searchResult": {
+                        "itemStacks": [
+                            {
+                                "items": [
+                                    {
+                                        "usItemId": "wm_001",
+                                        "name": "Tequila Don Julio 70 Añejo Cristalino 700 ml",
+                                        "brand": "Don Julio",
+                                        "canonicalUrl": "/ip/don-julio-70/wm_001",
+                                        "availabilityStatusV2": {"value": "IN_STOCK"},
+                                        "priceInfo": {
+                                            "linePrice": "$820.00",
+                                            "wasPrice": "$990.00",
+                                            "savings": "$170",
+                                        },
+                                    },
+                                    # Item agotado vía availabilityStatusV2.value
+                                    {
+                                        "usItemId": "wm_002",
+                                        "name": "Whisky Black & White 700 ml",
+                                        "availabilityStatusV2": {"value": "OUT_OF_STOCK"},
+                                    },
+                                    # Item agotado vía showAtc = False (ej. bundle marketplace agotado)
+                                    {
+                                        "usItemId": "wm_003",
+                                        "name": "Whisky Johnnie Walker Black Label 1L X3",
+                                        "showAtc": False,
+                                        "priceInfo": {"linePrice": "$1,799.00"},
+                                    },
+                                    # Item agotado vía canAddToCart = False
+                                    {
+                                        "usItemId": "wm_004",
+                                        "name": "Tequila El Tequileño Cristalino 750 ml",
+                                        "canAddToCart": False,
+                                        "priceInfo": {"linePrice": "$450.00"},
+                                    },
+                                    # Item agotado vía availabilityStatusV2.display = "Agotado"
+                                    {
+                                        "usItemId": "wm_005",
+                                        "name": "Mezcal Ojo de Tigre 750 ml",
+                                        "availabilityStatusV2": {"display": "Agotado"},
+                                        "priceInfo": {"linePrice": "$520.00"},
+                                    },
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    }
+    html = f'<html><script id="__NEXT_DATA__" type="application/json">{json.dumps(next_data)}</script></html>'
+
+    with patch("src.adquisicion.walmart.descargar_html_con_reintentos", return_value=html):
+        resultados = scrapear_nextjs_walmart_platform(
+            tienda="Walmart",
+            base_domain="super.walmart.com.mx",
+            terminos=["tequila cristalino"],
+        )
+        assert len(resultados) == 1
+        prod = resultados[0]
+        assert prod["tienda"] == "Walmart"
+        assert prod["producto"] == "Tequila Don Julio 70 Añejo Cristalino 700 ml"
+        assert prod["precio_promo"] == 820.0
+        assert prod["precio_regular"] == 990.0
+
+
+def test_scrapear_nextjs_walmart_platform_circuit_breaker_y_respaldo(tmp_path):
+    """Valida que ante un reto WAF/PerimeterX se active el Circuit Breaker y cargue el respaldo sin errores."""
+    from src.adquisicion.walmart import es_pagina_desafio_waf
+
+    html_waf = "<html><head><title>Verify Your Identity</title></head><body>px-captcha</body></html>"
+    assert es_pagina_desafio_waf(html_waf) is True
+    assert es_pagina_desafio_waf(None) is True
+    assert es_pagina_desafio_waf('<html><script id="__NEXT_DATA__">{}</script></html>') is False
+
+    csv_respaldo = tmp_path / "scraped_sams_mock.csv"
+    csv_respaldo.write_text(
+        "tienda,producto,marca,categoria,subcategoria,ml,precio_regular,precio_promo,disponibilidad\n"
+        "Sam's Club,Tequila Don Julio 70 Añejo Cristalino 700 ml,Don Julio,Tequila,Añejo Cristalino,700,1020.0,846.0,disponible\n",
+        encoding="utf-8",
+    )
+
+    with patch("src.adquisicion.walmart.descargar_html_con_reintentos", return_value=html_waf) as mock_dl:
+        resultados = scrapear_nextjs_walmart_platform(
+            tienda="Sam's Club",
+            base_domain="www.sams.com.mx",
+            terminos=["tequila", "mezcal", "whisky"],
+            ruta_respaldo=str(csv_respaldo),
+        )
+        # Circuit breaker debe detenerse en el primer término bloqueado
+        assert mock_dl.call_count == 1
+        assert len(resultados) == 1
+        assert resultados[0]["producto"] == "Tequila Don Julio 70 Añejo Cristalino 700 ml"
+
+
+def test_scrapear_nextjs_walmart_platform_upsert_incremental(tmp_path):
+    """Valida que los nuevos productos actualicen o se agreguen al respaldo sin borrar productos previos."""
+    csv_respaldo = tmp_path / "scraped_walmart_mock.csv"
+    csv_respaldo.write_text(
+        "tienda,producto,marca,categoria,subcategoria,ml,precio_regular,precio_promo,disponibilidad,url\n"
+        "Walmart,Tequila Don Julio 70 Añejo Cristalino 700 ml,Don Julio,Tequila,Añejo Cristalino,700,1020.0,846.0,disponible,https://walmart.com.mx/p1\n"
+        "Walmart,Whisky Johnnie Walker Black 750 ml,Johnnie Walker,Whisky,Blended Scotch,750,900.0,750.0,disponible,https://walmart.com.mx/p2\n",
+        encoding="utf-8",
+    )
+
+    # Simular una búsqueda que actualiza Don Julio a $799 y añade Mezcal 400 Conejos
+    next_data = {
+        "props": {
+            "pageProps": {
+                "initialData": {
+                    "searchResult": {
+                        "itemStacks": [
+                            {
+                                "items": [
+                                    {
+                                        "usItemId": "wm_p1",
+                                        "name": "Tequila Don Julio 70 Añejo Cristalino 700 ml",
+                                        "brand": "Don Julio",
+                                        "canonicalUrl": "/p1",
+                                        "availabilityStatusV2": {"value": "IN_STOCK"},
+                                        "priceInfo": {"linePrice": "$799.00", "wasPrice": "$1,020.00"},
+                                    },
+                                    {
+                                        "usItemId": "wm_p3",
+                                        "name": "Mezcal 400 Conejos Espadín 750 ml",
+                                        "brand": "400 Conejos",
+                                        "canonicalUrl": "/p3",
+                                        "availabilityStatusV2": {"value": "IN_STOCK"},
+                                        "priceInfo": {"linePrice": "$480.00"},
+                                    },
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    }
+    html = f'<html><script id="__NEXT_DATA__" type="application/json">{json.dumps(next_data)}</script></html>'
+
+    with patch("src.adquisicion.walmart.descargar_html_con_reintentos", return_value=html):
+        resultados = scrapear_nextjs_walmart_platform(
+            tienda="Walmart",
+            base_domain="www.walmart.com.mx",
+            terminos=["tequila"],
+            ruta_respaldo=str(csv_respaldo),
+        )
+
+    # Deben existir 3 productos: Don Julio actualizado ($799), Whisky conservado ($750), y Mezcal insertado ($480)
+    assert len(resultados) == 3
+    por_url = {p["url"]: p for p in resultados}
+    assert por_url["https://www.walmart.com.mx/p1"]["precio_promo"] == 799.0
+    assert por_url["https://walmart.com.mx/p2"]["precio_promo"] == 750.0
+    assert por_url["https://www.walmart.com.mx/p3"]["precio_promo"] == 480.0
+
+
+def test_scrapear_nextjs_walmart_platform_fallback_selenium_y_prerender(tmp_path):
+    """Valida que ante caché señuelo Akamai/Prerender o WAF se active el fallback automático a Selenium con UPSERT."""
+    from src.adquisicion.walmart import es_respuesta_prerender_falsa
+
+    # 1. Validar detector de respuesta señuelo Akamai/Prerender ('leche' al buscar 'tequila')
+    data_leche = {
+        "query": {"q": "leche"},
+        "props": {"pageProps": {"initialData": {"searchResult": {"title": 'Resultados para "leche"'}}}},
+    }
+    es_falso, q_det = es_respuesta_prerender_falsa(data_leche, "tequila")
+    assert es_falso is True
+    assert q_det == "leche"
+
+    data_valida = {
+        "query": {"q": "tequila"},
+        "props": {"pageProps": {"initialData": {"searchResult": {"title": 'Resultados para "tequila"'}}}},
+    }
+    assert es_respuesta_prerender_falsa(data_valida, "tequila")[0] is False
+
+    # 2. Validar fallback automático a Selenium + UPSERT incremental cuando HTTP devuelve caché señuelo
+    csv_respaldo = tmp_path / "scraped_walmart_sel.csv"
+    csv_respaldo.write_text(
+        "tienda,producto,marca,categoria,subcategoria,ml,precio_regular,precio_promo,disponibilidad,url\n"
+        "Walmart,Tequila Don Julio 70 Añejo Cristalino 700 ml,Don Julio,Tequila,Añejo Cristalino,700,1020.0,846.0,disponible,https://www.walmart.com.mx/p1\n",
+        encoding="utf-8",
+    )
+    html_leche = f'<html><script id="__NEXT_DATA__" type="application/json">{json.dumps(data_leche)}</script></html>'
+
+    prods_selenium_mock = [
+        {
+            "tienda": "Walmart",
+            "producto": "Tequila Don Julio 70 Añejo Cristalino 700 ml",
+            "marca": "Don Julio",
+            "precio_regular": 990.0,
+            "precio_promo": 655.0,
+            "disponibilidad": "disponible",
+            "url": "https://www.walmart.com.mx/p1",
+            "condiciones": "Descuento en línea",
+        },
+        {
+            "tienda": "Walmart",
+            "producto": "Whisky Chivas Regal 12 Años 750 ml",
+            "marca": "Chivas Regal",
+            "precio_regular": 780.0,
+            "precio_promo": 620.0,
+            "disponibilidad": "disponible",
+            "url": "https://www.walmart.com.mx/p2",
+            "condiciones": "Descuento en línea",
+        },
+        # Producto irrelevante que debe ser descartado por normalizador
+        {
+            "tienda": "Walmart",
+            "producto": "Leche Santa Clara Entera 1 L",
+            "marca": "Santa Clara",
+            "precio_regular": 30.0,
+            "precio_promo": 28.0,
+            "disponibilidad": "disponible",
+            "url": "https://www.walmart.com.mx/leche",
+        },
+    ]
+
+    with (
+        patch("src.adquisicion.walmart.descargar_html_con_reintentos", return_value=html_leche) as mock_http,
+        patch("src.adquisicion.walmart.consultar_urls_secuenciales", return_value=prods_selenium_mock) as mock_sel,
+    ):
+        resultados = scrapear_nextjs_walmart_platform(
+            tienda="Walmart",
+            base_domain="www.walmart.com.mx",
+            terminos=["tequila", "whisky"],
+            ruta_respaldo=str(csv_respaldo),
+            usar_fallback_selenium=True,
+            headless_selenium=True,
+        )
+        # El Circuit Breaker de Prerender debe cortar HTTP en la 1ra consulta y saltar a Selenium
+        assert mock_http.call_count == 1
+        assert mock_sel.call_count == 1
+        assert len(resultados) == 2
+        por_prod = {p["producto"]: p for p in resultados}
+        assert por_prod["Tequila Don Julio 70 Añejo Cristalino 700 ml"]["precio_promo"] == 655.0
+        assert por_prod["Whisky Chivas Regal 12 Años 750 ml"]["precio_promo"] == 620.0
+
+
+def test_scrapear_soriana_mock():
+    """Valida la extracción desde HTML Salesforce Commerce Cloud de Soriana (H43)."""
+    html_soriana = """
+    <html>
+      <div class="product-tile">
+        <a class="product-tile--link" href="/tequila-herradura-ultra-750-ml">
+          Tequila Herradura Ultra Añejo Cristalino 750 ml
+        </a>
+        <div data-pid="sor_7501005"></div>
+        <input name="clevertap-list-price" value="890.00">
+        <div class="sales"><span class="cart-price">$699.00</span></div>
+      </div>
+      <!-- Tile agotado (.soldOutProduct y Agotado en línea) -->
+      <div class="product-tile soldOutProduct">
+        <a class="product-tile--link" href="/tequila-gran-centenario-ultra-vaso">
+          Tequila Gran Centenario Ultra 695 ml + Obsequio 1 Vaso Loud Cup
+        </a>
+        <div data-pid="sor_11930037"></div>
+        <input name="clevertap-list-price" value="499.00">
+        <div class="sales"><span class="cart-price">$499.00</span></div>
+        <span class="btn-add-to-cart--text">Agotado en línea</span>
+      </div>
+      <!-- Tile sin enlace válido -->
+      <div class="product-tile">
+        <div class="sales"><span class="cart-price">$500.00</span></div>
+      </div>
+    </html>
+    """
+
+    with patch("src.adquisicion.soriana.descargar_html_con_reintentos", return_value=html_soriana):
+        resultados = scrapear_soriana(terminos=["tequila cristalino"])
+        assert len(resultados) == 2
+        prod_disp = [p for p in resultados if "Herradura Ultra" in p["producto"]][0]
+        assert prod_disp["tienda"] == "Soriana"
+        assert prod_disp["disponibilidad"] == "disponible"
+        assert prod_disp["precio_promo"] == 699.0
+        assert prod_disp["precio_regular"] == 890.0
+
+        prod_agotado = [p for p in resultados if "Centenario Ultra" in p["producto"]][0]
+        assert prod_agotado["tienda"] == "Soriana"
+        assert prod_agotado["disponibilidad"] == "agotado"
+        assert prod_agotado["precio_promo"] == 499.0
+
+
+def test_scrapear_costco_mock_exitoso():
+    """Valida la extracción desde API OCC v2 de SAP Commerce Cloud de Costco (H43)."""
+    mock_response = {
+        "pagination": {"currentPage": 0, "totalPages": 1, "totalResults": 3},
+        "products": [
+            {
+                "code": "538764",
+                "name": "Don Julio 70 Cristalino Tequila 700 ml",
+                "price": {"value": 999.0},
+                "basePrice": {"value": 1149.0},
+                "couponDiscount": {"discountValue": 150.0},
+                "stock": {"stockLevelStatus": "inStock"},
+                "url": "/tequila/don-julio-70/p/538764",
+            },
+            # Producto agotado
+            {
+                "code": "999999",
+                "name": "Patrón Tequila Añejo 700 ml",
+                "price": {"value": 850.0},
+                "stock": {"stockLevelStatus": "outOfStock"},
+            },
+            # Producto con precio oculto
+            {
+                "code": "888888",
+                "name": "Siete Leguas Tequila Blanco 1 L",
+                "hidePriceValue": True,
+            },
+        ],
+    }
+
+    with patch("src.adquisicion.costco.descargar_json_con_reintentos", return_value=mock_response):
+        resultados = scrapear_costco(terminos=["tequila cristalino"])
+        assert len(resultados) == 1
+        p = resultados[0]
+        assert p["tienda"] == "Costco"
+        assert "Don Julio 70" in p["producto"]
+        assert p["precio_promo"] == 999.0
+        assert p["precio_regular"] == 1149.0
+        assert "Oferta Costco (Ahorra $150.00)" in p["condiciones"]
+        assert p["disponibilidad"] == "disponible"
+        assert p["url"] == "https://www.costco.com.mx/tequila/don-julio-70/p/538764"
+
+
+# ==============================================================================
+# 3. PRUEBAS DE SCRAPER CATÁLOGO COMPLETO Y ALIANZA
+# ==============================================================================
+
+
+def test_procesar_catalogo_completo_mock():
+    """Valida la clasificación exhaustiva de Bodegas Alianza con mock (H43)."""
+    mock_items = [
+        {
+            "productId": "ali_1",
+            "productName": "Tequila Maestro Dobel Diamante 700 ml",
+            "brand": "Maestro Dobel",
+            "link": "https://alianza.com/dobel",
+            "items": [
+                {
+                    "sellers": [
+                        {
+                            "commertialOffer": {
+                                "Price": 615.0,
+                                "ListPrice": 780.0,
+                                "AvailableQuantity": 10,
+                            }
+                        }
+                    ]
+                }
+            ],
+        },
+        {
+            "productId": "ali_2",
+            "productName": "Mezcal 400 Conejos Espadín Joven 750 ml",
+            "brand": "400 Conejos",
+            "link": "https://alianza.com/conejos",
+            "items": [
+                {
+                    "sellers": [
+                        {
+                            "commertialOffer": {
+                                "Price": 485.0,
+                                "ListPrice": 590.0,
+                                "AvailableQuantity": 5,
+                            }
+                        }
+                    ]
+                }
+            ],
+        },
+        {
+            "productId": "ali_3",
+            "productName": "Whisky Johnnie Walker Red Label 700 ml",
+            "brand": "Johnnie Walker",
+            "link": "https://alianza.com/red",
+            "items": [
+                {
+                    "sellers": [
+                        {
+                            "commertialOffer": {
+                                "Price": 320.0,
+                                "ListPrice": 390.0,
+                                "AvailableQuantity": 15,
+                            }
+                        }
+                    ]
+                }
+            ],
+        },
+    ]
+
+    with patch("src.adquisicion.alianza_paginado.consultar_endpoint_paginado", return_value=mock_items):
+        prods = procesar_catalogo_completo(terminos_busqueda=["tequila"], max_paginas=1)
+        assert len(prods) == 3
+        cats = {p["categoria"] for p in prods}
+        assert cats == {"Tequila", "Mezcal", "Whisky"}
+
+
+def test_consultar_api_alianza_items_vacios_o_agotados():
+    """Valida el manejo defensivo de respuestas incompletas en alianza."""
+    mock_payload = [
+        {"productName": "Sin items"},  # items ausente -> descartado
+        {"productName": "Con items vacios", "items": []},  # items vacíos -> descartado
+        {
+            "productName": "Precio Cero",
+            "items": [{"sellers": [{"commertialOffer": {"Price": 0.0, "AvailableQuantity": 5}}]}],
+        },  # precio <= 0 -> descartado
+        {
+            "productName": "Tequila Agotado 750 ml",
+            "items": [{"sellers": [{"commertialOffer": {"Price": 500.0, "AvailableQuantity": 0}}]}],
+        },  # agotado -> se registra con disponibilidad 'agotado'
+    ]
+
+    with patch("src.adquisicion.alianza_vtex.descargar_json_con_reintentos", return_value=mock_payload):
+        res = consultar_api_alianza("tequila")
+        assert len(res) == 1
+        assert res[0]["producto"] == "Tequila Agotado 750 ml"
+        assert res[0]["disponibilidad"] == "agotado"
+
+
+def test_extraer_item_nextjs_valido_y_descartes():
+    """Valida la extracción y normalización homogénea de items desde Next.js."""
+    from src.adquisicion.walmart import extraer_item_nextjs
+
+    # 1. Item válido con wasPrice
+    item_raw = {
+        "name": "Tequila Don Julio 70 Añejo Cristalino 700 ml",
+        "brand": "Don Julio",
+        "price": 655.0,
+        "priceInfo": {
+            "linePrice": "$655.00",
+            "wasPrice": "$855.00",
+            "savings": "Ahorra $200.00",
+        },
+        "canonicalUrl": "/ip/don-julio-70/001",
+        "availabilityStatusV2": {"value": "IN_STOCK"},
+    }
+    item_norm, es_agotado = extraer_item_nextjs(
+        it=item_raw,
+        tienda="Walmart",
+        base_domain="www.walmart.com.mx",
+        fecha_actual="2026-11-09 16:00",
+    )
+    assert es_agotado is False
+    assert item_norm is not None
+    assert item_norm["producto"] == "Tequila Don Julio 70 Añejo Cristalino 700 ml"
+    assert item_norm["precio_promo"] == 655.0
+    assert item_norm["precio_regular"] == 855.0
+    assert "Ahorra $200.00" in item_norm["condiciones"]
+    assert item_norm["url"] == "https://www.walmart.com.mx/ip/don-julio-70/001"
+
+    # 2. Item agotado con descartar_agotados=True
+    item_agotado = {
+        "name": "Tequila Maestro Dobel Diamante 700 ml",
+        "isOutOfStock": True,
+        "price": 500.0,
+    }
+    item_norm2, es_agotado2 = extraer_item_nextjs(
+        it=item_agotado,
+        tienda="Walmart",
+        base_domain="www.walmart.com.mx",
+        fecha_actual="2026-11-09 16:00",
+        descartar_agotados=True,
+    )
+    assert es_agotado2 is True
+    assert item_norm2 is None
+
+    # 3. Item no licor o inválido (descartado por normalizador NOM)
+    item_invalido = {
+        "name": "Refresco Coca Cola 600 ml",
+        "price": 18.0,
+    }
+    item_norm3, es_agotado3 = extraer_item_nextjs(
+        it=item_invalido,
+        tienda="Walmart",
+        base_domain="www.walmart.com.mx",
+        fecha_actual="2026-11-09 16:00",
+    )
+    assert es_agotado3 is False
+    assert item_norm3 is None
+
+
+def test_descubrir_productos_pasillos_walmart_mock():
+    """Valida el descubrimiento automático de productos por pasillos y su merge incremental."""
+    from src.adquisicion.walmart import descubrir_productos_pasillos_walmart
+    from src.infraestructura.almacenamiento_csv import ResumenScraping
+
+    # Catálogo inicial con 1 producto conocido
+    catalogo = {
+        "walmart|tequila don julio 70 añejo cristalino 700 ml|700": {
+            "tienda": "Walmart",
+            "producto": "Tequila Don Julio 70 Añejo Cristalino 700 ml",
+            "precio_promo": 700.0,
+            "precio_regular": 900.0,
+            "url": "https://www.walmart.com.mx/ip/dj70/001",
+            "fecha_consulta": "2026-11-01 10:00",
+        }
+    }
+
+    # Respuesta mock de pasillo con 2 productos: el conocido actualizado y uno nuevo (Mezcal)
+    browse_data = {
+        "props": {
+            "pageProps": {
+                "initialData": {
+                    "searchResult": {
+                        "itemStacks": [
+                            {
+                                "items": [
+                                    # Producto ya conocido con precio actualizado
+                                    {
+                                        "name": "Tequila Don Julio 70 Añejo Cristalino 700 ml",
+                                        "brand": "Don Julio",
+                                        "price": 649.0,
+                                        "canonicalUrl": "/ip/dj70/001",
+                                    },
+                                    # Producto totalmente nuevo descubierto en pasillo
+                                    {
+                                        "name": "Mezcal Ojo de Tigre Reposado 750 ml",
+                                        "brand": "Ojo de Tigre",
+                                        "price": 539.0,
+                                        "canonicalUrl": "/ip/ojo-de-tigre-rep/002",
+                                    },
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    }
+    html_browse = f'<html><script id="__NEXT_DATA__" type="application/json">{json.dumps(browse_data)}</script></html>'
+
+    pasillos_test = {
+        "Tequila Test": "/browse/test/tequila",
+    }
+    resumen = ResumenScraping("Walmart")
+
+    with patch("src.adquisicion.walmart.peticion_curl_cffi", return_value=html_browse):
+        actualizados, insertados = descubrir_productos_pasillos_walmart(
+            tienda="Walmart",
+            base_domain="www.walmart.com.mx",
+            catalogo_acumulado=catalogo,
+            resumen=resumen,
+            fecha_actual="2026-11-09 16:00",
+            pasillos=pasillos_test,
+            max_paginas=1,
+        )
+
+    # Se debió actualizar el Tequila existente e insertar el Mezcal nuevo
+    assert actualizados == 1
+    assert insertados == 1
+    assert len(catalogo) == 2
+    # El Don Julio debe tener el nuevo precio
+    dj_key = "walmart|tequila don julio 70 añejo cristalino 700 ml|700"
+    assert catalogo[dj_key]["precio_promo"] == 649.0
+    # El Mezcal debe estar registrado
+    mezcal_key = "walmart|mezcal ojo de tigre reposado 750 ml|750"
+    assert mezcal_key in catalogo
+    assert catalogo[mezcal_key]["precio_promo"] == 539.0
+    assert catalogo[mezcal_key]["url"] == "https://www.walmart.com.mx/ip/ojo-de-tigre-rep/002"
+
+
+def test_evaluar_y_normalizar_rechaza_urls_peligrosas():
+    """Descarta esquemas no http(s) en la URL de ficha para evitar enlaces ejecutables (C2)."""
+    base = {
+        "tienda": "Walmart",
+        "nombre": "Tequila Maestro Dobel Diamante 700 ml",
+        "marca": "Maestro Dobel",
+        "precio_regular": 800.0,
+        "precio_promo": 650.0,
+        "disponible": "disponible",
+        "condicion": "Oferta",
+        "fuente": "Walmart",
+        "fecha_actual": "2026-11-09 12:00",
+    }
+    urls_peligrosas = [
+        "javascript:alert(1)",
+        "data:text/html,<script>alert(1)</script>",
+        "file:///etc/passwd",
+        "/ruta-relativa",
+        "https://evil.tld/ip/x#www.walmart.com.mx",
+        "https://malicious-site.com/pdp",
+        "https://sams.com.mx/pdp",  # Dominio cruzado no autorizado para tienda Walmart
+    ]
+    for url_peligrosa in urls_peligrosas:
+        item = evaluar_y_normalizar_producto(url=url_peligrosa, **base)
+        assert item is not None
+        assert item["url"] == ""
+
+    item_ok = evaluar_y_normalizar_producto(url="https://www.walmart.com.mx/ip/dobel/001", **base)
+    assert item_ok is not None
+    assert item_ok["url"] == "https://www.walmart.com.mx/ip/dobel/001"
+
+
+def test_m02_fechas_nulas_o_invalidas_son_stale():
+    """M-02: Valida que fechas nulas o corruptas sean tratadas como stale (fail-closed a 9999 días)."""
+    from src.catalogo.deteccion_anomalias import calcular_metricas
+    from tests.conftest import crear_df_base
+
+    df = crear_df_base(
+        [
+            {
+                "tienda": "Bodegas Alianza",
+                "producto": "Tequila Sin Fecha 750 ml",
+                "ml": 750,
+                "precio_promo": 500.0,
+                "precio_regular": 500.0,
+                "fecha_consulta": None,  # Nula
+            },
+            {
+                "tienda": "Walmart",
+                "producto": "Tequila Fecha Invalida 750 ml",
+                "ml": 750,
+                "precio_promo": 600.0,
+                "precio_regular": 600.0,
+                "fecha_consulta": "no-es-una-fecha",  # Invalida
+            },
+        ]
+    )
+    df_calc = calcular_metricas(df)
+
+    assert df_calc.loc[0, "dias_desde_actualizacion"] == 9999.0
+    assert bool(df_calc.loc[0, "es_stale"]) is True
+
+    assert df_calc.loc[1, "dias_desde_actualizacion"] == 9999.0
+    assert bool(df_calc.loc[1, "es_stale"]) is True
+
+
+def test_m03_url_segura_fail_closed_tienda_desconocida():
+    """M-03: Valida que _url_segura sea fail-closed ante tiendas desconocidas o no autorizadas."""
+    from src.adquisicion.normalizador_tiendas import _url_segura
+
+    # Tienda no reconocida en la lista blanca
+    assert _url_segura("https://www.tienda-desconocida.com/pdp", tienda="tienda_fantasma") == ""
+    # Tienda reconocida pero dominio malicioso
+    assert _url_segura("https://evil.com/pdp", tienda="Walmart") == ""
+    # Esquema no válido
+    assert _url_segura("ftp://www.walmart.com.mx/ip/123", tienda="Walmart") == ""
+    # Válido para tienda autorizada
+    assert _url_segura("https://www.walmart.com.mx/ip/123", tienda="Walmart") == "https://www.walmart.com.mx/ip/123"
+
+
+def test_cli_multitienda_parametros_argparse():
+    """Valida que el CLI multitienda filtre tiendas mediante argumentos de línea de comandos."""
+    from unittest.mock import patch
+
+    from src.adquisicion import despachador_cli as cli
+
+    with patch(
+        "src.adquisicion.despachador_cli.scrapear_chedraui", return_value=[{"producto": "Test Chedraui"}]
+    ) as mock_ched:
+        with patch("src.adquisicion.despachador_cli.scrapear_nextjs_walmart_platform") as mock_next:
+            with patch("src.adquisicion.despachador_cli.scrapear_soriana") as mock_soriana:
+                with patch("src.adquisicion.despachador_cli.scrapear_costco") as mock_costco:
+                    with patch("src.adquisicion.despachador_cli.guardar_csv_atomico"):
+                        totales = cli.main(args=["--tiendas", "chedraui"])
+                        assert "Chedraui" in totales
+                        assert mock_ched.called
+                        assert not mock_next.called
+                        assert not mock_soriana.called
+                        assert not mock_costco.called
