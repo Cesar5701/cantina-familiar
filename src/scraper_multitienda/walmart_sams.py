@@ -14,24 +14,23 @@ from datetime import datetime
 
 import pandas as pd
 from bs4 import BeautifulSoup
+from selenium.common.exceptions import WebDriverException
 
-import src.scraper_multitienda as _pkg
-import src.scraper_selenium as _sel_pkg
 from src.clasificacion import limpiar_precio
-from src.http_utils import (
+from src.io_archivos import ResumenScraping
+from src.logger import get_logger
+from src.red_http import (
     HEADERS_SSR_NEXTJS,
-    INDICADORES_DESAFIO_WAF,
+    descargar_html_con_reintentos,
     es_pagina_desafio_waf,
     peticion_curl_cffi,
 )
-from src.io_utils import ResumenScraping
-from src.logger import get_logger
 from src.scraper_multitienda.normalizador import evaluar_y_normalizar_producto
+from src.scraper_selenium.navegador_cli import consultar_urls_secuenciales
+from src.scraper_selenium.nodriver_cdp import consultar_pdps_con_nodriver
+from src.scraper_selenium.parsers_dom import es_item_fuera_de_stock, extraer_precios_item
 
 logger = get_logger("scraper_multitienda")
-
-# Alias para compatibilidad hacia atrás
-INDICADORES_WAF_HTML = INDICADORES_DESAFIO_WAF
 
 
 def es_respuesta_prerender_falsa(data: dict, termino: str) -> tuple[bool, str]:
@@ -116,12 +115,12 @@ def extraer_item_nextjs(
     canon = str(it.get("canonicalUrl") or "").strip()
     full_url = f"https://{base_domain}{canon}" if canon.startswith("/") else (canon or f"https://{base_domain}")
 
-    is_out_of_stock = _sel_pkg._es_item_fuera_de_stock(it)
+    is_out_of_stock = es_item_fuera_de_stock(it)
 
     if descartar_agotados and is_out_of_stock:
         return None, True
 
-    p_reg, p_promo = _sel_pkg._extraer_precios_item(it)
+    p_reg, p_promo = extraer_precios_item(it)
     p_info = it.get("priceInfo") or {}
     savings = str(p_info.get("savings") or "").strip() if isinstance(p_info, dict) else ""
 
@@ -196,7 +195,7 @@ def descubrir_productos_pasillos_walmart(
             try:
                 html = peticion_curl_cffi(url, impersonate="chrome124", timeout=15)
                 if not html or es_pagina_desafio_waf(html):
-                    html = _pkg.descargar_html_con_reintentos(
+                    html = descargar_html_con_reintentos(
                         url,
                         headers=HEADERS_SSR_NEXTJS,
                         max_intentos=1,
@@ -314,7 +313,7 @@ def _ejecutar_contingencia_navegador(
     items_pdp = [item for item in catalogo_acumulado.values() if _es_url_pdp_valida(item.get("url"))]
 
     es_plataforma_nextjs = any(k in tienda.lower() for k in ["walmart", "sam"])
-    if es_plataforma_nextjs and items_pdp and getattr(_sel_pkg, "consultar_pdps_con_nodriver", None):
+    if es_plataforma_nextjs and items_pdp:
         # Agrupar URLs por categoría para procesar en lotes seguros con pausas de enfriamiento
         categorias_orden = ["Tequila", "Whisky", "Mezcal", "Licor de Whisky", "Vino"]
         grupos_categoria: dict[str, list[str]] = {cat: [] for cat in categorias_orden}
@@ -342,7 +341,7 @@ def _ejecutar_contingencia_navegador(
 
             logger.info(f"  👉 [Lote {cat.upper()}] Consultando {len(urls_lote)} PDPs prioritarias...")
             try:
-                lote_extraido = _sel_pkg.consultar_pdps_con_nodriver(
+                lote_extraido = consultar_pdps_con_nodriver(
                     urls=urls_lote,
                     headless=headless,
                     delay_min=2.0,
@@ -368,13 +367,13 @@ def _ejecutar_contingencia_navegador(
         urls = [f"https://{base_domain}/search?q={urllib.parse.quote(t)}" for t in terminos]
         logger.info(f"  🌐 [{tienda}] Ejecutando navegación por búsquedas ({len(urls)} consultas en {base_domain})...")
         try:
-            prods_raw = _sel_pkg.consultar_urls_secuenciales(
+            prods_raw = consultar_urls_secuenciales(
                 urls=urls,
                 tienda=tienda,
                 headless=headless,
                 navegador="chrome",
             )
-        except (OSError, RuntimeError, TimeoutError, ValueError, _sel_pkg.WebDriverException) as e:
+        except (OSError, RuntimeError, TimeoutError, ValueError, WebDriverException) as e:
             logger.warning(f"  ⚠️ [{tienda}] Navegador no disponible ({e}).")
             return 0, 0
 
@@ -475,7 +474,7 @@ def scrapear_nextjs_walmart_platform(
     for idx, t in enumerate([] if forzar_selenium else terminos):
         url = f"https://{base_domain}/search?q={urllib.parse.quote(t)}"
         try:
-            html = _pkg.descargar_html_con_reintentos(
+            html = descargar_html_con_reintentos(
                 url,
                 headers=HEADERS_SSR_NEXTJS,
                 max_intentos=1,

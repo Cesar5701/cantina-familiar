@@ -9,10 +9,9 @@ from datetime import datetime
 
 import pandas as pd
 
-import src.scraper_catalogo_completo as _pkg
-from src.http_utils import HEADERS_BOT, pausa_aleatoria
-from src.io_utils import ResumenScraping, guardar_csv_atomico
+from src.io_archivos import ResumenScraping, guardar_csv_atomico
 from src.logger import get_logger
+from src.red_http import HEADERS_BOT, descargar_json_con_reintentos, pausa_aleatoria
 from src.scraper_catalogo_completo.clasificador_alianza import evaluar_item_alianza
 
 logger = get_logger("scraper_catalogo_completo")
@@ -28,7 +27,7 @@ def consultar_endpoint_paginado(
         fin = inicio + 49
         url = f"https://www.bodegasalianza.com/api/catalog_system/pub/products/search/{urllib.parse.quote(termino)}?_from={inicio}&_to={fin}"
         try:
-            data = _pkg.descargar_json_con_reintentos(url, headers=HEADERS_BOT)
+            data = descargar_json_con_reintentos(url, headers=HEADERS_BOT)
             if not data:
                 break
             items.extend(data)
@@ -83,7 +82,7 @@ def procesar_catalogo_completo(
     logger.info("Iniciando extracción exhaustiva del catálogo de Bodegas Alianza...")
     for t in terminos_busqueda:
         logger.info(f"  -> Consultando: '{t}'...")
-        lote = _pkg.consultar_endpoint_paginado(t, max_paginas=max_paginas)
+        lote = consultar_endpoint_paginado(t, max_paginas=max_paginas)
         nuevos = 0
         for p in lote:
             pid = p.get("productId") or p.get("linkText")

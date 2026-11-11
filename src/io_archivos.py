@@ -15,7 +15,7 @@ import pandas as pd
 
 from src.logger import get_logger
 
-logger = get_logger("io_utils")
+logger = get_logger("io_archivos")
 
 
 def guardar_csv_atomico(df: pd.DataFrame, ruta_archivo: str, **kwargs) -> str:

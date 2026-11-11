@@ -8,11 +8,10 @@ from datetime import datetime
 
 from bs4 import BeautifulSoup
 
-import src.scraper_multitienda as _pkg
 from src.clasificacion import limpiar_precio
-from src.http_utils import HEADERS_DEFAULT, pausa_aleatoria
-from src.io_utils import ResumenScraping
+from src.io_archivos import ResumenScraping
 from src.logger import get_logger
+from src.red_http import HEADERS_DEFAULT, descargar_html_con_reintentos, pausa_aleatoria
 from src.scraper_multitienda.normalizador import evaluar_y_normalizar_producto
 
 logger = get_logger("scraper_multitienda")
@@ -59,7 +58,7 @@ def scrapear_soriana(terminos: list[str] | None = None) -> list[dict]:
     for t in terminos:
         url = f"https://www.soriana.com/buscar?q={urllib.parse.quote(t)}"
         try:
-            html = _pkg.descargar_html_con_reintentos(url, headers=HEADERS_DEFAULT, timeout=15)
+            html = descargar_html_con_reintentos(url, headers=HEADERS_DEFAULT, timeout=15)
             if not html:
                 resumen.registrar_error_red(url, ConnectionError("Respuesta vacía"))
                 continue

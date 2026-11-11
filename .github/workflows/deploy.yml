@@ -50,7 +50,7 @@ jobs:
         timeout-minutes: 5
         run: |
           python src/actualizar_dashboard_completo.py
-          python src/generar_dashboard_v4.py
+          python src/generar_dashboard.py
 
       - name: Ejecutar pruebas unitarias y cobertura
         timeout-minutes: 5

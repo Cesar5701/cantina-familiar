@@ -53,11 +53,7 @@ def construir_registro_producto(
     }
 
 
-# Alias privado para compatibilidad hacia atrás
-_construir_registro_producto = construir_registro_producto
-
-
-def _es_item_fuera_de_stock(obj: dict) -> bool:
+def es_item_fuera_de_stock(obj: dict) -> bool:
     """Evalúa de forma estandarizada si un objeto de producto de Next.js/Walmart está agotado."""
     if not isinstance(obj, dict):
         return True
@@ -75,7 +71,7 @@ def _es_item_fuera_de_stock(obj: dict) -> bool:
     )
 
 
-def _extraer_precios_item(obj: dict) -> tuple[float | None, float | None]:
+def extraer_precios_item(obj: dict) -> tuple[float | None, float | None]:
     """
     Extrae (precio_regular, precio_promo) de un nodo de producto Next.js
     inspeccionando múltiples formatos de precios posibles.
@@ -146,7 +142,7 @@ def extraer_de_json_embebido(soup: BeautifulSoup, url: str, tienda: str, fecha_c
                     p_val = limpiar_precio(str(precio))
                     if p_val and p_val > 50:
                         productos.append(
-                            _construir_registro_producto(
+                            construir_registro_producto(
                                 tienda=tienda,
                                 nombre=nombre,
                                 precio_regular=p_val,
@@ -165,8 +161,8 @@ def extraer_de_json_embebido(soup: BeautifulSoup, url: str, tienda: str, fecha_c
                 if isinstance(obj, dict):
                     nombre = obj.get("name") or obj.get("title") or obj.get("displayName")
                     if nombre and isinstance(nombre, str) and len(nombre) > 5:
-                        if not _es_item_fuera_de_stock(obj):
-                            p_reg_final, p_val = _extraer_precios_item(obj)
+                        if not es_item_fuera_de_stock(obj):
+                            p_reg_final, p_val = extraer_precios_item(obj)
                             if p_val and p_val > 50:
                                 prod_url = obj.get("productUrl") or obj.get("canonicalUrl") or url
                                 encontrados.append((nombre, p_reg_final or p_val, p_val, prod_url))
@@ -191,7 +187,7 @@ def extraer_de_json_embebido(soup: BeautifulSoup, url: str, tienda: str, fecha_c
                 nombres_vistos.add(nombre)
                 full_url = f"{base_host}{prod_url}" if prod_url.startswith("/") else prod_url
                 productos.append(
-                    _construir_registro_producto(
+                    construir_registro_producto(
                         tienda=tienda,
                         nombre=nombre,
                         precio_regular=p_reg,
@@ -225,7 +221,7 @@ def parsear_html_con_bs4(html_source: str, url: str, tienda: str) -> list[dict]:
         precio = limpiar_precio(precios_pdp[0].get_text(strip=True))
         if precio and len(nombre) > 5:
             return [
-                _construir_registro_producto(
+                construir_registro_producto(
                     tienda=tienda,
                     nombre=nombre,
                     precio_regular=precio,
@@ -301,7 +297,7 @@ def parsear_html_con_bs4(html_source: str, url: str, tienda: str) -> list[dict]:
             item_url = f"{base_host}{href}" if href.startswith("/") else href
 
         productos.append(
-            _construir_registro_producto(
+            construir_registro_producto(
                 tienda=tienda,
                 nombre=nombre,
                 precio_regular=precio_regular,

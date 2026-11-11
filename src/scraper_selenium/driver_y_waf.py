@@ -18,9 +18,8 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 
-import src.scraper_selenium as _pkg
-from src.http_utils import INDICADORES_DESAFIO_WAF, USER_AGENT_CHROME
 from src.logger import get_logger
+from src.red_http import INDICADORES_DESAFIO_WAF, USER_AGENT_CHROME
 
 logger = get_logger("scraper_selenium")
 
@@ -164,7 +163,7 @@ def verificar_y_esperar_desafio(driver: webdriver.Remote, timeout_humano: int = 
     Pausa el script y emite alerta en terminal para que el usuario lo resuelva manualmente en la ventana abierta.
     Espera hasta `timeout_humano` segundos a que desaparezca el desafío y la página del catálogo cargue.
     """
-    hay_desafio, motivo = _pkg.detectar_desafio(driver)
+    hay_desafio, motivo = detectar_desafio(driver)
 
     if hay_desafio:
         logger.warning("!" * 80)
@@ -183,7 +182,7 @@ def verificar_y_esperar_desafio(driver: webdriver.Remote, timeout_humano: int = 
         ultimo_segundo_reportado = 0
         while time.time() - inicio < timeout_humano:
             time.sleep(1.5)
-            sigue_desafio, _ = _pkg.detectar_desafio(driver)
+            sigue_desafio, _ = detectar_desafio(driver)
             transcurrido = int(time.time() - inicio)
             restante = max(0, timeout_humano - transcurrido)
 

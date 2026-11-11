@@ -128,7 +128,7 @@ def test_fixture_vtex_chedraui_regression():
 
     raw_data = json.loads(fixture_path.read_text(encoding="utf-8"))
 
-    with patch("src.scraper_multitienda.chedraui._pkg.descargar_json_con_reintentos", return_value=raw_data):
+    with patch("src.scraper_multitienda.chedraui.descargar_json_con_reintentos", return_value=raw_data):
         with patch("src.scraper_multitienda.chedraui.pausa_aleatoria"):
             prods = scrapear_chedraui(terminos=["tequila"])
 
@@ -153,7 +153,7 @@ def test_fixture_vtex_chedraui_regression():
 
 def test_fixture_vtex_alianza_regression():
     """Valida la clasificación y normalización de Bodegas Alianza sobre el fixture VTEX."""
-    from src.io_utils import ResumenScraping
+    from src.io_archivos import ResumenScraping
 
     fixture_path = FIXTURES_DIR / "vtex_search_response.json"
     raw_data = json.loads(fixture_path.read_text(encoding="utf-8"))
@@ -190,7 +190,7 @@ def test_fixture_sfcc_soriana_regression():
 
     html = fixture_path.read_text(encoding="utf-8")
 
-    with patch("src.scraper_multitienda.soriana._pkg.descargar_html_con_reintentos", return_value=html):
+    with patch("src.scraper_multitienda.soriana.descargar_html_con_reintentos", return_value=html):
         with patch("src.scraper_multitienda.soriana.pausa_aleatoria"):
             prods = scrapear_soriana(terminos=["tequila"])
 
@@ -225,7 +225,7 @@ def test_fixture_occ_costco_regression():
 
     raw_json = json.loads(fixture_path.read_text(encoding="utf-8"))
 
-    with patch("src.scraper_multitienda.costco._pkg.descargar_json_con_reintentos", return_value=raw_json):
+    with patch("src.scraper_multitienda.costco.descargar_json_con_reintentos", return_value=raw_json):
         with patch("src.scraper_multitienda.costco.pausa_aleatoria"):
             prods = scrapear_costco(terminos=["tequila"])
 

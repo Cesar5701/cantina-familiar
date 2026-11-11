@@ -7,10 +7,9 @@ import urllib.error
 import urllib.parse
 from datetime import datetime
 
-import src.scraper_multitienda as _pkg
-from src.http_utils import HEADERS_DEFAULT, pausa_aleatoria
-from src.io_utils import ResumenScraping
+from src.io_archivos import ResumenScraping
 from src.logger import get_logger
+from src.red_http import HEADERS_DEFAULT, descargar_json_con_reintentos, pausa_aleatoria
 from src.scraper_multitienda.normalizador import evaluar_y_normalizar_producto
 
 logger = get_logger("scraper_multitienda")
@@ -46,7 +45,7 @@ def scrapear_costco(terminos: list[str] | None = None) -> list[dict]:
             q_enc = urllib.parse.quote(t)
             url = f"https://www.costco.com.mx/rest/v2/mexico/products/search?query={q_enc}&pageSize=100&currentPage={pagina}"
             try:
-                data = _pkg.descargar_json_con_reintentos(url, headers=HEADERS_DEFAULT, timeout=15)
+                data = descargar_json_con_reintentos(url, headers=HEADERS_DEFAULT, timeout=15)
                 if not data or not isinstance(data, dict):
                     break
 

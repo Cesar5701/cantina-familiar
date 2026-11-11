@@ -7,10 +7,9 @@ import urllib.error
 import urllib.parse
 from datetime import datetime
 
-import src.scraper_multitienda as _pkg
-from src.http_utils import HEADERS_DEFAULT, pausa_aleatoria
-from src.io_utils import ResumenScraping
+from src.io_archivos import ResumenScraping
 from src.logger import get_logger
+from src.red_http import HEADERS_DEFAULT, descargar_json_con_reintentos, pausa_aleatoria
 from src.scraper_multitienda.normalizador import evaluar_y_normalizar_producto
 
 logger = get_logger("scraper_multitienda")
@@ -58,7 +57,7 @@ def scrapear_chedraui(terminos: list[str] | None = None) -> list[dict]:
             fin = ini + 49
             url = f"https://www.chedraui.com.mx/api/catalog_system/pub/products/search/{urllib.parse.quote(t)}?_from={ini}&_to={fin}"
             try:
-                data = _pkg.descargar_json_con_reintentos(url, headers=HEADERS_DEFAULT, timeout=12)
+                data = descargar_json_con_reintentos(url, headers=HEADERS_DEFAULT, timeout=12)
                 if not data:
                     break
                 for p in data:

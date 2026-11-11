@@ -12,9 +12,15 @@ from selenium.common.exceptions import (
     WebDriverException,
 )
 
-import src.scraper_selenium as _pkg
-from src.io_utils import ResumenScraping, guardar_csv_atomico
+from src.io_archivos import ResumenScraping, guardar_csv_atomico
 from src.logger import get_logger
+from src.scraper_selenium.driver_y_waf import (
+    detectar_desafio,
+    inicializar_driver,
+    pausa_humana,
+    verificar_y_esperar_desafio,
+)
+from src.scraper_selenium.parsers_dom import parsear_html_con_bs4
 
 logger = get_logger("scraper_selenium")
 
@@ -31,17 +37,17 @@ def consultar_urls_secuenciales(
     resumen = ResumenScraping(tienda)
     try:
         logger.info(f"Iniciando {navegador.upper()} con User-Agent de escritorio...")
-        driver = _pkg.inicializar_driver(headless=headless, navegador=navegador)
+        driver = inicializar_driver(headless=headless, navegador=navegador)
 
         for i, url in enumerate(urls, 1):
             logger.info(f"({i}/{len(urls)}) Navegando a: {url}")
             driver.get(url)
 
             # Pausa de inicio
-            _pkg.pausa_humana(2.5, 3.5)
+            pausa_humana(2.5, 3.5)
 
             # Verificar si hay CAPTCHA o desafío WAF (30 segundos)
-            if not _pkg.verificar_y_esperar_desafio(driver, timeout_humano=30):
+            if not verificar_y_esperar_desafio(driver, timeout_humano=30):
                 logger.warning(f"Saltando {url} debido a desafío no resuelto.")
                 resumen.registrar_descarte("desafío de seguridad no resuelto")
                 continue
@@ -60,10 +66,10 @@ def consultar_urls_secuenciales(
             for _intento in range(10):
                 time.sleep(2)
                 # Re-comprobar si tras la navegación se reactivó el desafío
-                sigue_desafio, _ = _pkg.detectar_desafio(driver)
+                sigue_desafio, _ = detectar_desafio(driver)
                 if sigue_desafio:
                     logger.warning("  ... re-apareció desafío, pausando...")
-                    _pkg.verificar_y_esperar_desafio(driver, timeout_humano=20)
+                    verificar_y_esperar_desafio(driver, timeout_humano=20)
 
                 html = driver.page_source
                 tamano = len(html)
@@ -77,7 +83,7 @@ def consultar_urls_secuenciales(
             html = driver.page_source
 
             logger.info(f"Analizando {len(html)} bytes de DOM con BeautifulSoup...")
-            prods = _pkg.parsear_html_con_bs4(html, url, tienda)
+            prods = parsear_html_con_bs4(html, url, tienda)
             logger.info(f"  -> {len(prods)} productos extraídos.")
 
             if len(prods) == 0:
@@ -94,7 +100,7 @@ def consultar_urls_secuenciales(
 
             # Pausa entre páginas
             if i < len(urls):
-                _pkg.pausa_humana(3.0, 5.0)
+                pausa_humana(3.0, 5.0)
 
     except (WebDriverException, TimeoutException, OSError) as e:
         logger.error(f"Error durante la ejecución del navegador: {e}")

@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 from selenium.common.exceptions import WebDriverException
 
 from src.scraper_selenium import (
-    _construir_registro_producto,
+    construir_registro_producto,
     consultar_urls_secuenciales,
     detectar_desafio,
     extraer_de_json_embebido,
@@ -27,8 +27,8 @@ from src.scraper_selenium import (
 
 
 def test_construir_registro_producto():
-    """Valida que _construir_registro_producto genere el esquema normalizado."""
-    rec = _construir_registro_producto(
+    """Valida que construir_registro_producto genere el esquema normalizado."""
+    rec = construir_registro_producto(
         tienda="Sam's Club",
         nombre="Tequila 1800 Cristalino Añejo 700 ml",
         precio_regular=850.0,
@@ -333,7 +333,7 @@ def test_pausa_humana():
 def test_verificar_y_esperar_desafio_sin_desafio():
     """Valida que si no hay desafío, verificar_y_esperar_desafio retorne True de inmediato."""
     driver = MagicMock()
-    with patch("src.scraper_selenium.detectar_desafio", return_value=(False, "")):
+    with patch("src.scraper_selenium.driver_y_waf.detectar_desafio", return_value=(False, "")):
         res = verificar_y_esperar_desafio(driver, timeout_humano=5)
         assert res is True
 
@@ -342,7 +342,7 @@ def test_verificar_y_esperar_desafio_resuelto():
     """Valida que si hay desafío y se resuelve antes del timeout, retorne True."""
     driver = MagicMock()
     # Primera detección: hay desafío; Segunda detección: resuelto
-    with patch("src.scraper_selenium.detectar_desafio", side_effect=[(True, "px-captcha"), (False, "")]):
+    with patch("src.scraper_selenium.driver_y_waf.detectar_desafio", side_effect=[(True, "px-captcha"), (False, "")]):
         with patch("time.sleep"):
             res = verificar_y_esperar_desafio(driver, timeout_humano=10)
             assert res is True
@@ -390,9 +390,9 @@ def test_consultar_urls_secuenciales_mock():
       </div>
     </body></html>
     """
-    with patch("src.scraper_selenium.inicializar_driver", return_value=mock_driver):
-        with patch("src.scraper_selenium.verificar_y_esperar_desafio", return_value=True):
-            with patch("src.scraper_selenium.pausa_humana"):
+    with patch("src.scraper_selenium.navegador_cli.inicializar_driver", return_value=mock_driver):
+        with patch("src.scraper_selenium.navegador_cli.verificar_y_esperar_desafio", return_value=True):
+            with patch("src.scraper_selenium.navegador_cli.pausa_humana"):
                 with patch("time.sleep"):
                     resultados = consultar_urls_secuenciales(
                         urls=["https://www.sams.com.mx/c/tequilas"],

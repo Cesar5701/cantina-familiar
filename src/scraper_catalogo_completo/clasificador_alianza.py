@@ -10,7 +10,7 @@ from src.clasificacion import (
     extraer_ml,
     generar_etiqueta_condicion,
 )
-from src.io_utils import ResumenScraping
+from src.io_archivos import ResumenScraping
 
 
 def evaluar_item_alianza(p: dict, fecha_actual: str, resumen: ResumenScraping) -> dict | None:

@@ -10,13 +10,14 @@ import urllib.error
 import urllib.parse
 from datetime import datetime
 
-BASE_URL = "https://www.bodegasalianza.com/api/catalog_system/pub/products/search/{term}"
 from src.clasificacion import clasificar_categoria, extraer_ml
-from src.http_utils import HEADERS_BOT, descargar_json_con_reintentos, pausa_aleatoria
-from src.io_utils import ResumenScraping, guardar_csv_atomico
+from src.io_archivos import ResumenScraping, guardar_csv_atomico
 from src.logger import get_logger
+from src.red_http import HEADERS_BOT, descargar_json_con_reintentos, pausa_aleatoria
 
-logger = get_logger("scraper_alianza")
+BASE_URL = "https://www.bodegasalianza.com/api/catalog_system/pub/products/search/{term}"
+
+logger = get_logger("alianza")
 
 
 def consultar_api_alianza(

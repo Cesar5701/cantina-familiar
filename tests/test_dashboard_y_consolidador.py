@@ -10,7 +10,7 @@ import pandas as pd
 import pytest
 
 from src.actualizar_dashboard_completo import actualizar_todo
-from src.generar_dashboard_v4 import cargar_plantilla_dashboard, generar_dashboard, renderizar_plantilla
+from src.generar_dashboard import cargar_plantilla_dashboard, generar_dashboard, renderizar_plantilla
 from tests.conftest import crear_df_base
 
 
@@ -67,7 +67,7 @@ def test_generar_dashboard_errores_archivos_inexistentes(tmp_path: Path):
 
 def test_generar_dashboard_sin_duplicado_local():
     """Valida que LOCAL_HTML_PATH esté eliminado y solo se genere index.html (H39)."""
-    import src.generar_dashboard_v4 as mod_dash
+    import src.generar_dashboard as mod_dash
 
     assert not hasattr(mod_dash, "LOCAL_HTML_PATH")
     assert mod_dash.INDEX_HTML_PATH.name == "index.html"
@@ -495,7 +495,7 @@ def test_filtro_y_badges_disponibilidad_en_dashboard():
     assert 'id="filtro-disponible"' in contenido
     assert "Solo en existencia" in contenido
 
-    # Lógica de filtrado en 04_navegacion_y_catalogo.js
+    # Lógica de filtrado en navegacion_y_catalogo.js
     assert 'const chkDisp = document.getElementById("filtro-disponible");' in contenido
     assert "item.disponibilidad !== 'agotado'" in contenido
 

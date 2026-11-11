@@ -14,7 +14,7 @@ import argparse
 import time
 
 from src.actualizar_dashboard_completo import actualizar_todo
-from src.generar_dashboard_v4 import generar_dashboard
+from src.generar_dashboard import generar_dashboard
 from src.logger import get_logger
 from src.scraper_catalogo_completo.cliente_vtex import main as scrapear_alianza_main
 from src.scraper_multitienda.cli import main as scrapear_multitienda_main

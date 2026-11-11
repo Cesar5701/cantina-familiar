@@ -173,13 +173,6 @@ def formatear_fecha_corte(dt: datetime | None = None) -> str:
     return f"{nombre_mes} {ahora.year}"
 
 
-def formatear_fecha_auditoria_detallada(dt: datetime | None = None) -> str:
-    """Formatea la fecha con día y hora para máxima transparencia de auditoría."""
-    ahora = dt or datetime.now()
-    mes_abr = MESES_ES.get(ahora.month, ahora.strftime("%b"))
-    return f"{ahora.day:02d} {mes_abr} {ahora.year}, {ahora.strftime('%H:%M')} hrs"
-
-
 def parsear_fecha_iso(valor: Any) -> datetime | None:
     """Intenta parsear cadenas de fecha estándar de los scrapers."""
     if not valor or pd.isna(valor):

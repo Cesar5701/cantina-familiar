@@ -37,7 +37,7 @@ from src.clasificacion import (
     sincronizar_clasificacion_catalogo,
 )
 from src.historial import enriquecer_con_metricas_historicas, registrar_precios_historicos
-from src.io_utils import guardar_csv_atomico, guardar_json_atomico
+from src.io_archivos import guardar_csv_atomico, guardar_json_atomico
 from src.logger import get_logger
 
 logger = get_logger("actualizador")

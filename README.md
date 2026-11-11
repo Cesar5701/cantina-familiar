@@ -60,14 +60,14 @@ Cantina Familiar/
 │   │   ├── __main__.py
 │   │   ├── clasificador_alianza.py # Clasificación de ítems VTEX Alianza
 │   │   └── cliente_vtex.py         # Cliente paginado y orquestador
-│   ├── scraper_alianza.py          # Scraper API pública VTEX de Bodegas Alianza por término
+│   ├── alianza.py                  # Scraper API pública VTEX de Bodegas Alianza por término
 │   ├── scrapear_todo.py            # Orquestador general del ciclo completo de scraping multitienda
 │   ├── historial.py                # Gestor y consultor forense del historial de precios y semáforo
-│   ├── http_utils.py               # Cliente HTTP resiliente con reintentos exponenciales y jitter (H20)
-│   ├── io_utils.py                 # Guardado atómico de CSV/JSON y métricas de scraping (H10)
+│   ├── red_http.py                 # Cliente HTTP resiliente con reintentos exponenciales y jitter (H20)
+│   ├── io_archivos.py              # Guardado atómico de CSV/JSON y métricas de scraping (H10)
 │   ├── logger.py                   # Sistema centralizado de logging con consola y archivo rotativo (H19)
 │   ├── actualizar_dashboard_completo.py # Pipeline de consolidación, validación de esquema y orquestador (H41)
-│   ├── generar_dashboard_v4.py     # Ensamblador y generador del dashboard BI (Diseño Stitch Archival)
+│   ├── generar_dashboard.py        # Ensamblador y generador del dashboard BI (Diseño Stitch Archival)
 │   └── templates/                  # Arquitectura frontend modular (ensamblada en index.html)
 │       ├── dashboard_template.html # Layout maestro con directivas @include y @datauri
 │       ├── assets/                 # Emblemas SVG, favicon y logos del sistema de diseño
@@ -85,25 +85,25 @@ Cantina Familiar/
 │       │   ├── tab_matriz.html
 │       │   └── footer_y_modales.html
 │       └── js/                     # Módulos JavaScript desacoplados por responsabilidad
-│           ├── 01_estado_y_utilidades.js
-│           ├── 02_modales_y_subtipos.js
-│           ├── 03_carrito_y_canastas.js
-│           ├── 04_navegacion_y_catalogo.js
-│           └── 05_versus_y_arranque.js
+│           ├── estado_y_utilidades.js
+│           ├── modales_y_subtipos.js
+│           ├── carrito_y_canastas.js
+│           ├── navegacion_y_catalogo.js
+│           └── versus_y_arranque.js
 ├── tests/
 │   ├── __init__.py
 │   ├── conftest.py                 # Fixtures y generadores de DataFrames sintéticos
 │   ├── fixtures/                   # Respuestas congeladas JSON/HTML para tests de regresión
 │   ├── test_analizador.py          # Pruebas de métricas, rankings, cross-tienda y CLI ad-hoc (50 pruebas)
+│   ├── test_arbitraje_y_archivos.py# Pruebas de comparativas cross-tienda, esquema y guardado atómico (14 pruebas)
 │   ├── test_clasificacion.py       # Pruebas de clasificación NOM, extracción de volumen y sincronización (91 pruebas)
 │   ├── test_dashboard_smoke.py     # Smoke tests de estructura de index.html, módulos y accesibilidad (12 pruebas)
 │   ├── test_dashboard_y_consolidador.py # Pruebas del generador y consolidador maestro (19 pruebas)
 │   ├── test_historial.py           # Pruebas de registro, deduplicación y semáforo histórico (9 pruebas)
+│   ├── test_red_http_y_empaquetado.py # Pruebas de HTTP backoff, mocks, empaquetado y entry points (22 pruebas)
 │   ├── test_regression_fixtures.py # Pruebas de parseo con fixtures congelados contra regresiones (6 pruebas)
 │   ├── test_scraper_selenium.py    # Pruebas del scraper asistido Selenium y detección de retos (23 pruebas)
-│   ├── test_scrapers_adquisicion.py# Pruebas de scrapers de adquisición y normalización multi-tienda (20 pruebas)
-│   ├── test_sprint2.py             # Pruebas de comparativas cross-tienda, esquema y guardado atómico (14 pruebas)
-│   └── test_sprint3.py             # Pruebas de HTTP backoff, mocks, empaquetado y entry points (22 pruebas)
+│   └── test_scrapers_adquisicion.py# Pruebas de scrapers de adquisición y normalización multi-tienda (20 pruebas)
 ├── pyproject.toml                  # Empaquetado estándar pip, entry points CLI y metadatos (H13, H50)
 ├── requirements.txt                # Dependencias base de producción con cotas fijadas
 ├── requirements-dev.txt            # Dependencias de desarrollo y testing (pytest, ruff)
@@ -148,9 +148,9 @@ El flujo completo del proyecto consta de 3 fases desacopladas y observables:
 
 ```
 [1. Recolección] Scrapers multitienda (Alianza, Sam's, Costco, Walmart, Chedraui, Soriana)
-       ↓ (HTTP con reintentos exponenciales y jitter en http_utils.py)
+       ↓ (HTTP con reintentos exponenciales y jitter en red_http.py)
 [2. Consolidación] Clasificación estricta NOM, validación de esquema y cross-tienda
-       ↓ (Escritura atómica en io_utils.py y logging estructurado)
+       ↓ (Escritura atómica en io_archivos.py y logging estructurado)
 [3. Dashboard BI] Ensamblado modular y generación reactiva de index.html (publicado en GitHub Pages)
 ```
 
@@ -169,7 +169,7 @@ cantina-consolidar
 
 # Paso B: Ensamblar plantillas modulares y sincronizar el Dashboard interactivo web
 cantina-dashboard
-# (o alternativamente: python src/generar_dashboard_v4.py)
+# (o alternativamente: python src/generar_dashboard.py)
 
 # Paso C: Auditoría ad-hoc y reporte de rankings en terminal para cualquier archivo CSV
 cantina-analizar --entrada data/bebidas_verificadas.csv --salida data/reporte_ranking.csv
@@ -212,7 +212,7 @@ pytest
 - **Bodegas Alianza (Catálogo exhaustivo o búsqueda por términos):**
   ```bash
   python -m src.scraper_catalogo_completo
-  python src/scraper_alianza.py --terminos "1800" "Herradura" "Amarás" "Red Label" "Jack Daniel" --salida data/scraped_alianza.csv
+  python src/alianza.py --terminos "1800" "Herradura" "Amarás" "Red Label" "Jack Daniel" --salida data/scraped_alianza.csv
   ```
 
 - **Scraper Asistido con Selenium y nodriver CDP (Sam's Club / Walmart / SPAs):**
@@ -226,7 +226,7 @@ pytest
 
 ## Robustez, Observabilidad y Gobernanza de Datos
 
-- **Cliente HTTP Resiliente y Anti-WAF (`src/http_utils.py`):** Todas las descargas gestionan errores transitorios de red y límites de tasa (`HTTP 429`, `500`, `502`, `503`, `504`) mediante reintentos con retraso exponencial, fluctuación estocástica (*full jitter*) y respeto estricto del encabezado `Retry-After`. Se incluye sanitización de parámetros sensibles y secretos en URLs para evitar fugas en logs de CI/CD.
+- **Cliente HTTP Resiliente y Anti-WAF (`src/red_http.py`):** Todas las descargas gestionan errores transitorios de red y límites de tasa (`HTTP 429`, `500`, `502`, `503`, `504`) mediante reintentos con retraso exponencial, fluctuación estocástica (*full jitter*) y respeto estricto del encabezado `Retry-After`. Se incluye sanitización de parámetros sensibles y secretos en URLs para evitar fugas en logs de CI/CD.
 - **Detección de Retos WAF y Abort Flag en CDP (`src/scraper_selenium/nodriver_cdp.py`):** Monitoreo activo de URLs bloqueadas (`/blocked`, captchas, challenges de PerimeterX/Cloudflare). Ante un bloqueo, se levanta la excepción `BloqueoWAF` y se activa un `asyncio.Event` de aborto que cancela de inmediato la recolección en paralelo, evitando quemar IPs o proxies. Cada pestaña opera bajo un timeout estricto de 20s.
 - **Integridad de Datos y Arbitraje Anti-Phantom (`src/analizador/`):**
   - **Filtros de cordura:** validación de rangos biológicos y comerciales ($100 \le \text{ml} \le 10,000$, $0 < \text{ABV} \le 100\%$, precios entre $\$50.00$ y $\$1,000,000.00$). Anomalías de ABV o precios absurdos son excluidas de `datos_validos`.
@@ -234,7 +234,7 @@ pytest
   - **Arbitraje Real:** el cálculo de ahorro cross-tienda descarta automáticamente ofertas stale y requiere un mínimo de 2 tiendas frescas y activas para publicar recomendaciones de ahorro, evitando ahorros fantasma.
   - **URLs Seguras:** validación estricta de dominios permitidos por tienda (`_url_segura`) con rechazo por omisión (fail-closed) para prevenir SSRF o inyecciones de enlaces arbitrarios.
 - **Logging Estructurado Centralizado (`src/logger.py`):** Los registros emiten formato limpio y legible con emojis a consola (`sys.stdout`) y bitácora rotativa persistente de hasta 2 MB en `logs/cantina_familiar.log`.
-- **Escritura Atómica (`src/io_utils.py`):** La persistencia de CSV y JSON se realiza en archivos temporales con reemplazo atómico atado al sistema de archivos, impidiendo corrupción ante interrupciones.
+- **Escritura Atómica (`src/io_archivos.py`):** La persistencia de CSV y JSON se realiza en archivos temporales con reemplazo atómico atado al sistema de archivos, impidiendo corrupción ante interrupciones.
 - **Política de Scraping Ético (`docs/politica_scraping.md`):** Regula el cumplimiento de `robots.txt`, la tasa de peticiones y el carácter educativo no comercial del proyecto.
 
 ---

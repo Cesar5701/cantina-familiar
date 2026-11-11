@@ -12,7 +12,7 @@ import unicodedata
 import pytest
 from bs4 import BeautifulSoup
 
-from src.generar_dashboard_v4 import (
+from src.generar_dashboard import (
     DATA_JSON_PATH,
     INDEX_HTML_PATH,
     TEMPLATE_PATH,
@@ -223,11 +223,11 @@ def test_arquitectura_modular_plantillas():
         "partials/tab_carrito.html",
         "partials/tab_matriz.html",
         "partials/footer_y_modales.html",
-        "js/01_estado_y_utilidades.js",
-        "js/02_modales_y_subtipos.js",
-        "js/03_carrito_y_canastas.js",
-        "js/04_navegacion_y_catalogo.js",
-        "js/05_versus_y_arranque.js",
+        "js/estado_y_utilidades.js",
+        "js/modales_y_subtipos.js",
+        "js/carrito_y_canastas.js",
+        "js/navegacion_y_catalogo.js",
+        "js/versus_y_arranque.js",
     ]
     for rel in modulos_esperados:
         ruta = TEMPLATES_DIR / rel
@@ -366,8 +366,8 @@ def test_integridad_duelos_canastas_y_campos_forenses():
     assert "productor" in muestra
     assert "tipo_mezcal" in muestra
 
-    # B2: Todos los duelos sugeridos en 01_estado_y_utilidades.js deben resolver ambos productos (idx != -1)
-    js_01 = (TEMPLATES_DIR / "js" / "01_estado_y_utilidades.js").read_text(encoding="utf-8")
+    # B2: Todos los duelos sugeridos en estado_y_utilidades.js deben resolver ambos productos (idx != -1)
+    js_01 = (TEMPLATES_DIR / "js" / "estado_y_utilidades.js").read_text(encoding="utf-8")
     patron_duelos = re.compile(
         r'\{\s*a:\s*"([^"]+)",\s*storeA:\s*"([^"]+)",\s*b:\s*"([^"]+)",\s*storeB:\s*"([^"]+)",\s*label:\s*"([^"]+)"\s*\}'
     )
@@ -379,8 +379,8 @@ def test_integridad_duelos_canastas_y_campos_forenses():
         assert idx_a != -1, f"Duelo '{label}' falló al resolver lado A: ({a_prod}, {a_store})"
         assert idx_b != -1, f"Duelo '{label}' falló al resolver lado B: ({b_prod}, {b_store})"
 
-    # B3: Todas las búsquedas de construirCanastaDinamica en 03_carrito_y_canastas.js deben resolver (idx != -1)
-    js_03 = (TEMPLATES_DIR / "js" / "03_carrito_y_canastas.js").read_text(encoding="utf-8")
+    # B3: Todas las búsquedas de construirCanastaDinamica en carrito_y_canastas.js deben resolver (idx != -1)
+    js_03 = (TEMPLATES_DIR / "js" / "carrito_y_canastas.js").read_text(encoding="utf-8")
     patron_canasta = re.compile(r'buscarIndice\("([^"]+)",\s*"([^"]*)",\s*"([^"]*)"\)')
     busquedas = patron_canasta.findall(js_03)
     assert len(busquedas) >= 18

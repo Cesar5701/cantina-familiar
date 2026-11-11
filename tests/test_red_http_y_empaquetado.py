@@ -17,7 +17,8 @@ from unittest.mock import patch
 
 import pytest
 
-from src.http_utils import (
+from src.logger import configurar_logging, get_logger
+from src.red_http import (
     _calcular_espera,
     descargar_json_con_reintentos,
     extraer_retry_after,
@@ -26,7 +27,6 @@ from src.http_utils import (
     peticion_http_con_reintentos,
     sanitizar_url_para_logs,
 )
-from src.logger import configurar_logging, get_logger
 
 # ---------------------------------------------------------------------------
 # Pruebas H20: HTTP Utils con Backoff y Reintentos
@@ -111,7 +111,7 @@ def test_peticion_curl_cffi_exito_200():
         status_code = 200
         text = "<html><body>Éxito SSR</body></html>"
 
-    with patch("src.http_utils.curl_requests") as mock_curl:
+    with patch("src.red_http.curl_requests") as mock_curl:
         mock_curl.get.return_value = MockCurlResp()
         res = peticion_curl_cffi("https://test.com/pdp", timeout=5)
         assert res == "<html><body>Éxito SSR</body></html>"
@@ -124,7 +124,7 @@ def test_peticion_curl_cffi_error_404_retorna_none():
         status_code = 404
         text = "<html>404 Not Found</html>"
 
-    with patch("src.http_utils.curl_requests") as mock_curl:
+    with patch("src.red_http.curl_requests") as mock_curl:
         mock_curl.get.return_value = MockCurlResp404()
         res = peticion_curl_cffi("https://test.com/pdp-inexistente", lanzar_error=False)
         assert res is None
@@ -137,9 +137,9 @@ def test_peticion_curl_cffi_error_transitorio_reintenta_urllib():
         status_code = 503
         text = "<html>503 Service Unavailable</html>"
 
-    with patch("src.http_utils.curl_requests") as mock_curl:
+    with patch("src.red_http.curl_requests") as mock_curl:
         mock_curl.get.return_value = MockCurlResp503()
-        with patch("src.http_utils.peticion_http_con_reintentos", return_value="OK Fallback") as mock_urllib:
+        with patch("src.red_http.peticion_http_con_reintentos", return_value="OK Fallback") as mock_urllib:
             res = peticion_curl_cffi("https://test.com/pdp-busy")
             assert res == "OK Fallback"
             mock_urllib.assert_called_once()
@@ -155,7 +155,7 @@ def test_peticion_curl_cffi_lanzar_error_400():
         def raise_for_status(self):
             raise ValueError("HTTP 400 Bad Request")
 
-    with patch("src.http_utils.curl_requests") as mock_curl:
+    with patch("src.red_http.curl_requests") as mock_curl:
         mock_curl.get.return_value = MockCurlResp400()
         with pytest.raises(ValueError, match="HTTP 400"):
             peticion_curl_cffi("https://test.com/bad", lanzar_error=True)
@@ -250,7 +250,7 @@ def test_parseo_mock_vtex_chedraui():
         }
     ]
 
-    with patch("src.scraper_multitienda.descargar_json_con_reintentos", return_value=payload_mock):
+    with patch("src.scraper_multitienda.chedraui.descargar_json_con_reintentos", return_value=payload_mock):
         with patch("time.sleep"):
             # Pasamos un término de búsqueda controlado
             with patch("src.scraper_multitienda.scrapear_chedraui") as mock_scrape:
@@ -354,7 +354,7 @@ def test_parseo_mock_sfcc_soriana():
 
 def test_consultar_api_alianza_con_mock():
     """Valida la consulta y estructuración de datos de Bodegas Alianza con mock (H11 / H24)."""
-    from src.scraper_alianza import consultar_api_alianza
+    from src.alianza import consultar_api_alianza
 
     mock_vtex_item = [
         {
@@ -377,7 +377,7 @@ def test_consultar_api_alianza_con_mock():
         }
     ]
 
-    with patch("src.scraper_alianza.descargar_json_con_reintentos", return_value=mock_vtex_item):
+    with patch("src.alianza.descargar_json_con_reintentos", return_value=mock_vtex_item):
         prods = consultar_api_alianza("tequila")
         assert len(prods) == 1
         p = prods[0]
@@ -394,7 +394,7 @@ def test_consultar_endpoint_paginado_con_mock():
 
     mock_page = [{"productName": f"Producto {i}"} for i in range(10)]  # Menos de 50 items -> corta paginación
 
-    with patch("src.scraper_catalogo_completo.descargar_json_con_reintentos", return_value=mock_page):
+    with patch("src.scraper_catalogo_completo.cliente_vtex.descargar_json_con_reintentos", return_value=mock_page):
         items = consultar_endpoint_paginado("whisky", max_paginas=3)
         assert len(items) == 10  # Corta tras la primera página por ser < 50
 
@@ -449,7 +449,7 @@ def test_h50_entry_points_y_limpieza_plantilla():
     assert "[project.scripts]" in pyproject
     assert 'cantina-scrapear = "src.scrapear_todo:main"' in pyproject
     assert 'cantina-consolidar = "src.actualizar_dashboard_completo:main"' in pyproject
-    assert 'cantina-dashboard = "src.generar_dashboard_v4:main"' in pyproject
+    assert 'cantina-dashboard = "src.generar_dashboard:main"' in pyproject
     assert 'cantina-analizar = "src.analizador:main"' in pyproject
 
     # 3. Validar que las funciones referenciadas sean importables y ejecutables
@@ -459,7 +459,7 @@ def test_h50_entry_points_y_limpieza_plantilla():
     mod_act = importlib.import_module("src.actualizar_dashboard_completo")
     assert callable(mod_act.main)
 
-    mod_dash = importlib.import_module("src.generar_dashboard_v4")
+    mod_dash = importlib.import_module("src.generar_dashboard")
     assert callable(mod_dash.main)
 
     mod_ana = importlib.import_module("src.analizador")

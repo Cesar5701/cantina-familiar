@@ -8,9 +8,12 @@ import sys
 
 import pandas as pd
 
-import src.scraper_multitienda as _pkg
-from src.io_utils import guardar_csv_atomico
+from src.io_archivos import guardar_csv_atomico
 from src.logger import get_logger
+from src.scraper_multitienda.chedraui import scrapear_chedraui
+from src.scraper_multitienda.costco import scrapear_costco
+from src.scraper_multitienda.soriana import scrapear_soriana
+from src.scraper_multitienda.walmart_sams import scrapear_nextjs_walmart_platform
 
 logger = get_logger("scraper_multitienda")
 
@@ -68,14 +71,14 @@ def main(
 
     # 1. Chedraui
     if scrapear_todas or "chedraui" in tiendas_norm:
-        prods_chedraui = _pkg.scrapear_chedraui()
+        prods_chedraui = scrapear_chedraui()
         if prods_chedraui:
             guardar_csv_atomico(pd.DataFrame(prods_chedraui), "data/scraped_chedraui.csv")
         totales["Chedraui"] = len(prods_chedraui)
 
     # 2. Sam's Club
     if scrapear_todas or "sams" in tiendas_norm or "sam" in tiendas_norm or "sam's club" in tiendas_norm:
-        prods_sams = _pkg.scrapear_nextjs_walmart_platform(
+        prods_sams = scrapear_nextjs_walmart_platform(
             "Sam's Club",
             "www.sams.com.mx",
             terminos_sams,
@@ -91,7 +94,7 @@ def main(
     # 3. Walmart (Ruta C directa con nodriver CDP si forzar_selenium o walmart_cdp está activo)
     if scrapear_todas or "walmart" in tiendas_norm:
         forzar_walmart = forzar_selenium or walmart_cdp
-        prods_walmart = _pkg.scrapear_nextjs_walmart_platform(
+        prods_walmart = scrapear_nextjs_walmart_platform(
             "Walmart",
             "www.walmart.com.mx",
             terminos_walmart,
@@ -106,14 +109,14 @@ def main(
 
     # 4. Soriana
     if scrapear_todas or "soriana" in tiendas_norm:
-        prods_soriana = _pkg.scrapear_soriana()
+        prods_soriana = scrapear_soriana()
         if prods_soriana:
             guardar_csv_atomico(pd.DataFrame(prods_soriana), "data/scraped_soriana.csv")
         totales["Soriana"] = len(prods_soriana)
 
     # 5. Costco
     if scrapear_todas or "costco" in tiendas_norm:
-        prods_costco = _pkg.scrapear_costco()
+        prods_costco = scrapear_costco()
         if prods_costco:
             guardar_csv_atomico(pd.DataFrame(prods_costco), "data/scraped_costco.csv")
         totales["Costco"] = len(prods_costco)

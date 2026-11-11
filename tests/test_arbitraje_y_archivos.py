@@ -18,7 +18,7 @@ from src.analizador import (
     obtener_comparativa_cross_tienda,
     validar_esquema_y_rangos,
 )
-from src.io_utils import ResumenScraping, guardar_csv_atomico, guardar_json_atomico
+from src.io_archivos import ResumenScraping, guardar_csv_atomico, guardar_json_atomico
 from tests.conftest import crear_df_prueba
 
 # ---------------------------------------------------------------------------

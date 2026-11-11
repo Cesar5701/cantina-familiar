@@ -8,11 +8,6 @@ Extrae precios verificados en tiempo real de:
 4. Soriana (soriana.com) -> HTML Salesforce Commerce Cloud (.product-tile)
 """
 
-from src.http_utils import (
-    HEADERS_DEFAULT,
-    descargar_html_con_reintentos,
-    descargar_json_con_reintentos,
-)
 from src.scraper_multitienda.chedraui import scrapear_chedraui
 from src.scraper_multitienda.cli import main
 from src.scraper_multitienda.costco import scrapear_costco
@@ -25,10 +20,7 @@ from src.scraper_multitienda.walmart_sams import (
 )
 
 __all__ = [
-    "HEADERS_DEFAULT",
     "PASILLOS_WALMART_LICORES",
-    "descargar_html_con_reintentos",
-    "descargar_json_con_reintentos",
     "descubrir_productos_pasillos_walmart",
     "evaluar_y_normalizar_producto",
     "main",

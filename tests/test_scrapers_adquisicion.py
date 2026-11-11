@@ -2,13 +2,13 @@
 Suite de pruebas unitarias exhaustivas para la capa de adquisición (H43):
 - scraper_multitienda (evaluar_y_normalizar_producto, Chedraui, Walmart, Sam's Club, Soriana)
 - scraper_catalogo_completo (procesar_catalogo_completo con mocks VTEX)
-- scraper_alianza (consultar_api_alianza con manejo defensivo)
+- alianza (consultar_api_alianza con manejo defensivo)
 """
 
 import json
 from unittest.mock import patch
 
-from src.scraper_alianza import consultar_api_alianza
+from src.alianza import consultar_api_alianza
 from src.scraper_catalogo_completo import procesar_catalogo_completo
 from src.scraper_multitienda import (
     evaluar_y_normalizar_producto,
@@ -407,7 +407,7 @@ def test_scrapear_chedraui_mock_exitoso():
         },
     ]
 
-    with patch("src.scraper_multitienda.descargar_json_con_reintentos", return_value=mock_item):
+    with patch("src.scraper_multitienda.chedraui.descargar_json_con_reintentos", return_value=mock_item):
         resultados = scrapear_chedraui(terminos=["tequila cristalino"])
         assert len(resultados) == 1
         p = resultados[0]
@@ -477,7 +477,7 @@ def test_scrapear_nextjs_walmart_platform_mock():
     }
     html = f'<html><script id="__NEXT_DATA__" type="application/json">{json.dumps(next_data)}</script></html>'
 
-    with patch("src.scraper_multitienda.descargar_html_con_reintentos", return_value=html):
+    with patch("src.scraper_multitienda.walmart_sams.descargar_html_con_reintentos", return_value=html):
         resultados = scrapear_nextjs_walmart_platform(
             tienda="Walmart",
             base_domain="super.walmart.com.mx",
@@ -507,7 +507,7 @@ def test_scrapear_nextjs_walmart_platform_circuit_breaker_y_respaldo(tmp_path):
         encoding="utf-8",
     )
 
-    with patch("src.scraper_multitienda.descargar_html_con_reintentos", return_value=html_waf) as mock_dl:
+    with patch("src.scraper_multitienda.walmart_sams.descargar_html_con_reintentos", return_value=html_waf) as mock_dl:
         resultados = scrapear_nextjs_walmart_platform(
             tienda="Sam's Club",
             base_domain="www.sams.com.mx",
@@ -565,7 +565,7 @@ def test_scrapear_nextjs_walmart_platform_upsert_incremental(tmp_path):
     }
     html = f'<html><script id="__NEXT_DATA__" type="application/json">{json.dumps(next_data)}</script></html>'
 
-    with patch("src.scraper_multitienda.descargar_html_con_reintentos", return_value=html):
+    with patch("src.scraper_multitienda.walmart_sams.descargar_html_con_reintentos", return_value=html):
         resultados = scrapear_nextjs_walmart_platform(
             tienda="Walmart",
             base_domain="www.walmart.com.mx",
@@ -643,8 +643,12 @@ def test_scrapear_nextjs_walmart_platform_fallback_selenium_y_prerender(tmp_path
     ]
 
     with (
-        patch("src.scraper_multitienda.descargar_html_con_reintentos", return_value=html_leche) as mock_http,
-        patch("src.scraper_selenium.consultar_urls_secuenciales", return_value=prods_selenium_mock) as mock_sel,
+        patch(
+            "src.scraper_multitienda.walmart_sams.descargar_html_con_reintentos", return_value=html_leche
+        ) as mock_http,
+        patch(
+            "src.scraper_multitienda.walmart_sams.consultar_urls_secuenciales", return_value=prods_selenium_mock
+        ) as mock_sel,
     ):
         resultados = scrapear_nextjs_walmart_platform(
             tienda="Walmart",
@@ -692,7 +696,7 @@ def test_scrapear_soriana_mock():
     </html>
     """
 
-    with patch("src.scraper_multitienda.descargar_html_con_reintentos", return_value=html_soriana):
+    with patch("src.scraper_multitienda.soriana.descargar_html_con_reintentos", return_value=html_soriana):
         resultados = scrapear_soriana(terminos=["tequila cristalino"])
         assert len(resultados) == 2
         prod_disp = [p for p in resultados if "Herradura Ultra" in p["producto"]][0]
@@ -737,7 +741,7 @@ def test_scrapear_costco_mock_exitoso():
         ],
     }
 
-    with patch("src.scraper_multitienda.descargar_json_con_reintentos", return_value=mock_response):
+    with patch("src.scraper_multitienda.costco.descargar_json_con_reintentos", return_value=mock_response):
         resultados = scrapear_costco(terminos=["tequila cristalino"])
         assert len(resultados) == 1
         p = resultados[0]
@@ -817,7 +821,7 @@ def test_procesar_catalogo_completo_mock():
         },
     ]
 
-    with patch("src.scraper_catalogo_completo.consultar_endpoint_paginado", return_value=mock_items):
+    with patch("src.scraper_catalogo_completo.cliente_vtex.consultar_endpoint_paginado", return_value=mock_items):
         prods = procesar_catalogo_completo(terminos_busqueda=["tequila"], max_paginas=1)
         assert len(prods) == 3
         cats = {p["categoria"] for p in prods}
@@ -825,7 +829,7 @@ def test_procesar_catalogo_completo_mock():
 
 
 def test_consultar_api_alianza_items_vacios_o_agotados():
-    """Valida el manejo defensivo de respuestas incompletas en scraper_alianza."""
+    """Valida el manejo defensivo de respuestas incompletas en alianza."""
     mock_payload = [
         {"productName": "Sin items"},  # items ausente -> descartado
         {"productName": "Con items vacios", "items": []},  # items vacíos -> descartado
@@ -839,7 +843,7 @@ def test_consultar_api_alianza_items_vacios_o_agotados():
         },  # agotado -> se registra con disponibilidad 'agotado'
     ]
 
-    with patch("src.scraper_alianza.descargar_json_con_reintentos", return_value=mock_payload):
+    with patch("src.alianza.descargar_json_con_reintentos", return_value=mock_payload):
         res = consultar_api_alianza("tequila")
         assert len(res) == 1
         assert res[0]["producto"] == "Tequila Agotado 750 ml"
@@ -910,7 +914,7 @@ def test_extraer_item_nextjs_valido_y_descartes():
 
 def test_descubrir_productos_pasillos_walmart_mock():
     """Valida el descubrimiento automático de productos por pasillos y su merge incremental."""
-    from src.io_utils import ResumenScraping
+    from src.io_archivos import ResumenScraping
     from src.scraper_multitienda.walmart_sams import descubrir_productos_pasillos_walmart
 
     # Catálogo inicial con 1 producto conocido
@@ -1074,10 +1078,12 @@ def test_cli_multitienda_parametros_argparse():
 
     from src.scraper_multitienda import cli
 
-    with patch("src.scraper_multitienda.scrapear_chedraui", return_value=[{"producto": "Test Chedraui"}]) as mock_ched:
-        with patch("src.scraper_multitienda.scrapear_nextjs_walmart_platform") as mock_next:
-            with patch("src.scraper_multitienda.scrapear_soriana") as mock_soriana:
-                with patch("src.scraper_multitienda.scrapear_costco") as mock_costco:
+    with patch(
+        "src.scraper_multitienda.cli.scrapear_chedraui", return_value=[{"producto": "Test Chedraui"}]
+    ) as mock_ched:
+        with patch("src.scraper_multitienda.cli.scrapear_nextjs_walmart_platform") as mock_next:
+            with patch("src.scraper_multitienda.cli.scrapear_soriana") as mock_soriana:
+                with patch("src.scraper_multitienda.cli.scrapear_costco") as mock_costco:
                     with patch("src.scraper_multitienda.cli.guardar_csv_atomico"):
                         totales = cli.main(args=["--tiendas", "chedraui"])
                         assert "Chedraui" in totales

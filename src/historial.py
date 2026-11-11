@@ -16,7 +16,7 @@ from typing import Optional
 import pandas as pd
 
 from src.clasificacion import normalizar_medidas_en_nombre
-from src.io_utils import guardar_csv_atomico
+from src.io_archivos import guardar_csv_atomico
 from src.logger import get_logger
 
 logger = get_logger("historial")
