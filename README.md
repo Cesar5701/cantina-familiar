@@ -10,10 +10,12 @@ Herramienta de optimización, comparativa multitienda y auditoría de precios po
 Cantina Familiar/
 ├── data/
 │   ├── bebidas_verificadas.csv     # Dataset auditado con 32 etiquetas confirmadas
+│   ├── campanas_activas.json       # Metadatos, vigencias y campañas activas detectadas por cadena
+│   ├── historial_precios.csv       # Registro cronológico forense para semáforo anti-inflación
 │   ├── scraped_*.csv               # Catálogos fuente por tienda (Alianza, Chedraui, Costco, Sam's, Soriana, Walmart)
 │   ├── catalogo_completo_consolidado.csv # Catálogo unificado y normalizado
 │   ├── ranking_completo_general.csv# Ranking filtrado libre de outliers de lujo
-│   ├── dashboard_data.json         # JSON optimizado para el dashboard interactivo (827 registros)
+│   ├── dashboard_data.json         # JSON optimizado para el dashboard interactivo (1,018 registros)
 │   └── reporte_ranking.csv         # Salida generada con métricas por litro y rankings
 ├── docs/
 │   ├── politica_scraping.md        # Política de Scraping Ético y Gobernanza de Datos (H17)
@@ -31,6 +33,7 @@ Cantina Familiar/
 │   ├── analizador/                 # Paquete de análisis en pandas, arbitraje y rankings
 │   │   ├── __init__.py
 │   │   ├── __main__.py
+│   │   ├── campanas.py             # Detección automática de campañas comerciales y vigencias
 │   │   ├── normalizacion.py        # Reglas declarativas de normalización y detección de paquetes (H38)
 │   │   ├── esquema_y_auditoria.py  # Validación de esquema, rangos y datos faltantes (H9)
 │   │   ├── metricas_y_outliers.py  # Cálculo vectorial $/L, outliers de lujo y filtro de presupuesto
@@ -45,10 +48,11 @@ Cantina Familiar/
 │   │   ├── walmart_sams.py         # Scraper SSR __NEXT_DATA__ Sam's Club y Walmart
 │   │   ├── soriana.py              # Scraper SFCC Soriana
 │   │   └── cli.py                  # Orquestador de extracción por lote
-│   ├── scraper_selenium/           # Paquete de scraping SPA asistido (Human-in-the-Loop)
+│   ├── scraper_selenium/           # Paquete de scraping SPA asistido (Human-in-the-Loop) y nodriver CDP
 │   │   ├── __init__.py
 │   │   ├── __main__.py
 │   │   ├── driver_y_waf.py         # Inicialización Chrome/Firefox y detección de retos WAF/CAPTCHA
+│   │   ├── nodriver_cdp.py         # Conector asíncrono CDP indetectable con abort flag y rate limiting
 │   │   ├── parsers_dom.py          # Extracción híbrida JSON-LD, __NEXT_DATA__ y tarjetas DOM
 │   │   └── navegador_cli.py        # Navegación secuencial con hidratación y CLI
 │   ├── scraper_catalogo_completo/  # Paquete de extracción exhaustiva paginada para Bodegas Alianza
@@ -57,13 +61,20 @@ Cantina Familiar/
 │   │   ├── clasificador_alianza.py # Clasificación de ítems VTEX Alianza
 │   │   └── cliente_vtex.py         # Cliente paginado y orquestador
 │   ├── scraper_alianza.py          # Scraper API pública VTEX de Bodegas Alianza por término
+│   ├── scrapear_todo.py            # Orquestador general del ciclo completo de scraping multitienda
+│   ├── historial.py                # Gestor y consultor forense del historial de precios y semáforo
 │   ├── http_utils.py               # Cliente HTTP resiliente con reintentos exponenciales y jitter (H20)
 │   ├── io_utils.py                 # Guardado atómico de CSV/JSON y métricas de scraping (H10)
 │   ├── logger.py                   # Sistema centralizado de logging con consola y archivo rotativo (H19)
 │   ├── actualizar_dashboard_completo.py # Pipeline de consolidación, validación de esquema y orquestador (H41)
 │   ├── generar_dashboard_v4.py     # Ensamblador y generador del dashboard BI (Diseño Stitch Archival)
 │   └── templates/                  # Arquitectura frontend modular (ensamblada en index.html)
-│       ├── dashboard_template.html # Layout maestro con directivas @include
+│       ├── dashboard_template.html # Layout maestro con directivas @include y @datauri
+│       ├── assets/                 # Emblemas SVG, favicon y logos del sistema de diseño
+│       │   ├── agave_emblema.svg
+│       │   ├── apple-touch-icon.png
+│       │   ├── favicon.svg
+│       │   └── logo_sello.svg
 │       ├── css/
 │       │   └── styles.css          # Variables y utilidades semánticas del sistema de diseño Stitch
 │       ├── partials/               # Vistas modulares HTML por sección y pestaña
@@ -82,14 +93,17 @@ Cantina Familiar/
 ├── tests/
 │   ├── __init__.py
 │   ├── conftest.py                 # Fixtures y generadores de DataFrames sintéticos
-│   ├── test_analizador.py          # Pruebas de métricas, rankings, cross-tienda y CLI ad-hoc (45 pruebas)
-│   ├── test_clasificacion.py       # Pruebas de clasificación NOM, extracción de volumen y sincronización (79 pruebas)
-│   ├── test_dashboard_smoke.py     # Smoke tests de estructura de index.html, módulos y accesibilidad (6 pruebas)
-│   ├── test_dashboard_y_consolidador.py # Pruebas del generador y consolidador maestro (16 pruebas)
-│   ├── test_scraper_selenium.py    # Pruebas del scraper asistido Selenium y detección de retos (19 pruebas)
-│   ├── test_scrapers_adquisicion.py# Pruebas de scrapers de adquisición y normalización multi-tienda (10 pruebas)
-│   ├── test_sprint2.py             # Pruebas de comparativas cross-tienda, esquema y guardado atómico (11 pruebas)
-│   └── test_sprint3.py             # Pruebas de HTTP backoff, mocks, empaquetado y entry points (13 pruebas)
+│   ├── fixtures/                   # Respuestas congeladas JSON/HTML para tests de regresión
+│   ├── test_analizador.py          # Pruebas de métricas, rankings, cross-tienda y CLI ad-hoc (50 pruebas)
+│   ├── test_clasificacion.py       # Pruebas de clasificación NOM, extracción de volumen y sincronización (91 pruebas)
+│   ├── test_dashboard_smoke.py     # Smoke tests de estructura de index.html, módulos y accesibilidad (12 pruebas)
+│   ├── test_dashboard_y_consolidador.py # Pruebas del generador y consolidador maestro (19 pruebas)
+│   ├── test_historial.py           # Pruebas de registro, deduplicación y semáforo histórico (9 pruebas)
+│   ├── test_regression_fixtures.py # Pruebas de parseo con fixtures congelados contra regresiones (6 pruebas)
+│   ├── test_scraper_selenium.py    # Pruebas del scraper asistido Selenium y detección de retos (23 pruebas)
+│   ├── test_scrapers_adquisicion.py# Pruebas de scrapers de adquisición y normalización multi-tienda (20 pruebas)
+│   ├── test_sprint2.py             # Pruebas de comparativas cross-tienda, esquema y guardado atómico (14 pruebas)
+│   └── test_sprint3.py             # Pruebas de HTTP backoff, mocks, empaquetado y entry points (22 pruebas)
 ├── pyproject.toml                  # Empaquetado estándar pip, entry points CLI y metadatos (H13, H50)
 ├── requirements.txt                # Dependencias base de producción con cotas fijadas
 ├── requirements-dev.txt            # Dependencias de desarrollo y testing (pytest, ruff)
